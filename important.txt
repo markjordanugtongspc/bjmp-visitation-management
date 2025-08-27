@@ -1,0 +1,5 @@
+SUPABASE;
+Project Name: bjmp_db
+Password: LKc35XrGbhIPoDHo
+
+postgresql://postgres.zknmodpkgtdwevnmqczx:[YOUR-PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
