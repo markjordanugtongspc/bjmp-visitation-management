@@ -7,6 +7,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Public visitor request form (newly added)
+Route::view('/visitation/request/visitor', 'visitation.request.visitor')
+    ->name('visitation.request.visitor');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

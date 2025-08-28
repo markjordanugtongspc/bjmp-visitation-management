@@ -1,25 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-50 dark:bg-gray-900">
+<html lang="en" class="dark bg-white dark:bg-slate-900">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  @vite(['resources/css/app.css', 'resources/js/app.js']) <!--- Kani gamiton aron ma import ang tailwind css nga naka built in -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
 </head>
 <body>
+ <a href="{{ url('/') }}" aria-label="Close overlay" class="fixed inset-0 z-10 block bg-transparent"></a> <!-- Clickable aron mo adtog home -->
   <div class="min-h-screen flex items-center justify-center py-10 px-4">
-    <div class="relative w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-5xl xl:max-w-6xl grid grid-cols-1 lg:grid-cols-2 rounded-2xl bg-white dark:bg-gray-800 shadow-xl overflow-hidden lg:min-h-[34rem]">
-      <!-- Close Button (no behavior yet) -->
-      <button type="button" aria-label="Close"
-        class="absolute left-3 top-3 rounded-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100/80 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-          <path fill-rule="evenodd" d="M16.24 7.76a.75.75 0 0 1 0 1.06L13.06 12l3.18 3.18a.75.75 0 0 1-1.06 1.06L12 13.06l-3.18 3.18a.75.75 0 1 1-1.06-1.06L10.94 12 7.76 8.82a.75.75 0 1 1 1.06-1.06L12 10.94l3.18-3.18a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/>
-        </svg>
-      </button>
+    <div class="relative z-20 w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-5xl xl:max-w-6xl grid grid-cols-1 lg:grid-cols-2 rounded-2xl bg-gray-100 dark:bg-gray-900 shadow-xl overflow-hidden lg:min-h-[34rem]">
       
       <!-- Left Side Form -->
       <div class="p-8 lg:p-12">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Log In</h2>
+        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-50">Log In</h2>
 
         <!-- Session Status -->
         @if (session('status'))
@@ -39,7 +34,7 @@
               </svg>
             </span>
             <input id="email" name="email" type="email" required autofocus autocomplete="username" value="{{ old('email') }}"
-              class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 pl-10 pr-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 pl-10 pr-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
               placeholder="Enter your username or email...">
           </div>
           @error('email')
@@ -55,7 +50,7 @@
               </svg>
             </span>
             <input id="password" name="password" type="password" required autocomplete="current-password"
-              class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 pl-10 pr-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 pl-10 pr-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
               placeholder="Enter your password...">
           </div>
           @error('password')
@@ -65,18 +60,18 @@
           <!-- Terms + Remember -->
           <div class="mt-4 flex items-center justify-between">
             <label class="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <input type="checkbox" class="size-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-500">
-                <span>I agree to the <a href="#" class="text-indigo-600 hover:underline">Terms and Conditions</a></span>
+              <input type="checkbox" class="size-4 rounded border-gray-300 dark:border-gray-700 text-blue-500 focus:ring-blue-500">
+                <span>I agree to the <a href="#" class="text-blue-500 hover:text-blue-400">Terms and Conditions</a></span>
             </label>
             <label class="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <input id="remember" name="remember" type="checkbox" {{ old('remember') ? 'checked' : '' }} class="size-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-500">
+              <input id="remember" name="remember" type="checkbox" {{ old('remember') ? 'checked' : '' }} class="size-4 rounded border-gray-300 dark:border-gray-700 text-blue-500 focus:ring-blue-500">
               <span>Remember me</span>
             </label>
           </div>
 
           <!-- Submit -->
           <div class="mt-6 flex justify-end">
-            <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-white hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            <button type="submit" class="inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer">
               LOGIN
             </button>
           </div>
@@ -84,23 +79,23 @@
           <!-- Links -->
           <div class="mt-6 flex items-center justify-between">
             @if (Route::has('register'))
-            <a href="{{ route('register') }}" class="inline-block border-b border-black pb-0.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Sign Up</a>
+            <a href="{{ route('register') }}" class="inline-block border-b border-black pb-0.5 text-sm text-gray-900 dark:text-gray-50 hover:text-gray-900 dark:hover:text-gray-50 transition-colors">Sign Up</a>
             @endif
             @if (Route::has('password.request'))
-            <a href="{{ route('password.request') }}" class="inline-block border-b border-black pb-0.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Forgot Password?</a>
+            <a href="{{ route('password.request') }}" class="inline-block border-b border-black pb-0.5 text-sm text-gray-900 dark:text-gray-50 hover:text-gray-900 dark:hover:text-gray-50 transition-colors">Forgot Password?</a>
             @endif
           </div>
 
           <!-- Social Buttons -->
           <div class="mt-6 flex flex-col items-center gap-3">
-            <button type="button" class="w-full max-w-sm inline-flex items-center justify-center gap-2 rounded-lg bg-[#1877F2] px-4 py-2 text-white hover:brightness-110">
+            <button type="button" class="w-full max-w-sm flex items-center justify-center gap-2 rounded-lg bg-[#1877F2] px-2 py-2 text-white hover:brightness-110 cursor-pointer">
               <!-- Facebook Icon -->
               <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="size-5" viewBox="0 0 24 24"><path d="M22 12.06C22 6.48 17.52 2 11.94 2S2 6.48 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.41c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.45h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.91h-2.34v7.03C18.34 21.24 22 17.08 22 12.06Z"/></svg>
               LOGIN WITH FACEBOOK
             </button>
-            <button type="button" class="w-full max-w-sm inline-flex items-center justify-center gap-2 rounded-lg bg-[#EA4335] px-4 py-2 text-white hover:brightness-110">
-                            <!-- Google Icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="size-5" viewBox="0 0 24 24">
+            <button type="button" class="w-full max-w-sm flex items-center justify-center gap-2 rounded-lg bg-[#EA4335] px-2 py-2 text-white hover:brightness-110 cursor-pointer">
+              <!-- Google Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="size-5" viewBox="0 0 24 24">
                 <path d="M12 2a10 10 0 0 0-9.46 6.64h4.09A6.03 6.03 0 0 1 12 6.03c1.44 0 2.76.51 3.78 1.34l2.66-2.66A10 10 0 0 0 12 2Z"/>
                 <path d="M21.8 12.2a10.1 10.1 0 0 0-.26-2.2H12v4.2h5.5a4.7 4.7 0 0 1-2 3.09v2.56h3.24c1.9-1.75 3.06-4.33 3.06-7.65Z"/>
                 <path d="M6.63 14.64A6 6 0 0 1 6 12c0-.6.1-1.18.28-1.72H2.2a10 10 0 0 0 0 7.44l3.72-3.08Z"/>
@@ -113,7 +108,7 @@
       </div>
 
       <!-- Right Side Info Section -->
-      <div class="hidden lg:flex items-center justify-center bg-indigo-600 p-10 text-white">
+      <div class="hidden lg:flex items-center justify-center bg-blue-800 dark:bg-blue-500 p-10 text-white">
         <div class="max-w-md text-center">
           <div class="h-40 w-40 mx-auto mb-6 rounded-xl">
              <img src="{{ asset('images/auth/login_page.gif') }}" alt="Banner" class="h-full w-full object-cover rounded-xl">
@@ -121,11 +116,20 @@
           <p class="text-sm opacity-90">
             Empowered by cutting-edge facial recognition, the BJMP jail management system ensures seamless security, precise PDL monitoring, and a smarter, more efficient visitation experience.
           </p>
-          <div class="mt-6 flex items-center justify-center gap-2">
-            <span class="size-2 rounded-full bg-white/80"></span>
-            <span class="size-2 rounded-full bg-white/60"></span>
-            <span class="size-2 rounded-full bg-white/60"></span>
-            <span class="size-2 rounded-full bg-white/60"></span>
+          <div class="mt-6 flex items-center justify-center gap-3">
+            <button class="flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span class="size-2 rounded-full bg-white/80 hover:bg-white hover:scale-110 transition-all cursor-pointer"></span>
+            <span class="size-2 rounded-full bg-white/60 hover:bg-white hover:scale-110 transition-all cursor-pointer"></span>
+            <span class="size-2 rounded-full bg-white/60 hover:bg-white hover:scale-110 transition-all cursor-pointer"></span>
+            <button class="flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
