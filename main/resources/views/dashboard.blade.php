@@ -1,17 +1,363 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
+    <div class="flex">
+        <!-- Overlay for mobile -->
+        <div data-sidebar-overlay class="fixed inset-0 z-30 hidden bg-black/50 backdrop-blur-sm sm:hidden"></div>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    {{ __("You're logged in!") }}
+        <!-- Sidebar -->
+        <aside data-sidebar class="fixed z-40 inset-y-0 left-0 w-72 -translate-x-full sm:translate-x-0 sm:static sm:inset-auto bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-transform">
+
+            <nav data-sidebar-nav class="p-3 text-sm">
+                <div class="px-3 pb-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Main</div>
+                <a href="{{ route('dashboard') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('dashboard') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a.75.75 0 011.06 0l8.69 8.69a.75.75 0 11-1.06 1.06l-.19-.19V18a2.25 2.25 0 01-2.25 2.25H15a.75.75 0 01-.75-.75v-4.5h-3V19.5a.75.75 0 01-.75.75H6.25A2.25 2.25 0 014 18v-4.69l-.19.19a.75.75 0 11-1.06-1.06l7.75-7.75Z"/></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM3 20.25a8.25 8.25 0 1116.5 0V21H3v-.75z"/></svg>
+                    <span>Inmates</span>
+                </a>
+                <a href="{{ url('/visitation/request/visitor') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 7.5A4.5 4.5 0 1112 3a4.5 4.5 0 014.5 4.5zM4.5 19.5a7.5 7.5 0 0115 0V21H4.5v-1.5z"/></svg>
+                    <span>Visitors</span>
+                </a>
+                <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M6.75 3A3.75 3.75 0 003 6.75v10.5A3.75 3.75 0 006.75 21h10.5A3.75 3.75 0 0021 17.25V6.75A3.75 3.75 0 0017.25 3H6.75zM7.5 7.5h9v6h-9v-6z"/></svg>
+                    <span>Schedules</span>
+                </a>
+
+                <div class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Visitation</div>
+                <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 5.25A2.25 2.25 0 016.75 3h10.5A2.25 2.25 0 0119.5 5.25v13.5A2.25 2.25 0 0117.25 21H6.75A2.25 2.25 0 014.5 18.75V5.25zM7.5 9h9v6h-9V9z"/></svg>
+                    <span>Requests</span>
+                </a>
+                <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm9.75-4.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-3 7.5a3 3 0 116 0v.75h-6V15z"/></svg>
+                    <span>Facial Recognition</span>
+                </a>
+
+                <div class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Administration</div>
+                <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6.75a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5zM3 12a9 9 0 1118 0 9 9 0 01-18 0z"/></svg>
+                    <span>Reports</span>
+                </a>
+                <a href="{{ route('profile.edit') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a7.5 7.5 0 0115 0V21H4.5v-1.5z"/></svg>
+                    <span>Profile</span>
+                </a>
+
+                <div class="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 rounded-full bg-blue-500/10 ring-2 ring-blue-500/20 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25A9.75 9.75 0 1021.75 12 9.76 9.76 0 0012 2.25zm0 3a1.5 1.5 0 11-1.5 1.5A1.5 1.5 0 0112 5.25zM9 10.5h6v8.25H9z"/></svg>
+                        </div>
+                        <div class="text-xs text-gray-600 dark:text-gray-300">
+                            Keep records updated and verified.
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950">
+            <!-- Top bar (mobile toggle) -->
+            <div class="sm:hidden flex items-center justify-between px-4 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+                <button data-sidebar-toggle class="inline-flex items-center gap-2 rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    Menu
+                </button>
+                <span class="text-sm font-semibold text-gray-900 dark:text-gray-50">Dashboard</span>
+            </div>
+
+            <div class="p-4 sm:p-6">
+                <!-- Analytics Overview -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                    <!-- Line Chart -->
+                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 lg:col-span-2">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Weekly Visitor Traffic</div>
+                            <span class="text-[11px] text-gray-500 dark:text-gray-400">Last 7 days</span>
+                        </div>
+                        <div class="mt-3">
+                            <svg viewBox="0 0 600 220" class="w-full h-48">
+                                <defs>
+                                    <linearGradient id="lineFill" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.25" />
+                                        <stop offset="100%" stop-color="#3B82F6" stop-opacity="0" />
+                                    </linearGradient>
+                                </defs>
+                                <g fill="none" stroke-width="2">
+                                    <path d="M40 170 L100 150 L160 120 L220 140 L280 100 L340 110 L400 90 L460 95 L520 70" stroke="#3B82F6" />
+                                    <path d="M40 170 L100 150 L160 120 L220 140 L280 100 L340 110 L400 90 L460 95 L520 70 L520 200 L40 200 Z" fill="url(#lineFill)" stroke="none" />
+                                </g>
+                                <g stroke="#e5e7eb" class="dark:stroke-gray-800">
+                                    <line x1="40" y1="200" x2="560" y2="200" />
+                                </g>
+                                <g fill="#6b7280" class="dark:fill-gray-400" font-size="10">
+                                    <text x="40" y="210">Mon</text>
+                                    <text x="120" y="210">Tue</text>
+                                    <text x="200" y="210">Wed</text>
+                                    <text x="280" y="210">Thu</text>
+                                    <text x="360" y="210">Fri</text>
+                                    <text x="440" y="210">Sat</text>
+                                    <text x="520" y="210">Sun</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Donut -->
+                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                        <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Request Status</div>
+                        <div class="mt-3 flex items-center justify-center">
+                            <svg viewBox="0 0 120 120" class="h-40 w-40 -rotate-90">
+                                <circle cx="60" cy="60" r="48" stroke="#e5e7eb" class="dark:stroke-gray-800" stroke-width="16" fill="none" />
+                                <circle cx="60" cy="60" r="48" stroke="#22c55e" stroke-width="16" fill="none" stroke-dasharray="302" stroke-dashoffset="160" />
+                                <circle cx="60" cy="60" r="48" stroke="#f59e0b" stroke-width="16" fill="none" stroke-dasharray="302" stroke-dashoffset="250" />
+                                <circle cx="60" cy="60" r="48" stroke="#ef4444" stroke-width="16" fill="none" stroke-dasharray="302" stroke-dashoffset="285" />
+                            </svg>
+                        </div>
+                        <div class="mt-2 grid grid-cols-3 gap-2 text-[11px] text-gray-600 dark:text-gray-300">
+                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-green-500"></span>Approved</div>
+                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-amber-500"></span>Pending</div>
+                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-red-500"></span>Rejected</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-600 dark:text-gray-300">Total Inmates</div>
+                            <span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Live</span>
+                        </div>
+                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">218</div>
+                    </div>
+                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                        <div class="text-sm text-gray-600 dark:text-gray-300">Approved Visits</div>
+                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">64</div>
+                    </div>
+                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                        <div class="text-sm text-gray-600 dark:text-gray-300">Pending Requests</div>
+                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">23</div>
+                    </div>
+                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                        <div class="text-sm text-gray-600 dark:text-gray-300">Today's Visits</div>
+                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">12</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <a href="{{ url('/visitation/request/visitor') }}" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a.75.75 0 01.75.75V12h6.75a.75.75 0 010 1.5H12.75V20a.75.75 0 01-1.5 0v-6.5H4.5a.75.75 0 010-1.5h6.75V5.25A.75.75 0 0112 4.5z"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">New Visitation Request</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400">Create manual or automatic</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a9.75 9.75 0 019.75 9.75h-1.5A8.25 8.25 0 0012 3.75V2.25zM3 12A9 9 0 0012 21v-1.5A7.5 7.5 0 014.5 12H3z"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Check-in Visitor</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400">Record arrival</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M6.75 5.25A2.25 2.25 0 019 3h6a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0115 21H9a2.25 2.25 0 01-2.25-2.25V5.25zM9 6h6v12H9V6z"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Register Inmate</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400">Add new record</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a7.5 7.5 0 100 15 7.5 7.5 0 000-15zm0 3a4.5 4.5 0 013.89 2.25H8.11A4.5 4.5 0 0112 7.5z"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Run Face Scan</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400">Verify identity</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Main Panels -->
+                <div class="mt-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
+                    <!-- Recent Requests -->
+                    <div class="xl:col-span-2 rounded-xl bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800">
+                        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                            <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Recent Visitation Requests</div>
+                            <a href="#" class="text-xs text-blue-500 hover:underline">View all</a>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-600 dark:text-gray-300">
+                                    <tr>
+                                        <th class="text-left font-medium px-4 py-2">Visitor</th>
+                                        <th class="text-left font-medium px-4 py-2">Inmate</th>
+                                        <th class="text-left font-medium px-4 py-2">Date</th>
+                                        <th class="text-left font-medium px-4 py-2">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200">
+                                    <tr>
+                                        <td class="px-4 py-2">Juan Dela Cruz</td>
+                                        <td class="px-4 py-2">R. Santos</td>
+                                        <td class="px-4 py-2">2025-09-02 10:00</td>
+                                        <td class="px-4 py-2"><span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Pending</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2">Maria I.</td>
+                                        <td class="px-4 py-2">J. Dizon</td>
+                                        <td class="px-4 py-2">2025-09-02 13:30</td>
+                                        <td class="px-4 py-2"><span class="inline-flex items-center rounded-full bg-green-500/10 text-green-500 px-2 py-0.5 text-[11px]">Approved</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2">A. Lopez</td>
+                                        <td class="px-4 py-2">K. Reyes</td>
+                                        <td class="px-4 py-2">2025-09-03 09:00</td>
+                                        <td class="px-4 py-2"><span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-2 py-0.5 text-[11px]">Rejected</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Schedules -->
+                    <div class="rounded-xl bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800">
+                        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 text-sm font-medium text-gray-900 dark:text-gray-50">Upcoming Schedules</div>
+                        <div class="p-4 space-y-3 text-sm text-gray-700 dark:text-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">Wed, 3 PM</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Group visitation - Hall A</div>
+                                </div>
+                                <span class="inline-flex items-center rounded-full bg-amber-500/10 text-amber-500 px-2 py-0.5 text-[11px]">Capacity 70%</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">Fri, 10 AM</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Family visit - Hall B</div>
+                                </div>
+                                <span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Open</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">Sat, 1 PM</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Legal counsel - Room 2</div>
+                                </div>
+                                <span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-2 py-0.5 text-[11px]">Full</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bar Chart + Progress -->
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <!-- Bar Chart -->
+                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 lg:col-span-2">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Monthly Visits</div>
+                            <span class="text-[11px] text-gray-500 dark:text-gray-400">2025</span>
+                        </div>
+                        <div class="mt-3">
+                            <svg viewBox="0 0 600 220" class="w-full h-48">
+                                <g fill="#3B82F6">
+                                    <rect x="40" y="120" width="28" height="80" rx="4"/>
+                                    <rect x="90" y="100" width="28" height="100" rx="4"/>
+                                    <rect x="140" y="140" width="28" height="60" rx="4"/>
+                                    <rect x="190" y="90" width="28" height="110" rx="4"/>
+                                    <rect x="240" y="130" width="28" height="70" rx="4"/>
+                                    <rect x="290" y="70" width="28" height="130" rx="4"/>
+                                    <rect x="340" y="110" width="28" height="90" rx="4"/>
+                                    <rect x="390" y="95" width="28" height="105" rx="4"/>
+                                    <rect x="440" y="150" width="28" height="50" rx="4"/>
+                                    <rect x="490" y="125" width="28" height="75" rx="4"/>
+                                </g>
+                                <g fill="#6b7280" class="dark:fill-gray-400" font-size="10">
+                                    <text x="40" y="210">Jan</text>
+                                    <text x="90" y="210">Feb</text>
+                                    <text x="140" y="210">Mar</text>
+                                    <text x="190" y="210">Apr</text>
+                                    <text x="240" y="210">May</text>
+                                    <text x="290" y="210">Jun</text>
+                                    <text x="340" y="210">Jul</text>
+                                    <text x="390" y="210">Aug</text>
+                                    <text x="440" y="210">Sep</text>
+                                    <text x="490" y="210">Oct</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Progress Cards -->
+                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                        <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Facility Capacity</div>
+                        <div class="mt-3 space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-600 dark:text-gray-300"><span>Hall A</span><span>70%</span></div>
+                                <div class="h-2 rounded bg-gray-100 dark:bg-gray-800 mt-1">
+                                    <div class="h-2 rounded bg-blue-500" style="width:70%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-600 dark:text-gray-300"><span>Hall B</span><span>45%</span></div>
+                                <div class="h-2 rounded bg-gray-100 dark:bg-gray-800 mt-1">
+                                    <div class="h-2 rounded bg-amber-500" style="width:45%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-600 dark:text-gray-300"><span>Room 2</span><span>90%</span></div>
+                                <div class="h-2 rounded bg-gray-100 dark:bg-gray-800 mt-1">
+                                    <div class="h-2 rounded bg-red-500" style="width:90%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Announcements / Info -->
+                <div class="mt-4 rounded-xl bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800">
+                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                        <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Announcements</div>
+                        <button class="text-xs text-blue-500 hover:underline">Mark all as read</button>
+                    </div>
+                    <div class="p-4 space-y-3 text-sm text-gray-700 dark:text-gray-200">
+                        <div class="flex gap-3">
+                            <div class="h-6 w-6 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a9.75 9.75 0 019.75 9.75H18l3.75 3.75L18 19.5v-3h-6v-3H5.25A9.75 9.75 0 0112 2.25z"/></svg>
+                            </div>
+                            <div>
+                                Updated visitation hours effective next week. Please check schedules.
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="h-6 w-6 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5zM12 7.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V8.25A.75.75 0 0112 7.5zm0 9a1.125 1.125 0 111.125-1.125A1.125 1.125 0 0112 16.5z"/></svg>
+                            </div>
+                            <div>
+                                Bring a valid ID for verification. Face scan will be required at entry.
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    @vite('resources/js/dashboard/home.js')
 </x-app-layout>

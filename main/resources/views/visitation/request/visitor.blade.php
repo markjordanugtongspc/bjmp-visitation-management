@@ -110,8 +110,8 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-50">Start a Request</h3>
                     <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Choose how you want to submit your visitation request.</p>
                     <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button type="button" id="btn-manual" class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Manual Request</button>
-                        <button type="button" id="btn-auto" class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Automatic Request</button>
+                        <button type="button" id="btn-manual" class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">Manual Request</button>
+                        <button type="button" id="btn-auto" class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">Automatic Request</button>
                     </div>
                 </div>
 
