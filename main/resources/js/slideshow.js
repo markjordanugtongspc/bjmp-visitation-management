@@ -146,13 +146,169 @@ export function mountSlideshow(root) {
   }
 }
 
+// Auth image detection for login page
+async function detectAuthImages(base = '/images/auth/slides', max = 10) {
+  const extensions = ['png', 'jpg', 'jpeg', 'webp'];
+  const candidates = [];
+  
+  // Try to find images with pattern a1.png, a2.png, etc.
+  for (let i = 1; i <= max; i++) {
+    for (const ext of extensions) candidates.push(`${base}/a${i}.${ext}`);
+  }
+  
+  // Check which images actually exist
+  const checks = await Promise.all(candidates.map((u) => probeImage(u, 2000)));
+  const found = candidates.filter((_, i) => checks[i]);
+  
+  // If no images found, use fallback from landing showcase
+  if (found.length) return found;
+  return [
+    '/images/landing/showcase/p1.jpg',
+    '/images/landing/showcase/p2.jpg',
+    '/images/landing/showcase/p3.jpg'
+  ];
+}
+
+// Auth slideshow mount function for login page
+export function mountAuthSlideshow(root) {
+  const images = JSON.parse(root.getAttribute('data-images') || '[]');
+  const isBg = root.getAttribute('data-bg') === 'true';
+  const imgEl = isBg ? null : root.querySelector('img');
+  
+  // For login page, find controls in parent containers
+  const parentDiv = root.closest('div').parentElement;
+  const controlsContainer = parentDiv ? parentDiv.querySelector('.absolute') : null;
+  const prevBtn = controlsContainer ? controlsContainer.querySelector('[data-prev]') : null;
+  const nextBtn = controlsContainer ? controlsContainer.querySelector('[data-next]') : null;
+  const staticIndicators = controlsContainer ? controlsContainer.querySelectorAll('.rounded-full') : null;
+  
+  const overlayEl = root.querySelector('.hero-overlay');
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!images.length || (!imgEl && !isBg)) return;
+
+  let index = 0;
+  let timer = null;
+
+  const render = () => {
+    if (isBg) {
+      const temp = document.createElement('div');
+      temp.className = 'absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0 slide-layer';
+      if (prefersReduced) {
+        temp.style.transition = 'none';
+      }
+
+      const img = new Image();
+      img.src = images[index];
+      img.onload = () => {
+        temp.style.backgroundImage = `url("${images[index]}")`;;
+        temp.style.backgroundSize = 'cover';
+        temp.style.backgroundPosition = 'center';
+        temp.style.backgroundRepeat = 'no-repeat';
+        temp.style.transform = prefersReduced ? 'none' : 'scale(1.02)';
+        temp.style.zIndex = '0';
+        if (overlayEl) overlayEl.style.zIndex = '1';
+
+        root.appendChild(temp);
+        requestAnimationFrame(() => {
+          temp.classList.remove('opacity-0');
+        });
+      };
+
+      setTimeout(() => {
+        const oldLayers = root.querySelectorAll('.slide-layer:not(:last-of-type)');
+        oldLayers.forEach((div) => div.remove());
+      }, 1000);
+    } else if (imgEl) {
+      imgEl.src = images[index];
+    }
+    
+    // Update static indicators for login page
+    if (staticIndicators && staticIndicators.length) {
+      staticIndicators.forEach((indicator, i) => {
+        // Reset all indicators to inactive state
+        indicator.className = indicator.className.replace('bg-white', 'bg-white/70');
+        
+        // Add click handler if not already added
+        if (!indicator.hasAttribute('data-slide-index')) {
+          indicator.setAttribute('data-slide-index', i);
+          indicator.addEventListener('click', () => {
+            if (i < images.length) {
+              index = i;
+              restart();
+            }
+          });
+        }
+      });
+      
+      // Set active indicator
+      if (staticIndicators[index]) {
+        staticIndicators[index].className = staticIndicators[index].className.replace('bg-white/70', 'bg-white');
+      }
+    }
+  };
+
+  const next = () => { index = (index + 1) % images.length; render(); };
+  const prev = () => { index = (index - 1 + images.length) % images.length; render(); };
+  const start = () => { if (!prefersReduced) timer = setInterval(next, 5000); };
+  const stop = () => { if (timer) clearInterval(timer); };
+  const restart = () => { stop(); render(); start(); };
+
+  // Add button event listeners
+  prevBtn?.addEventListener('click', () => { prev(); restart(); });
+  nextBtn?.addEventListener('click', () => { next(); restart(); });
+  root.addEventListener('mouseenter', stop);
+  root.addEventListener('mouseleave', start);
+
+  // Pause when tab not visible
+  const onVisibility = () => { document.hidden ? stop() : start(); };
+  document.addEventListener('visibilitychange', onVisibility);
+
+  // Touch swipe for mobile
+  let touchX = 0, touchY = 0, touchTime = 0;
+  const touchTarget = isBg ? root : (imgEl || root);
+  touchTarget.addEventListener('touchstart', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    touchX = t.clientX; touchY = t.clientY; touchTime = Date.now();
+    stop();
+  }, { passive: true });
+  touchTarget.addEventListener('touchend', (e) => {
+    const dt = Date.now() - touchTime;
+    const t = e.changedTouches && e.changedTouches[0];
+    if (!t) { start(); return; }
+    const dx = t.clientX - touchX;
+    const dy = t.clientY - touchY;
+    const absX = Math.abs(dx), absY = Math.abs(dy);
+    if (dt < 800 && absX > 30 && absX > absY) {
+      if (dx < 0) next(); else prev();
+      restart();
+    } else {
+      start();
+    }
+  }, { passive: true });
+
+  render();
+  start();
+}
+
 export async function initSlideshows() {
+  // Initialize welcome page slideshow
   const slideshowEl = document.getElementById('hero-slideshow');
   if (slideshowEl) {
     const base = slideshowEl.getAttribute('data-base') || '/images/landing/showcase';
     const images = await detectShowcaseImages(base);
     slideshowEl.setAttribute('data-images', JSON.stringify(images));
     mountSlideshow(slideshowEl);
+  }
+  
+  // Initialize auth page slideshow
+  const authSlideshowEl = document.getElementById('auth-slideshow');
+  if (authSlideshowEl) {
+    const base = '/images/auth/slides';
+    const images = await detectAuthImages(base);
+    authSlideshowEl.setAttribute('data-images', JSON.stringify(images));
+    mountAuthSlideshow(authSlideshowEl);
   }
 }
 

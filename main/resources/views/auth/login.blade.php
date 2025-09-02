@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login</title>
-  @vite(['resources/css/app.css', 'resources/js/app.js']) <!--- Kani gamiton aron ma import ang tailwind css nga naka built in -->
+
+  <!-- Favicon -->
+  <link rel="icon" href="{{ asset('images/logo/logo-temp_round.png') }}" type="image/png">
+    
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/slideshow.js']) <!--- Kani gamiton aron ma import ang tailwind css nga naka built in -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
 </head>
 <body>
@@ -71,7 +75,7 @@
 
           <!-- Submit -->
           <div class="mt-6 flex justify-center">
-            <button type="submit" class="inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer">
+            <button type="submit" class="w-full max-w-sm justify-center rounded-lg px-5 py-2.5 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer">
               LOGIN
             </button>
           </div>
@@ -107,29 +111,49 @@
         </form>
       </div>
 
-      <!-- Right Side Info Section -->
-      <div class="hidden lg:flex items-center justify-center bg-blue-800 dark:bg-blue-500 p-10 text-white">
-        <div class="max-w-md text-center">
-          <div class="h-40 w-40 mx-auto mb-6 rounded-xl">
-             <img src="{{ asset('images/auth/login_page.gif') }}" alt="Banner" class="h-full w-full object-cover rounded-xl">
-          </div>
-          <p class="text-sm opacity-90">
-            Empowered by cutting-edge facial recognition, the BJMP jail management system ensures seamless security, precise PDL monitoring, and a smarter, more efficient visitation experience.
-          </p>
-          <div class="mt-6 flex items-center justify-center gap-3">
-            <button class="flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <span class="size-2 rounded-full bg-white/80 hover:bg-white hover:scale-110 transition-all cursor-pointer"></span>
-            <span class="size-2 rounded-full bg-white/60 hover:bg-white hover:scale-110 transition-all cursor-pointer"></span>
-            <span class="size-2 rounded-full bg-white/60 hover:bg-white hover:scale-110 transition-all cursor-pointer"></span>
-            <button class="flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+      <!-- Right Side Info Section with Background Slideshow -->
+      <div class="hidden lg:block relative overflow-hidden">
+        <!-- Background Slideshow - Images managed by slideshow.js -->
+        <div id="auth-slideshow" 
+             data-bg="true"
+             data-base="/images/auth/slides"
+             class="absolute inset-0 transition-opacity duration-1000 ease-in-out">
+          <!-- Dark overlay with gradient -->
+          <div class="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-800/40 to-gray-900/40 backdrop-blur-sm pointer-events-none hero-overlay"></div>
+        </div>
+        
+        <!-- Content overlay -->
+        <div class="relative z-10 h-full flex flex-col items-center justify-center p-10 text-white">
+          <div class="max-w-md text-center">
+            <h3 class="text-2xl font-bold mb-4">BJMP Iligan City</h3>
+            <p class="text-sm opacity-90 mb-6">
+              Empowered by cutting-edge facial recognition, the BJMP jail management system ensures seamless security, precise PDL monitoring, and a smarter, more efficient visitation experience.
+            </p>
+            
+            <!-- Slideshow Controls (bottom overlay; ensure parent is relative) -->
+            <div class="absolute bottom-5 left-3 right-0 w-full flex items-center justify-center gap-3">
+              <!-- Previous -->
+              <button type="button" data-prev class="flex items-center justify-center text-white border border-white rounded-full p-2 bg-transparent cursor-pointer" aria-label="Previous slide">
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            
+              <!-- Progress / indicators (matching the look in your screenshot) -->
+              <div class="flex items-center gap-2" aria-label="Slide progress" style="width: 180px;">
+                <!-- Make the leftmost white pill hoverable -->
+                <span class="h-4 w-14 rounded-full bg-white transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-sm"></span>
+                <span class="h-4 w-10 rounded-full bg-white/70"></span>
+                <span class="h-4 w-14 rounded-full bg-white/70"></span>
+              </div>
+            
+              <!-- Next -->
+              <button type="button" data-next class="flex items-center justify-center text-white border border-white rounded-full p-2 bg-transparent cursor-pointer" aria-label="Next slide">
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

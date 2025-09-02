@@ -84,25 +84,27 @@
                 </button>
             </div>
 
-            <!-- Hero Content -->
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="max-w-4xl mx-auto text-center">
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
-                        BJMP Information Management and Visitation
-                        <span class="block text-blue-400 mt-2">with Facial Recognition</span>
-                    </h1>
-                    <p class="text-lg sm:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-                        Showcasing the Bureau of Jail Management and Penology in Iligan City. A modern, secure, and efficient platform for managing information and streamlining visitor access.
-                    </p>
-                    <div class="flex flex-wrap items-center justify-center gap-4">
-                        <a href="{{ url('visitation/request/visitor') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 text-white rounded-lg text-lg font-medium transition-colors">
-                            Request Visitation
-                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
+        <!-- Hero Content (Glassmorphism design) -->
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="w-full mx-auto text-center bg-black/40 border border-white/25 rounded-2xl shadow-2xl backdrop-blur-md backdrop-saturate-150
+            			p-4 sm:p-6 md:p-8 lg:p-12 xl:p-14
+            			max-w-full sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
+            	<h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2">
+            	BJMP Information Management and Visitation
+            	</h1>
+            	<p class="text-blue-400 text-sm sm:text-base mb-6">with Facial Recognition</p>
+            	<p class="text-sm md:text-base text-gray-100 mb-6 max-w-2xl mx-auto">
+            	Showcasing the Bureau of Jail Management and Penology in Iligan City. A modern, secure, and efficient platform for managing information and streamline visitor access.
+            	</p>
+            	<div class="flex flex-wrap items-center justify-center gap-4">
+            	<a href="{{ url('visitation/request/visitor') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-medium transition-colors">
+            		Request Visitation
+            		<svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            		<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            		</svg>
+            	</a>
+            	</div>
+            </div>
             </div>
         </section>
 
