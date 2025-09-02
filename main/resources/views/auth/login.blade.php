@@ -70,7 +70,7 @@
           </div>
 
           <!-- Submit -->
-          <div class="mt-6 flex justify-end">
+          <div class="mt-6 flex justify-center">
             <button type="submit" class="inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer">
               LOGIN
             </button>
@@ -108,7 +108,7 @@
       </div>
 
       <!-- Right Side Info Section -->
-      <!-- <div class="hidden lg:flex items-center justify-center bg-blue-800 dark:bg-blue-500 p-10 text-white">
+      <div class="hidden lg:flex items-center justify-center bg-blue-800 dark:bg-blue-500 p-10 text-white">
         <div class="max-w-md text-center">
           <div class="h-40 w-40 mx-auto mb-6 rounded-xl">
              <img src="{{ asset('images/auth/login_page.gif') }}" alt="Banner" class="h-full w-full object-cover rounded-xl">
@@ -132,7 +132,7 @@
             </button>
           </div>
         </div>
-      </div> -->
+      </div>
 
     </div>
   </div>
