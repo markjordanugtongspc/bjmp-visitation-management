@@ -1,19 +1,20 @@
-<nav x-data="{ open: false }" class="sticky top-0 z-40 border-b border-gray-100 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur">
+{{-- 
+<nav x-data="{ open: false }" class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center gap-4 h-16">
+        <div class="flex items-center gap-3 h-14 sm:h-16">
             <!-- Primary Navigation Logo Brand (left-aligned) -->
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 shrink-0">
-                <x-application-logo :show-text="true" heading="BJMP Iligan" subtext="Information & Visitation" />
+                <x-application-logo size="sm" :show-text="true" heading="BJMP Iligan" subtext="Information & Visitation" />
             </a>
 
             <!-- Search (md+) -->
             <div class="hidden md:flex grow items-center">
                 <div class="w-full max-w-lg relative">
                     <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3a7.5 7.5 0 015.964 12.07l3.183 3.183a1.125 1.125 0 11-1.59 1.59l-3.183-3.183A7.5 7.5 0 1110.5 3zm0 2.25a5.25 5.25 0 100 10.5 5.25 5.25 0 000-10.5z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a6.75 6.75 0 105.196 11.163l3.646 3.646a.75.75 0 101.06-1.06l-3.646-3.646A6.75 6.75 0 0010.5 3.75zM6 10.5a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/></svg>
                     </span>
-                    <input type="search" placeholder="Search..." class="w-full rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input type="search" placeholder="Search..." class="w-full rounded-md bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 pl-9 pr-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
             </div>
 
@@ -94,3 +95,4 @@
         </div>
     </div>
 </nav>
+--}}

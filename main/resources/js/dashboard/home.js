@@ -30,6 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // User menu toggle
+  const userBtn = document.querySelector('[data-user-menu]');
+  const userMenu = document.querySelector('[data-user-menu-panel]');
+  if (userBtn && userMenu) {
+    const toggleUserMenu = () => userMenu.classList.toggle('hidden');
+    const hideUserMenu = (e) => {
+      if (!userMenu.contains(e.target) && !userBtn.contains(e.target)) {
+        userMenu.classList.add('hidden');
+      }
+    };
+    userBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleUserMenu(); });
+    document.addEventListener('click', hideUserMenu);
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') userMenu.classList.add('hidden'); });
+  }
 });
 
 

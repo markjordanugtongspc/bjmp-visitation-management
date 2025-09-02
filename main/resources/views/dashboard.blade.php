@@ -60,14 +60,64 @@
 
         <!-- Main content -->
         <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950">
-            <!-- Top bar (mobile toggle) -->
-            <div class="sm:hidden flex items-center justify-between px-4 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-                <button data-sidebar-toggle class="inline-flex items-center gap-2 rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    Menu
-                </button>
-                <span class="text-sm font-semibold text-gray-900 dark:text-gray-50">Dashboard</span>
-            </div>
+            <!-- Hope UI–style Header -->
+            <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
+                <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">
+                 <!-- Mobile: sidebar toggle (hamburger icon) -->
+                    <button data-sidebar-toggle class="sm:hidden inline-flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 h-9 w-9 text-gray-700 dark:text-gray-300">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-label="Menu" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 6h16" />
+                        <path d="M4 12h16" />
+                        <path d="M4 18h16" />
+                      </svg>
+                    </button>
+
+                    <!-- Brand -->
+                    <a href="{{ route('dashboard') }}" class="hidden sm:flex items-center gap-2 mr-2">
+                        <x-application-logo size="sm" :showText="true" heading="BJMP Iligan" subtext="Information & Visitation" />
+                    </a>
+
+                    <!-- Search -->
+                    <div class="flex-1 max-w-xl">
+                        <label class="relative block">
+                            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a6.75 6.75 0 105.196 11.163l3.646 3.646a.75.75 0 101.06-1.06l-3.646-3.646A6.75 6.75 0 0010.5 3.75zM6 10.5a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/></svg>
+                            </span>
+                            <input placeholder="Search..." class="w-full h-9 pl-9 pr-3 rounded-md bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        </label>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2 ml-auto">
+                        <!-- <a href="#" class="hidden sm:inline-flex items-center gap-1 h-9 px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium">Go Pro</a> -->
+
+                        <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                            <span class="sr-only">Announcements</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a7.5 7.5 0 00-7.5 7.5V12l-1.5 1.5V15h18v-1.5L19.5 12V9.75a7.5 7.5 0 00-7.5-7.5zM8.25 18a3.75 3.75 0 007.5 0h-7.5z"/></svg>
+                        </button>
+
+                        <!-- User dropdown -->
+                        <div class="relative">
+                            <button data-user-menu class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                                <img src="{{ asset('images/logo/logo-temp_round.png') }}" class="h-8 w-8 rounded-full ring-2 ring-blue-500/30" alt="User" />
+                                <div class="hidden sm:block text-left leading-tight">
+                                    <div class="text-xs font-medium text-gray-900 dark:text-gray-50">{{ Auth::user()->name ?? 'User' }}</div>
+                                    <div class="text-[10px] text-gray-500 dark:text-gray-400">Super Admin</div>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15l-4-4h8z"/></svg>
+                            </button>
+                            <!-- Menu -->
+                            <div data-user-menu-panel class="absolute right-0 mt-2 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg hidden">
+                                <a href="{{ route('profile.edit') }}" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">Profile</a>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">Log Out</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
             <div class="p-4 sm:p-6">
                 <!-- Analytics Overview -->
