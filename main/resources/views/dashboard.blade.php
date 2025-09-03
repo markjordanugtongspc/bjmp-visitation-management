@@ -44,6 +44,13 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a7.5 7.5 0 0115 0V21H4.5v-1.5z"/></svg>
                     <span>Profile</span>
                 </a>
+                <a href="" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-label="Lock" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                </svg>
+                    <span>Admin</span>
+                </a>
 
                 <div class="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
                     <div class="flex items-center gap-3">
@@ -98,14 +105,32 @@
 
                         <!-- User dropdown -->
                         <div class="relative">
-                            <button data-user-menu class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                                <img src="{{ asset('images/logo/logo-temp_round.png') }}" class="h-8 w-8 rounded-full ring-2 ring-blue-500/30" alt="User" />
-                                <div class="hidden sm:block text-left leading-tight">
-                                    <div class="text-xs font-medium text-gray-900 dark:text-gray-50">{{ Auth::user()->name ?? 'User' }}</div>
-                                    <div class="text-[10px] text-gray-500 dark:text-gray-400">Super Admin</div>
-                                </div>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15l-4-4h8z"/></svg>
-                            </button>
+                        <button data-user-menu
+                          data-user-name="{{ Auth::user()->name ?? 'User' }}"
+                          data-user-role="{{ Auth::user()->role ?? 'Super Admin' }}"
+                          class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                          aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
+                          <span
+                            class="h-8 w-8 inline-flex items-center justify-center rounded-full ring-2 ring-blue-500/30 bg-white dark:bg-gray-800"
+                            aria-label="Profile image">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" viewBox="0 0 24 24" fill="currentColor" aria-label="Profile">
+                              <!-- simple user silhouette -->
+                              <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/>
+                              <path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/>
+                            </svg>
+                          </span>
+                          <div class="hidden sm:block text-left leading-tight">
+                            <div class="text-xs font-medium text-gray-900 dark:text-gray-50" data-user-name-target>
+                              {{ Auth::user()->name ?? 'User' }}
+                            </div>
+                            <div class="text-[10px] text-gray-500 dark:text-gray-400" data-user-role-target>
+                              {{ Auth::user()->role ?? 'Super Admin' }}
+                            </div>
+                          </div>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 15l-4-4h8z"/>
+                          </svg>
+                        </button>
                             <!-- Menu -->
                             <div data-user-menu-panel class="absolute right-0 mt-2 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg hidden">
                                 <a href="{{ route('profile.edit') }}" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">Profile</a>

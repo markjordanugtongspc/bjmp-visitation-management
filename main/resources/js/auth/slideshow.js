@@ -1,11 +1,3 @@
-const createDot = (isActive) => {
-  const dot = document.createElement('span');
-  dot.className = `size-2 rounded-full transition-all cursor-pointer ring-2 ring-white/70 ${
-    isActive ? 'bg-white' : 'bg-white/60 hover:bg-white hover:scale-110'
-  }`;
-  return dot;
-};
-
 const probeImage = (src, timeoutMs = 2500) => new Promise((resolve) => {
   const img = new Image();
   let done = false;
@@ -53,16 +45,6 @@ function mountSlideshow(root) {
   const images = JSON.parse(root.getAttribute('data-images') || '[]');
   const isBg = root.getAttribute('data-bg') === 'true';
   const imgEl = isBg ? null : root.querySelector('img');
-  const scope = root.closest('div') || root;
-  
-  // Find controls - for login page, they're in the parent div
-  const controlsParent = scope.querySelector('.absolute');
-  const prevBtn = scope.querySelector('[data-prev]') || (controlsParent && controlsParent.querySelector('[data-prev]'));
-  const nextBtn = scope.querySelector('[data-next]') || (controlsParent && controlsParent.querySelector('[data-next]'));
-  
-  // For login page, we don't use dynamic dots but we'll update the static indicators
-  const dotsEl = scope.querySelector('[data-dots]');
-  const staticIndicators = controlsParent ? controlsParent.querySelectorAll('.rounded-full') : null;
   const overlayEl = root.querySelector('.hero-overlay');
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -103,80 +85,27 @@ function mountSlideshow(root) {
     } else if (imgEl) {
       imgEl.src = images[index];
     }
-
-    // Update dynamic dots if available
-    if (dotsEl) {
-      dotsEl.innerHTML = '';
-      images.forEach((_, i) => {
-        const dot = createDot(i === index);
-        dot.addEventListener('click', () => { index = i; restart(); });
-        dotsEl.appendChild(dot);
-      });
-    }
-    
-    // Update static indicators for login page
-    if (staticIndicators && staticIndicators.length) {
-      staticIndicators.forEach((indicator, i) => {
-        // Clear all active states
-        indicator.className = indicator.className.replace('bg-white', 'bg-white/70');
-        
-        // Add click handler if not already added
-        if (!indicator.hasAttribute('data-slide-index')) {
-          indicator.setAttribute('data-slide-index', i);
-          indicator.addEventListener('click', () => {
-            if (i < images.length) {
-              index = i;
-              restart();
-            }
-          });
-        }
-      });
-      
-      // Set active indicator
-      if (staticIndicators[index]) {
-        staticIndicators[index].className = staticIndicators[index].className.replace('bg-white/70', 'bg-white');
-      }
-    }
   };
 
-  const next = () => { index = (index + 1) % images.length; render(); };
-  const prev = () => { index = (index - 1 + images.length) % images.length; render(); };
-  const start = () => { if (!prefersReduced) timer = setInterval(next, 5000); };
-  const stop = () => { if (timer) clearInterval(timer); };
-  const restart = () => { stop(); render(); start(); };
-
-  prevBtn?.addEventListener('click', () => { prev(); restart(); });
-  nextBtn?.addEventListener('click', () => { next(); restart(); });
-  root.addEventListener('mouseenter', stop);
-  root.addEventListener('mouseleave', start);
+  const next = () => { 
+    index = (index + 1) % images.length; 
+    render(); 
+  };
+  
+  const start = () => { 
+    if (!prefersReduced) timer = setInterval(next, 5000); 
+  };
+  
+  const stop = () => { 
+    if (timer) clearInterval(timer); 
+  };
 
   // Pause when tab not visible
-  const onVisibility = () => { document.hidden ? stop() : start(); };
+  const onVisibility = () => { 
+    document.hidden ? stop() : start(); 
+  };
+  
   document.addEventListener('visibilitychange', onVisibility);
-
-  // Touch swipe for mobile
-  let touchX = 0, touchY = 0, touchTime = 0;
-  const touchTarget = isBg ? root : (imgEl || root);
-  touchTarget.addEventListener('touchstart', (e) => {
-    if (!e.touches || e.touches.length !== 1) return;
-    const t = e.touches[0];
-    touchX = t.clientX; touchY = t.clientY; touchTime = Date.now();
-    stop();
-  }, { passive: true });
-  touchTarget.addEventListener('touchend', (e) => {
-    const dt = Date.now() - touchTime;
-    const t = e.changedTouches && e.changedTouches[0];
-    if (!t) { start(); return; }
-    const dx = t.clientX - touchX;
-    const dy = t.clientY - touchY;
-    const absX = Math.abs(dx), absY = Math.abs(dy);
-    if (dt < 800 && absX > 30 && absX > absY) {
-      if (dx < 0) next(); else prev();
-      restart();
-    } else {
-      start();
-    }
-  }, { passive: true });
 
   render();
   start();
