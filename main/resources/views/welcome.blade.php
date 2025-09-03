@@ -161,6 +161,7 @@
                             <li><a href="{{ url('/about') }}" class="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">About BJMP</a></li>
                             <li><a href="{{ url('/services') }}" class="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">Services</a></li>
                             <li><a href="{{ url('/contact') }}" class="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">Contact Us</a></li>
+                            <li><a href="{{ url('/developer') }}" class="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">Developer</a></li>
                         </ul>
                     </div>
 
