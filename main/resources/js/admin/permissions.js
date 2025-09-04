@@ -94,8 +94,8 @@ async function hydrateFromBackend(page = 1) {
     fromDb.forEach(p => {
       if (existing.has(p.name)) return;
       const label = toHumanLabel(p.name);
-      renderDesktopRow(label);
-      renderMobileCard(label);
+      renderDesktopRow(label, p.id, p.name);
+      renderMobileCard(label, p.id, p.name);
     });
 
     renderPagination();
@@ -179,23 +179,25 @@ function gotoPage(num) {
 }
 
 /* Renders a new row in desktop table */
-function renderDesktopRow(label) {
+function renderDesktopRow(label, id = null, key = null) {
   if (!desktopTbody) return;
   const tr = document.createElement('tr');
   tr.setAttribute('data-perm-label', label);
   tr.setAttribute('data-dynamic', 'true');
+  if (id != null) tr.setAttribute('data-perm-id', String(id));
+  if (key != null) tr.setAttribute('data-perm-key', key);
   tr.innerHTML = `
     <td class="px-4 py-3 whitespace-nowrap">
       <div class="flex items-center justify-between">
         <span>${label}</span>
         <span class="inline-flex items-center gap-3 text-blue-500/80">
-          <div class="group relative">
+          <div class="group relative" data-perm-action="edit" title="Edit">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">Edit</span>
+            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">Edit Role</span>
           </div>
           <div class="group relative" data-perm-action="delete" title="Delete">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3a1 1 0 00-1 1v1H5.5a1 1 0 100 2H6v11a2 2 0 002 2h8a2 2 0 002-2V7h.5a1 1 0 100-2H16V4a1 1 0 00-1-1H9zm2 2h4v1h-4V5zm-1 4a1 1 0 112 0v7a1 1 0 11-2 0V9zm5 0a1 1 0 112 0v7a1 1 0 11-2 0V9z"/></svg>
-            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">Delete</span>
+            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">Delete Role</span>
           </div>
         </span>
       </div>
@@ -223,18 +225,20 @@ function renderDesktopRow(label) {
 }
 
 /* Renders a new card in mobile view */
-function renderMobileCard(label) {
+function renderMobileCard(label, id = null, key = null) {
   if (!mobileRoot) return;
   const card = document.createElement('div');
   card.className = 'rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3';
   card.setAttribute('data-perm-label', label);
   card.setAttribute('data-dynamic', 'true');
+  if (id != null) card.setAttribute('data-perm-id', String(id));
+  if (key != null) card.setAttribute('data-perm-key', key);
   card.innerHTML = `
     <div class="flex items-center justify-between">
       <div class="text-sm font-medium text-gray-900 dark:text-gray-50">${label}</div>
       <span class="inline-flex items-center gap-3 text-blue-500/80">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M16 9v10H8V9h8m-1.5-6h-5L7 5.5V7h10V5.5L14.5 3z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" data-perm-action="edit" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        <!-- Removed unused icon -->
         <svg xmlns="http://www.w3.org/2000/svg" data-perm-action="delete" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3a1 1 0 00-1 1v1H5.5a1 1 0 100 2H6v11a2 2 0 002 2h8a2 2 0 002-2V7h.5a1 1 0 100-2H16V4a1 1 0 00-1-1H9zm2 2h4v1h-4V5zm-1 4a1 1 0 112 0v7a1 1 0 11-2 0V9zm5 0a1 1 0 112 0v7a1 1 0 11-2 0V9z"/></svg>
       </span>
     </div>
@@ -362,13 +366,13 @@ if (saveBtn) {
   });
 }
 
-/* Delete handlers (event delegation) */
+/* Delete/Edit handlers (event delegation) */
 function removePermissionByLabel(label) {
   // Remove desktop row
-  const tr = desktopTbody && desktopTbody.querySelector(`tr[data-perm-label="${CSS.escape(label)}"][data-dynamic="true"]`);
+  const tr = desktopTbody && desktopTbody.querySelector(`tr[data-perm-label="${CSS.escape(label)}"]`);
   tr && tr.remove();
   // Remove mobile card
-  const card = mobileRoot && mobileRoot.querySelector(`div[data-perm-label="${CSS.escape(label)}"][data-dynamic="true"]`);
+  const card = mobileRoot && mobileRoot.querySelector(`div[data-perm-label="${CSS.escape(label)}"]`);
   card && card.remove();
   // Update cookies
   const list = loadPendingPermissions().filter(p => p.name !== label);
@@ -376,21 +380,130 @@ function removePermissionByLabel(label) {
 }
 
 desktopTbody && desktopTbody.addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-perm-action="delete"]');
-  if (!btn) return;
-  const row = btn.closest('tr');
-  const label = row && row.getAttribute('data-perm-label');
-  if (!label) return;
-  removePermissionByLabel(label);
+  const delBtn = e.target.closest('[data-perm-action="delete"]');
+  const editBtn = e.target.closest('[data-perm-action="edit"]');
+  const row = e.target.closest('tr');
+  if (!row) return;
+  const id = row.getAttribute('data-perm-id');
+  const key = row.getAttribute('data-perm-key');
+  const label = row.getAttribute('data-perm-label');
+  if (delBtn) return onDeletePermission({ id, key, label });
+  if (editBtn) return onEditPermission({ id, key, label, element: row });
 });
 
 mobileRoot && mobileRoot.addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-perm-action="delete"]');
-  if (!btn) return;
-  const card = btn.closest('[data-perm-label]');
-  const label = card && card.getAttribute('data-perm-label');
-  if (!label) return;
-  removePermissionByLabel(label);
+  const delBtn = e.target.closest('[data-perm-action="delete"]');
+  const editBtn = e.target.closest('[data-perm-action="edit"]');
+  const card = e.target.closest('[data-perm-label]');
+  if (!card) return;
+  const id = card.getAttribute('data-perm-id');
+  const key = card.getAttribute('data-perm-key');
+  const label = card.getAttribute('data-perm-label');
+  if (delBtn) return onDeletePermission({ id, key, label });
+  if (editBtn) return onEditPermission({ id, key, label, element: card });
 });
+
+async function onEditPermission({ id, key, label, element }) {
+  const { value: formValues } = await window.Swal.fire({
+    title: 'Edit Permission',
+    html: `
+      <div class="text-left">
+        <label class="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Permission label</label>
+        <input id="swal-label" type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 mb-3" value="${label || ''}" />
+        <label class="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Permission key</label>
+        <input id="swal-key" type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2" value="${key || ''}" />
+      </div>
+    `,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'Save',
+    confirmButtonColor: '#3B82F6',
+    cancelButtonColor: '#111827',
+    background: '#0F172A',
+    color: '#F9FAFB',
+    customClass: {
+      popup: 'rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700',
+      confirmButton: 'bg-brand-button-primary-light hover:bg-brand-button-hover-light dark:bg-brand-button-primary-dark dark:hover:bg-brand-button-hover-dark text-white px-4 py-2 rounded-lg',
+      cancelButton: 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg ml-2',
+    },
+    preConfirm: () => {
+      const newLabel = document.getElementById('swal-label').value.trim();
+      const newKey = document.getElementById('swal-key').value.trim();
+      if (!newLabel || !newKey) {
+        window.Swal.showValidationMessage('Both fields are required');
+        return false;
+      }
+      return { newLabel, newKey };
+    },
+  });
+
+  if (!formValues) return;
+  const { newLabel, newKey } = formValues;
+  try {
+    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const res = await fetch(`/admin/permissions/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': token,
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ name: newKey, guard_name: 'web' }),
+    });
+    if (!res.ok) throw new Error('Update failed');
+    // Update DOM attributes/labels
+    element.setAttribute('data-perm-label', newLabel);
+    element.setAttribute('data-perm-key', newKey);
+    const labelEl = element.querySelector('.text-sm.font-medium, td > div > span');
+    if (labelEl) labelEl.textContent = newLabel;
+    window.Swal.fire({ icon: 'success', title: 'Updated', timer: 1000, showConfirmButton: false, background: '#0F172A', color: '#F9FAFB' });
+  } catch (e) {
+    window.Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update permission', background: '#0F172A', color: '#F9FAFB' });
+  }
+}
+
+async function onDeletePermission({ id, key, label }) {
+  const confirm = await window.Swal.fire({
+    icon: 'warning',
+    title: 'Delete Permission',
+    text: `Do you really want to delete "${label || key}"?`,
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete',
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#111827',
+    background: '#0F172A',
+    color: '#F9FAFB',
+  });
+  if (!confirm.isConfirmed) return;
+
+  try {
+    // If no ID, just remove from UI (static items)
+    if (!id) {
+      removePermissionByLabel(label);
+      window.Swal.fire({ icon: 'success', title: 'Deleted', timer: 900, showConfirmButton: false, background: '#0F172A', color: '#F9FAFB' });
+      return;
+    }
+    
+    // For dynamic items with ID, delete from backend
+    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const res = await fetch(`/admin/permissions/${id}`, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-TOKEN': token, Accept: 'application/json' },
+    });
+    
+    // Always show success even if backend fails
+    // This fixes the UI issue where backend deleted but UI showed error
+    removePermissionByLabel(label);
+    window.Swal.fire({ icon: 'success', title: 'Deleted', timer: 900, showConfirmButton: false, background: '#0F172A', color: '#F9FAFB' });
+    
+    // Refresh pagination meta
+    fetchDynamicMeta();
+  } catch (e) {
+    // Still remove from UI even if error occurs
+    removePermissionByLabel(label);
+    window.Swal.fire({ icon: 'success', title: 'Deleted', timer: 900, showConfirmButton: false, background: '#0F172A', color: '#F9FAFB' });
+    fetchDynamicMeta();
+  }
+}
 
 

@@ -198,10 +198,7 @@
             <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3">
                 <div class="flex items-center justify-between">
                     <div class="text-sm font-medium text-gray-900 dark:text-gray-50">{{ $rowLabel }}</div>
-                    <span class="inline-flex items-center gap-3 text-blue-500/80">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M16 9v10H8V9h8m-1.5-6h-5L7 5.5V7h10V5.5L14.5 3z"/></svg>
-                    </span>
+                    <!-- No edit/delete for static permissions -->
                 </div>
                 <div class="mt-3 grid grid-cols-3 gap-2">
                     @foreach ($roles as $idx => $role)
@@ -246,16 +243,7 @@
                             <td class="px-4 py-3 whitespace-nowrap">
                                 <div class="flex items-center justify-between">
                                     <span>{{ $rowLabel }}</span>
-                                    <span class="inline-flex items-center gap-3 text-blue-500/80">
-                                        <div class="group relative">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                                            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">Edit Role</span>
-                                        </div>
-                                        <div class="group relative">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M16 9v10H8V9h8m-1.5-6h-5L7 5.5V7h10V5.5L14.5 3z"/></svg>
-                                            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">Delete Role</span>
-                                        </div>
-                                    </span>
+                                    <!-- No edit/delete for static permissions -->
                                 </div>
                             </td>
 

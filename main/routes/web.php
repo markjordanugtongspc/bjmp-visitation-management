@@ -12,6 +12,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('admin.permissions.bulkSync');
     Route::get('/admin/permissions', [\App\Http\Controllers\Admin\PermissionController::class, 'list'])
         ->name('admin.permissions.list');
+    Route::put('/admin/permissions/{permission}', [\App\Http\Controllers\Admin\PermissionController::class, 'update'])
+        ->name('admin.permissions.update');
+    Route::delete('/admin/permissions/{permission}', [\App\Http\Controllers\Admin\PermissionController::class, 'destroy'])
+        ->name('admin.permissions.destroy');
 });
 
 // Public visitor request form (newly added)

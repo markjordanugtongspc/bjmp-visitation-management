@@ -43,6 +43,34 @@ class PermissionController extends Controller
             ->paginate($perPage);
         return response()->json(['permissions' => $permissions]);
     }
+
+    public function update(Request $request, Permission $permission): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required','string','max:255'],
+            'guard_name' => ['nullable','string','max:25'],
+        ]);
+
+        $permission->name = $data['name'];
+        if (!empty($data['guard_name'])) {
+            $permission->guard_name = $data['guard_name'];
+        }
+        $permission->save();
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    public function destroy(Permission $permission): JsonResponse
+    {
+        DB::transaction(function () use ($permission) {
+            $permission->delete();
+            // Reset AUTO_INCREMENT to last id + 1
+            $next = (int) (Permission::max('id') ?? 0) + 1;
+            DB::statement('ALTER TABLE permissions AUTO_INCREMENT = ' . $next);
+        });
+
+        return response()->json(['status' => 'ok']);
+    }
 }
 
 
