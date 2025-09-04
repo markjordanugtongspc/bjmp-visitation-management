@@ -10,7 +10,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/visitation/request/visitmodal.js',
                 'resources/js/dashboard/home.js',
-                'resources/js/admin/permissions.js'
+                'resources/js/admin/permissions.js',
+                'resources/js/profile/edit-profile-modal.js'
             ],
             refresh: true,
         }),

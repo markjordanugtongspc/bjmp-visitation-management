@@ -107,7 +107,7 @@
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->name ?? 'User' }}"
                           data-user-role="{{ Auth::user()->role ?? 'Super Admin' }}"
-                          class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                          class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                           aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
                           <span
                             class="h-8 w-8 inline-flex items-center justify-center rounded-full ring-2 ring-blue-500/30 bg-white dark:bg-gray-800"
@@ -132,10 +132,36 @@
                         </button>
                             <!-- Menu -->
                             <div data-user-menu-panel class="absolute right-0 mt-2 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg hidden">
-                                <a href="{{ route('profile.edit') }}" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">Profile</a>
+                                <div class="px-4 py-3">
+                                    <span class="block text-xs text-gray-500 dark:text-gray-400">Signed in as</span>
+                                    <span class="block text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{{ Auth::user()->email }}</span>
+                                </div>
+                                
+                                <hr class="border-t border-gray-200 dark:border-gray-700">
+                                
+                                <button id="edit-profile-btn-admin" class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                    </svg>
+                                    {{ __('Edit Profile') }}
+                                </button>
+                                
+                                <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 6.75a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5zM3 12a9 9 0 1118 0 9 9 0 01-18 0z"/>
+                                    </svg>
+                                    {{ __('Account Settings') }}
+                                </a>
+                                
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">Log Out</button>
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2a10 10 0 1010 10h-2a8 8 0 11-8-8V2z"/>
+                                            <path d="M20 12h-8V4h2v6h6v2z"/>
+                                        </svg>
+                                        {{ __('Log Out') }}
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -289,4 +315,5 @@
 
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/admin/permissions.js')
+    @vite('resources/js/profile/edit-profile-modal.js')
 </x-app-layout>
