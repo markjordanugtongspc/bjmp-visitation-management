@@ -166,6 +166,11 @@ if (addBtn && window.Swal) {
       focusConfirm: false,
       showCancelButton: true,
       confirmButtonText: 'OK',
+      confirmButtonColor: '#3B82F6',
+      cancelButtonColor: '#111827',
+      backdrop: true,
+      background: '#0F172A',
+      color: '#F9FAFB',
       customClass: {
         popup: 'rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700',
         confirmButton: 'bg-brand-button-primary-light hover:bg-brand-button-hover-light dark:bg-brand-button-primary-dark dark:hover:bg-brand-button-hover-dark text-white px-4 py-2 rounded-lg',
@@ -204,6 +209,8 @@ if (addBtn && window.Swal) {
       text: 'Saved temporarily. Click Save to persist to database.',
       timer: 1400,
       showConfirmButton: false,
+      background: '#0F172A',
+      color: '#F9FAFB'
     });
   });
 }
@@ -229,9 +236,21 @@ if (saveBtn) {
       const json = await res.json();
       console.log('Bulk sync success:', json); // Confirm backend is working
       savePendingPermissions([]);
-      window.Swal && window.Swal.fire({ icon: 'success', title: 'Saved', text: 'Permissions persisted.' });
+      window.Swal && window.Swal.fire({ 
+        icon: 'success', 
+        title: 'Saved', 
+        text: 'Permissions persisted.',
+        background: '#0F172A',
+        color: '#F9FAFB'
+      });
     } catch (err) {
-      window.Swal && window.Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save permissions.' });
+      window.Swal && window.Swal.fire({ 
+        icon: 'error', 
+        title: 'Error', 
+        text: 'Failed to save permissions.',
+        background: '#0F172A',
+        color: '#F9FAFB'
+      });
     }
   });
 }
