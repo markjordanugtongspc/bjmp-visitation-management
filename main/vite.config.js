@@ -9,7 +9,8 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/visitation/request/visitmodal.js',
-                'resources/js/dashboard/home.js'
+                'resources/js/dashboard/home.js',
+                'resources/js/admin/permissions.js'
             ],
             refresh: true,
         }),

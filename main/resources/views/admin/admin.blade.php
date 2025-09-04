@@ -181,7 +181,7 @@
         <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
             <div class="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-50">Role &amp; Permission</div>
             <div class="flex items-center gap-2">
-                <button type="button" class="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs sm:text-sm cursor-pointer">
+                <button type="button" data-add-permission class="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs sm:text-sm cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a.75.75 0 01.75.75V12h6.75a.75.75 0 010 1.5H12.75V20a.75.75 0 01-1.5 0v-6.5H4.5a.75.75 0 010-1.5h6.75V5.25A.75.75 0 0112 4.5z"/></svg>
                     <span>New Permission</span>
                 </button>
@@ -193,7 +193,7 @@
         </div>
 
         <!-- Mobile: card grid -->
-        <div class="sm:hidden p-3 space-y-3">
+        <div class="sm:hidden p-3 space-y-3" data-permissions-mobile-root>
             @foreach ($rows as $rowLabel)
             <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3">
                 <div class="flex items-center justify-between">
@@ -238,7 +238,7 @@
                         @endforeach
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200">
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200" data-permissions-desktop-root>
                     @foreach ($rows as $rowLabel)
                         <tr>
                             <td class="px-4 py-3 whitespace-nowrap">
@@ -280,7 +280,7 @@
 
         <div class="px-4 py-4">
             <div class="flex justify-center">
-                <button type="button" class="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 cursor-pointer shadow">
+                <button type="button" data-save-permissions class="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 cursor-pointer shadow">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7a2 2 0 00-2 2v14l7-3 7 3V5a2 2 0 00-2-2z"/></svg>
                     <span>Save</span>
                 </button>
@@ -290,4 +290,5 @@
 </div>
 
     @vite('resources/js/dashboard/home.js')
+    @vite('resources/js/admin/permissions.js')
 </x-app-layout>
