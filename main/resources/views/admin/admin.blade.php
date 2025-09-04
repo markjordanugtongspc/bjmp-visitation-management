@@ -193,7 +193,7 @@
         </div>
 
         <!-- Mobile: card grid -->
-        <div class="sm:hidden p-3 space-y-3" data-permissions-mobile-root>
+        <div class="sm:hidden p-3 space-y-3" data-permissions-mobile-static>
             @foreach ($rows as $rowLabel)
             <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3">
                 <div class="flex items-center justify-between">
@@ -224,6 +224,8 @@
             </div>
             @endforeach
         </div>
+        <!-- Dynamic mobile permissions (page > 1) -->
+        <div class="sm:hidden p-3 space-y-3 hidden" data-permissions-mobile-root></div>
 
         <!-- Button Reference = https://www.creative-tim.com/twcomponents/component/toggle-switches -->
         
@@ -238,7 +240,7 @@
                         @endforeach
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200" data-permissions-desktop-root>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200" data-permissions-desktop-static>
                     @foreach ($rows as $rowLabel)
                         <tr>
                             <td class="px-4 py-3 whitespace-nowrap">
@@ -275,8 +277,16 @@
                         </tr>
                     @endforeach
                 </tbody>
+                <!-- Dynamic desktop permissions (page > 1) -->
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200 hidden" data-permissions-desktop-root></tbody>
             </table>
         </div>
+
+        <!-- Pagination (desktop) -->
+        <div class="hidden sm:flex items-center justify-center gap-1 px-4 py-3" data-permissions-pagination></div>
+
+        <!-- Pagination (mobile) -->
+        <div class="sm:hidden flex items-center justify-center gap-1 px-4 py-3" data-permissions-pagination-mobile></div>
 
         <div class="px-4 py-4">
             <div class="flex justify-center">

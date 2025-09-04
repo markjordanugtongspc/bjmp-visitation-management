@@ -35,11 +35,12 @@ class PermissionController extends Controller
     public function list(Request $request): JsonResponse
     {
         $minId = (int) ($request->query('min_id', 23));
+        $perPage = (int) ($request->query('per_page', 6));
         $permissions = Permission::query()
             ->select(['id','name','guard_name'])
             ->where('id', '>=', $minId)
             ->orderBy('id')
-            ->get();
+            ->paginate($perPage);
         return response()->json(['permissions' => $permissions]);
     }
 }

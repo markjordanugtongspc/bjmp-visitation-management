@@ -36,6 +36,15 @@ const addBtn = document.querySelector('[data-add-permission]');
 const saveBtn = document.querySelector('[data-save-permissions]');
 const desktopTbody = document.querySelector('[data-permissions-desktop-root]');
 const mobileRoot = document.querySelector('[data-permissions-mobile-root]');
+const desktopStaticTbody = document.querySelector('[data-permissions-desktop-static]');
+const mobileStaticRoot = document.querySelector('[data-permissions-mobile-static]');
+const pager = document.querySelector('[data-permissions-pagination]');
+const pagerMobile = document.querySelector('[data-permissions-pagination-mobile]');
+
+const PAGE_SIZE = 6; // show 6 per page
+let currentPage = 1; // UI page (1 = static page)
+let totalPages = 1;  // UI total pages (1 + dynamic pages)
+let dynamicTotalPages = 0; // pages coming from backend
 
 /* Initial fetch to populate from DB */
 function toHumanLabel(key) {
@@ -50,26 +59,124 @@ function toHumanLabel(key) {
     .replace(/\bList\b/g, 'List');
 }
 
-async function hydrateFromBackend() {
+async function hydrateFromBackend(page = 1) {
+  // Page 1 is reserved for static sample rows — no fetch
+  if (page === 1) {
+    currentPage = 1;
+    // Show static containers, hide dynamic
+    desktopStaticTbody && desktopStaticTbody.classList.remove('hidden');
+    mobileStaticRoot && mobileStaticRoot.classList.remove('hidden');
+    desktopTbody && desktopTbody.classList.add('hidden');
+    mobileRoot && mobileRoot.classList.add('hidden');
+    renderPagination();
+    return;
+  }
+
   try {
-    const res = await fetch('/admin/permissions?min_id=23', { headers: { Accept: 'application/json' } });
+    const backendPage = page - 1; // shift: UI page 2 => backend page 1
+    const res = await fetch(`/admin/permissions?min_id=23&page=${backendPage}&per_page=${PAGE_SIZE}`, { headers: { Accept: 'application/json' } });
     if (!res.ok) return;
     const json = await res.json();
-    const fromDb = Array.isArray(json.permissions) ? json.permissions : [];
+    const fromDb = Array.isArray(json.permissions?.data) ? json.permissions.data : (Array.isArray(json.permissions) ? json.permissions : []);
+    dynamicTotalPages = Number(json.permissions?.last_page || json.last_page || 0) || 0;
+    totalPages = 1 + dynamicTotalPages; // UI pages include static page 1
+    currentPage = page;
     // Render each permission (avoid duplicates with cookie pending list)
     const pending = loadPendingPermissions();
     const existing = new Set(pending.map(p => p.name));
+    // Clear dynamic containers
+    // Toggle visibility: hide static, show dynamic
+    desktopStaticTbody && desktopStaticTbody.classList.add('hidden');
+    mobileStaticRoot && mobileStaticRoot.classList.add('hidden');
+    if (desktopTbody) { desktopTbody.innerHTML = ''; desktopTbody.classList.remove('hidden'); }
+    if (mobileRoot) { mobileRoot.innerHTML = ''; mobileRoot.classList.remove('hidden'); }
+
     fromDb.forEach(p => {
       if (existing.has(p.name)) return;
       const label = toHumanLabel(p.name);
       renderDesktopRow(label);
       renderMobileCard(label);
     });
+
+    renderPagination();
   } catch (_) {
     // ignore
   }
 }
-hydrateFromBackend();
+// Fetch only meta to build pagination; keep page 1 (static) visible
+async function fetchDynamicMeta() {
+  try {
+    const res = await fetch(`/admin/permissions?min_id=23&page=1&per_page=${PAGE_SIZE}`, { headers: { Accept: 'application/json' } });
+    if (!res.ok) { renderPagination(); return; }
+    const json = await res.json();
+    dynamicTotalPages = Number(json.permissions?.last_page || json.last_page || 0) || 0;
+    totalPages = 1 + dynamicTotalPages;
+    renderPagination();
+  } catch (_) {
+    renderPagination();
+  }
+}
+
+// Initial state: show static, build pagination from meta
+desktopStaticTbody && desktopStaticTbody.classList.remove('hidden');
+mobileStaticRoot && mobileStaticRoot.classList.remove('hidden');
+desktopTbody && desktopTbody.classList.add('hidden');
+mobileRoot && mobileRoot.classList.add('hidden');
+fetchDynamicMeta();
+
+function renderPageButton(num, active = false) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `inline-flex items-center justify-center h-8 min-w-8 px-3 rounded-md border text-sm ${active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`;
+  btn.textContent = num;
+  btn.addEventListener('click', () => {
+    if (num === currentPage) return;
+    gotoPage(num);
+  });
+  return btn;
+}
+
+function renderPagination() {
+  const containers = [pager, pagerMobile];
+  containers.forEach(root => {
+    if (!root) return;
+    root.innerHTML = '';
+    if (totalPages <= 1) { return; }
+
+    // Prev
+    const prev = document.createElement('button');
+    prev.type = 'button';
+    prev.className = 'inline-flex items-center justify-center h-8 w-8 rounded-md border bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800';
+    prev.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>';
+    prev.disabled = currentPage === 1;
+    prev.addEventListener('click', () => currentPage > 1 && gotoPage(currentPage - 1));
+    root.appendChild(prev);
+
+    // Pages (compact)
+    const start = Math.max(1, currentPage - 1);
+    const end = Math.min(totalPages, start + 2);
+    for (let n = start; n <= end; n += 1) {
+      root.appendChild(renderPageButton(n, n === currentPage));
+    }
+
+    // Next
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'inline-flex items-center justify-center h-8 w-8 rounded-md border bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800';
+    next.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8.25 4.5L15.75 12l-7.5 7.5"/></svg>';
+    next.disabled = currentPage === totalPages;
+    next.addEventListener('click', () => currentPage < totalPages && gotoPage(currentPage + 1));
+    root.appendChild(next);
+  });
+}
+
+function gotoPage(num) {
+  if (num === 1) {
+    hydrateFromBackend(1);
+  } else {
+    hydrateFromBackend(num);
+  }
+}
 
 /* Renders a new row in desktop table */
 function renderDesktopRow(label) {
