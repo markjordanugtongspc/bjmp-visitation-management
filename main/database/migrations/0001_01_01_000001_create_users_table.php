@@ -27,11 +27,8 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
 
-            // Foreign keys
-            $table->foreign('role_id')
-                ->references('role_id')
-                ->on('roles')
-                ->nullOnDelete();
+            // Note: keeping role_id as a nullable reference without FK to avoid
+            // migration order issues. Add a dedicated FK migration later once roles table exists.
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
