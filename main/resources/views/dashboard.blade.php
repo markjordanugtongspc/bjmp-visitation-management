@@ -98,7 +98,7 @@
                     <div class="flex items-center gap-2 ml-auto">
                         <!-- <a href="#" class="hidden sm:inline-flex items-center gap-1 h-9 px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium">Go Pro</a> -->
 
-                        <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" @can('view.announcement') @else style="display:none" @endcan>
                             <span class="sr-only">Announcements</span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a7.5 7.5 0 00-7.5 7.5V12l-1.5 1.5V15h18v-1.5L19.5 12V9.75a7.5 7.5 0 00-7.5-7.5zM8.25 18a3.75 3.75 0 007.5 0h-7.5z"/></svg>
                         </button>
@@ -107,7 +107,7 @@
                         <div class="relative">
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->name ?? 'User' }}"
-                          data-user-role="{{ Auth::user()->role ?? 'Super Admin' }}"
+                          data-user-role="{{ Auth::user()->role ?? 'superadmin' }}"
                           class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                           aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
                           <span
@@ -124,7 +124,7 @@
                               {{ Auth::user()->name ?? 'User' }}
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400" data-user-role-target>
-                              {{ Auth::user()->role ?? 'Super Admin' }}
+                              {{ optional(Auth::user()?->getRoleNames()?->first()) ? \Illuminate\Support\Str::of(Auth::user()->getRoleNames()->first())->replace(['_', '-', '.'], ' ')->title() : 'Super Admin' }}
                             </div>
                           </div>
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">

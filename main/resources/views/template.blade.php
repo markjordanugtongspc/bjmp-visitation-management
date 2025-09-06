@@ -106,7 +106,7 @@
                         <div class="relative">
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->name ?? 'User' }}"
-                          data-user-role="{{ Auth::user()->role ?? 'Super Admin' }}"
+                          data-user-role="{{ Auth::user()->role ?? 'superadmin' }}"
                           class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                           aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
                           <span
@@ -123,7 +123,7 @@
                               {{ Auth::user()->name ?? 'User' }}
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400" data-user-role-target>
-                              {{ Auth::user()->role ?? 'Super Admin' }}
+                              {{ Auth::user()->role ?? 'superadmin' }}
                             </div>
                           </div>
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">

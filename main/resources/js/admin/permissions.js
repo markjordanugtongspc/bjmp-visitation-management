@@ -127,7 +127,7 @@ fetchDynamicMeta();
 function renderPageButton(num, active = false) {
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = `inline-flex items-center justify-center h-8 min-w-8 px-3 rounded-md border text-sm ${active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`;
+  btn.className = `inline-flex items-center justify-center h-8 min-w-8 px-3 rounded-md border text-sm cursor-pointer ${active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`;
   btn.textContent = num;
   btn.addEventListener('click', () => {
     if (num === currentPage) return;
@@ -146,7 +146,7 @@ function renderPagination() {
     // Prev
     const prev = document.createElement('button');
     prev.type = 'button';
-    prev.className = 'inline-flex items-center justify-center h-8 w-8 rounded-md border bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800';
+    prev.className = 'inline-flex items-center justify-center h-8 w-8 rounded-md border bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer';
     prev.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>';
     prev.disabled = currentPage === 1;
     prev.addEventListener('click', () => currentPage > 1 && gotoPage(currentPage - 1));
@@ -162,7 +162,7 @@ function renderPagination() {
     // Next
     const next = document.createElement('button');
     next.type = 'button';
-    next.className = 'inline-flex items-center justify-center h-8 w-8 rounded-md border bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800';
+    next.className = 'inline-flex items-center justify-center h-8 w-8 rounded-md border bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer';
     next.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8.25 4.5L15.75 12l-7.5 7.5"/></svg>';
     next.disabled = currentPage === totalPages;
     next.addEventListener('click', () => currentPage < totalPages && gotoPage(currentPage + 1));
@@ -243,10 +243,10 @@ function renderMobileCard(label, id = null, key = null) {
       </span>
     </div>
     <div class="mt-3 grid grid-cols-3 gap-2">
-      ${['Super Admin','Admin','Warden'].map((role, idx) => `
+      ${['superadmin','admin','warden'].map((role, idx) => `
         <div class="flex flex-col items-center justify-between rounded-md border border-gray-200 dark:border-gray-800 px-2 py-2">
           <span class="text-xs text-gray-600 dark:text-gray-300 mb-1">${role}</span>
-          ${idx === 0
+          ${role.toLowerCase() === 'superadmin'
             ? `<label class="relative inline-flex cursor-not-allowed items-center" title="Locked for Super Admin">
                  <input type="checkbox" class="peer sr-only" checked disabled aria-disabled="true" />
                  <div class="peer h-5 w-10 rounded-full bg-blue-500/90 shadow-inner after:absolute after:-top-0.5 after:left-0.5 after:h-6 after:w-6 after:rounded-full after:bg-white after:shadow-md after:transition-all after:duration-300 after:content-[''] after:translate-x-4"></div>
@@ -505,5 +505,4 @@ async function onDeletePermission({ id, key, label }) {
     fetchDynamicMeta();
   }
 }
-
 

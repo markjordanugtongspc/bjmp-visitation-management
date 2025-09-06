@@ -106,7 +106,7 @@
                         <div class="relative">
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->name ?? 'User' }}"
-                          data-user-role="{{ Auth::user()->role ?? 'Super Admin' }}"
+                          data-user-role="{{ Auth::user()->role ?? 'superadmin' }}"
                           class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                           aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
                           <span
@@ -123,7 +123,7 @@
                               {{ Auth::user()->name ?? 'User' }}
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400" data-user-role-target>
-                              {{ Auth::user()->role ?? 'Super Admin' }}
+                              {{ Auth::user()->role ?? 'superadmin' }}
                             </div>
                           </div>
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
@@ -172,20 +172,21 @@
 <!-- Empty body content -->
 <div class="p-4 sm:p-6">
     @php
-        // Roles are now: Super Admin, Admin, Warden
-        $roles = ['Super Admin', 'Admin', 'Warden'];
-        // Rows are the permission items you want to control per-role
+        // Dynamic roles from DB; fallback to defaults
+        // Roles list
+        $roles = ['super admin', 'admin', 'warden'];
+
+        // Static demo rows (dynamic managed by JS via permissions.js)
         $rows = ['Role', 'Role Add', 'Role List', 'Permission', 'Permission Add', 'Permission List'];
-        // A simple permissions matrix: [row][role] => checked?
-        // Adjust these booleans as your real logic requires. This is just a starter demonstration.
-        $permissions = [
-            'Role' => [true, true, true],
-            'Role Add' => [false, true, false],
-            'Role List' => [false, true, false],
-            'Permission' => [true, true, true],
-            'Permission Add' => [true, false, true],
-            'Permission List' => [false, true, true],
-        ];
+
+        // Initialize permissions matrix: default ON for 'superadmin' only, OFF for others
+        $permissions = [];
+        $superIdx = array_search('superadmin', array_map('strtolower', $roles), true);
+        foreach ($rows as $row) {
+            $rowDefaults = array_fill(0, count($roles), false);
+            if ($superIdx !== null) { $rowDefaults[$superIdx] = true; }
+            $permissions[$row] = $rowDefaults;
+        }
     @endphp
 
     <!-- Hero banner -->
@@ -229,8 +230,8 @@
                 <div class="mt-3 grid grid-cols-3 gap-2">
                     @foreach ($roles as $idx => $role)
                     <div class="flex flex-col items-center justify-between rounded-md border border-gray-200 dark:border-gray-800 px-2 py-2">
-                        <span class="text-xs text-gray-600 dark:text-gray-300 mb-1">{{ $role }}</span>
-                        @if ($role === 'Super Admin')
+                        <span class="text-xs text-gray-600 dark:text-gray-300 mb-1">{{ \Illuminate\Support\Str::of($role)->replace(['_', '-', '.'], ' ')->title() }}</span>
+                        @if (strtolower($role) === 'superadmin')
                             <label class="relative inline-flex cursor-not-allowed items-center" title="Locked for Super Admin">
                                 <input type="checkbox" class="peer sr-only" checked disabled aria-disabled="true" />
                                 <div class="peer h-5 w-10 rounded-full bg-blue-500/90 shadow-inner after:absolute after:-top-0.5 after:left-0.5 after:h-6 after:w-6 after:rounded-full after:bg-white after:shadow-md after:transition-all after:duration-300 after:content-[''] after:translate-x-4"></div>
@@ -259,7 +260,7 @@
                     <tr>
                         <th class="text-left font-medium px-4 py-3 w-[42%]">Permission</th>
                         @foreach ($roles as $role)
-                            <th class="text-center font-medium px-4 py-3">{{ strtoupper($role) }}</th>
+                            <th class="text-center font-medium px-4 py-3">{{ \Illuminate\Support\Str::of($role)->replace(['_', '-', '.'], ' ')->title() }}</th>
                         @endforeach
                     </tr>
                 </thead>
@@ -275,7 +276,7 @@
 
                             @foreach ($roles as $idx => $role)
                                 <td class="px-4 py-3 text-center">
-                                    @if ($role === 'Super Admin')
+                                    @if (strtolower($role) === 'superadmin') <!-- superadmin perms locker -->
                                         <label class="relative inline-flex cursor-not-allowed items-center" title="Locked for Super Admin">
                                             <input type="checkbox" class="peer sr-only" checked disabled aria-disabled="true" />
                                             <div class="peer h-5 w-10 rounded-full bg-blue-500/90 shadow-inner after:absolute after:-top-0.5 after:left-0.5 after:h-6 after:w-6 after:rounded-full after:bg-white after:shadow-md after:transition-all after:duration-300 after:content-[''] after:translate-x-4"></div>
