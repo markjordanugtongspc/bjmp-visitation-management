@@ -11,17 +11,17 @@ class AdminSeeder extends Seeder
     public function run(): void
     {
         // Check if user already exists
-        if (!User::where('username', 'superadmin')->exists()) {
+        if (!User::where('username', 'admin')->exists()) {
             $user = User::create([
-                'username' => 'superadmin',
-                'full_name' => 'Super Administrator',
-                'email' => 'superadmin@gmail.com',
+                'username' => 'admin',
+                'full_name' => 'Administrator',
+                'email' => 'admin@gmail.com',
                 'password' => Hash::make('password'), //password is "password"
                 'role_id' => 1,
                 'is_active' => true,
             ]);
 
-            $user->assignRole('superadmin');
+            // Role assignment removed (Spatie package uninstalled)
         }
     }
 }

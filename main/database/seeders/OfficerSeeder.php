@@ -1,0 +1,55 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+
+class OfficerSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $officers = [
+            ['full_name' => 'Jail Warden', 'email' => 'warden@bjmp.gov.ph', 'title' => 'Warden', 'subtitle' => 'Jail Management'],
+            ['full_name' => 'Assistant Warden', 'email' => 'asst.warden@bjmp.gov.ph', 'title' => 'Assistant Warden', 'subtitle' => 'Operations'],
+            ['full_name' => 'Chief Custodial', 'email' => 'custodial@bjmp.gov.ph', 'title' => 'Chief Custodial', 'subtitle' => 'Security'],
+            ['full_name' => 'Chief ICT', 'email' => 'ict@bjmp.gov.ph', 'title' => 'Chief ICT', 'subtitle' => 'Information Systems'],
+            ['full_name' => 'Senior Jail Officer', 'email' => 'sjo@bjmp.gov.ph', 'title' => 'Unit Executive Senior Jail Officer', 'subtitle' => 'Administration'],
+            ['full_name' => 'Chief Nurse', 'email' => 'health@bjmp.gov.ph', 'title' => 'Chief Health Nurse', 'subtitle' => 'Medical Services'],
+        ];
+
+        foreach ($officers as $index => $o) {
+            // Create a safe unique username from name or email prefix
+            $baseUsername = strtolower(preg_replace('/[^a-z0-9]+/i', '.', explode('@', $o['email'])[0] ?: ('officer'.($index+1))));
+            $username = $baseUsername;
+            $suffix = 1;
+            while (User::where('username', $username)->exists()) {
+                $username = $baseUsername . $suffix;
+                $suffix++;
+            }
+
+            // Upsert by email
+            $user = User::where('email', $o['email'])->first();
+            if (!$user) {
+                User::create([
+                    'username' => $username,
+                    'email' => $o['email'],
+                    'password' => Hash::make('password'), // default, change later
+                    'full_name' => $o['full_name'],
+                    'role_id' => null,
+                    'is_active' => true,
+                ]);
+            } else {
+                // Ensure fields are aligned if already present
+                $user->fill([
+                    'username' => $username,
+                    'full_name' => $o['full_name'],
+                    'is_active' => true,
+                ])->save();
+            }
+        }
+    }
+}
+
+

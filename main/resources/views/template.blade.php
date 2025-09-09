@@ -44,13 +44,13 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a7.5 7.5 0 0115 0V21H4.5v-1.5z"/></svg>
                     <span>Profile</span>
                 </a>
-                <a href="{{ route('admin.index') }}"
-                    class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('admin.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-label="Lock" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
-                </svg>
-                    <span>Admin</span>
+                <a href="{{ route('officers.index') }}"
+                    class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('officers.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 opacity-80">
+                        <path d="M16 11a4 4 0 10-8 0 4 4 0 008 0z"/>
+                        <path fill-rule="evenodd" d="M12 14c-5.333 0-8 2.667-8 6a1 1 0 001 1h14a1 1 0 001-1c0-3.333-2.667-6-8-6z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Officers</span>
                 </a>
 
                 <div class="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
@@ -106,7 +106,7 @@
                         <div class="relative">
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->name ?? 'User' }}"
-                          data-user-role="{{ Auth::user()->role ?? 'superadmin' }}"
+                          data-user-role="{{ Auth::user()->role ?? 'admin' }}"
                           class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                           aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
                           <span
@@ -123,7 +123,7 @@
                               {{ Auth::user()->name ?? 'User' }}
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400" data-user-role-target>
-                              {{ Auth::user()->role ?? 'superadmin' }}
+                              {{ Auth::user()->role ?? 'admin' }}
                             </div>
                           </div>
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">

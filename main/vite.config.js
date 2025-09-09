@@ -8,9 +8,10 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/slideshow.js',
                 'resources/js/visitation/request/visitmodal.js',
                 'resources/js/dashboard/home.js',
-                'resources/js/admin/permissions.js',
+                'resources/js/officers/officers.js',
                 'resources/js/profile/edit-profile-modal.js'
             ],
             refresh: true,
