@@ -11,4 +11,8 @@ Alpine.start();
 import Swal from 'sweetalert2';
 window.Swal = Swal;
 
+// Import common utilities
+import * as CommonUtils from './common';
+window.CommonUtils = CommonUtils;
+
 // Slideshow is loaded only on pages that include it explicitly

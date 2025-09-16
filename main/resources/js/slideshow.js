@@ -1,3 +1,5 @@
+import { nextSlide, prevSlide } from './common';
+
 const createDot = (isActive) => {
   const dot = document.createElement('span');
   dot.className = `size-2 rounded-full transition-all cursor-pointer ring-2 ring-white/70 ${
@@ -93,8 +95,8 @@ export function mountSlideshow(root) {
     }
   };
 
-  const next = () => { index = (index + 1) % images.length; render(); };
-  const prev = () => { index = (index - 1 + images.length) % images.length; render(); };
+  const next = () => { index = nextSlide(index, images.length); render(); };
+  const prev = () => { index = prevSlide(index, images.length); render(); };
   const start = () => { if (!prefersReduced) timer = setInterval(next, 4000); };
   const stop = () => { if (timer) clearInterval(timer); };
   const restart = () => { stop(); render(); start(); };
@@ -248,8 +250,8 @@ export function mountAuthSlideshow(root) {
     }
   };
 
-  const next = () => { index = (index + 1) % images.length; render(); };
-  const prev = () => { index = (index - 1 + images.length) % images.length; render(); };
+  const next = () => { index = nextSlide(index, images.length); render(); };
+  const prev = () => { index = prevSlide(index, images.length); render(); };
   const start = () => { if (!prefersReduced) timer = setInterval(next, 5000); };
   const stop = () => { if (timer) clearInterval(timer); };
   const restart = () => { stop(); render(); start(); };
