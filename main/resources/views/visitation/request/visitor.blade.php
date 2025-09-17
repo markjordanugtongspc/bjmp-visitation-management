@@ -88,17 +88,18 @@
                             $isOpen = in_array($dow, [1,3,5]);
                         @endphp
                         <button type="button"
-                                class="aspect-square rounded-lg border border-black/5 dark:border-white/10 flex items-center justify-center text-sm transition-colors
-                                       {{ $isToday ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-blue-600/10 dark:hover:bg-blue-500/10' }}"
-                                aria-label="Day {{ $d }}">
-                            <span class="relative">
-                                {{ $d }}
-                                @if ($isOpen)
-                                    <span class="absolute -right-2 -top-2 size-1.5 rounded-full bg-emerald-500"></span>
-                                @else
-                                    <span class="absolute -right-2 -top-2 size-1.5 rounded-full bg-rose-500"></span>
-                                @endif
-                            </span>
+                           class="aspect-square rounded-lg border border-black/5 dark:border-white/10 flex items-center justify-center text-sm transition-colors cursor-pointer
+                                  {{ $isToday ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-blue-600/10 dark:hover:bg-blue-500/10' }}"
+                           aria-label="Day {{ $d }}"
+>                        
+                           <span class="relative transform transition-transform duration-200 ease-out hover:scale-105">
+                            {{ $d }}
+                            @if ($isOpen)
+                              <span class="absolute -right-2 -top-2 size-1.5 rounded-full bg-emerald-500"></span>
+                            @else
+                              <span class="absolute -right-2 -top-2 size-1.5 rounded-full bg-rose-500"></span>
+                            @endif
+                          </span>
                         </button>
                     @endfor
                 </div>
@@ -109,9 +110,21 @@
                 <div class="rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-gray-900 p-6 shadow-md">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-50">Start a Request</h3>
                     <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Choose how you want to submit your visitation request.</p>
-                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button type="button" id="btn-manual" class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">Manual Request</button>
-                        <button type="button" id="btn-auto" class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">Automatic Request</button>
+                    <!-- Buttons: Automatic full-width on mobile; others adaptive -->
+                    <div class="mt-4 space-y-3">
+                        <!-- Prominent Automatic Request (single straight line on mobile) -->
+                        <button type="button" id="btn-auto" class="w-full inline-flex items-center justify-center rounded-lg px-4 py-3 text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                            Automatic Request
+                        </button>
+                        <!-- Other actions -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button type="button" id="btn-manual" class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-white bg-gray-800 hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer">
+                                Manual Request
+                            </button>
+                            <button type="button" id="btn-conjugal" class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-white bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 hover:from-rose-500 hover:via-pink-500 hover:to-fuchsia-500 active:from-rose-700 active:via-pink-700 active:to-fuchsia-700 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-pink-400 cursor-pointer">
+                                Conjugal Visit
+                            </button>
+                        </div>
                     </div>
                 </div>
 
