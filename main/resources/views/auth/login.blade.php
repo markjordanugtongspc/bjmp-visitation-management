@@ -64,7 +64,7 @@
           <!-- Terms + Remember -->
           <div class="mt-4 flex items-center justify-between">
             <label class="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <input type="checkbox" class="size-4 rounded border-gray-300 dark:border-gray-700 text-blue-500 focus:ring-blue-500">
+              <input type="checkbox" class="size-4 rounded border-gray-300 dark:border-gray-700 text-blue-500 focus:ring-blue-500 cursor-pointer">
                 <span>I agree to the <a href="#" class="text-blue-500 hover:text-blue-400">Terms and Conditions</a></span>
             </label>
             <label class="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -81,10 +81,10 @@
           </div>
 
           <!-- Links -->
-          <div class="mt-6 flex items-center justify-between">
-            @if (Route::has('register'))
+          <div class="mt-6 flex items-center justify-end w-full">
+            <!-- @if (Route::has('register'))
             <a href="{{ route('register') }}" class="inline-block border-b border-black pb-0.5 text-sm text-gray-900 dark:text-gray-50 hover:text-gray-900 dark:hover:text-gray-50 transition-colors">Sign Up</a>
-            @endif
+            @endif -->
             @if (Route::has('password.request'))
             <a href="{{ route('password.request') }}" class="inline-block border-b border-black pb-0.5 text-sm text-gray-900 dark:text-gray-50 hover:text-gray-900 dark:hover:text-gray-50 transition-colors">Forgot Password?</a>
             @endif

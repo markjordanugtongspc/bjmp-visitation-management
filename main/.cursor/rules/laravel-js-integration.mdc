@@ -1,0 +1,10 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+Laravel JavaScript Integration:
+Use @vite('resources/js/modules/filename.js') in Blade templates to include specific modules
+Configure vite.config.js to handle multiple entry points for modular JavaScript
+Export functions as default or named exports from modules
+Import and use functions where needed rather than global scope

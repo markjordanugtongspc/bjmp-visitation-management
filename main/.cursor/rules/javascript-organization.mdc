@@ -1,0 +1,16 @@
+---
+globs: *.js
+alwaysApply: false
+---
+JavaScript Modularization Rules:
+
+Never put multiple functions in a single JavaScript file
+Create separate .js files for each function or logical component
+Use descriptive filenames that match the function purpose
+Store JavaScript modules in resources/js/modules/ directory
+Import functions using ES6 import/export syntax
+In Laravel Blade templates, include JavaScript modules using @vite directive
+Example structure:
+resources/js/modules/userValidation.js
+resources/js/modules/formHandler.js
+resources/js/modules/apiClient.js

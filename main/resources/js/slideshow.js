@@ -1,4 +1,4 @@
-import { nextSlide, prevSlide } from './common';
+import { nextSlide, prevSlide, probeImage } from './common';
 
 const createDot = (isActive) => {
   const dot = document.createElement('span');
@@ -8,20 +8,6 @@ const createDot = (isActive) => {
   return dot;
 };
 
-const probeImage = (src, timeoutMs = 2500) => new Promise((resolve) => {
-  const img = new Image();
-  let done = false;
-  const finish = (ok) => {
-    if (done) return; done = true;
-    clearTimeout(timer);
-    img.onload = img.onerror = null;
-    resolve(ok);
-  };
-  const timer = setTimeout(() => finish(false), timeoutMs);
-  img.onload = () => finish(true);
-  img.onerror = () => finish(false);
-  img.src = src;
-});
 
 async function detectShowcaseImages(base = '/images/landing/showcase', max = 15) {
   // const extensions = ['jpg', 'jpeg', 'png', 'webp'];

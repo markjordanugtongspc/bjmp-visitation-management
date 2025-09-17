@@ -59,4 +59,39 @@ export function createSlideController(options) {
   };
 }
 
-// Another Common Function To be Added Here
+// Add pulse and related animations once per page
+export function ensureSlideshowAnimationsInjected() {
+  if (document.getElementById('slideshow-animations')) return;
+  const style = document.createElement('style');
+  style.id = 'slideshow-animations';
+  style.textContent = `
+    @keyframes pulse { 0% { transform: scale(1);} 50% { transform: scale(1.05);} 100% { transform: scale(1);} }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .indicator-active { background-color: white; transform: scale(1.05); box-shadow: 0 0 10px rgba(255,255,255,.5); }
+    .indicator-inactive { background-color: rgba(255,255,255,.7); }
+    .indicator-transition { transition: all .3s ease-in-out; }
+  `;
+  document.head.appendChild(style);
+}
+
+// Verify auth slideshow image path or fallback
+export function verifyAuthImagePath(path) {
+  if (!path) return '/images/auth/slides/a1.png';
+  return path.startsWith('/') ? path : '/' + path;
+}
+
+// Probe if an image URL loads within a timeout
+export const probeImage = (src, timeoutMs = 2500) => new Promise((resolve) => {
+  const img = new Image();
+  let done = false;
+  const finish = (ok) => {
+    if (done) return; done = true;
+    clearTimeout(timer);
+    img.onload = img.onerror = null;
+    resolve(ok);
+  };
+  const timer = setTimeout(() => finish(false), timeoutMs);
+  img.onload = () => finish(true);
+  img.onerror = () => finish(false);
+  img.src = src;
+});

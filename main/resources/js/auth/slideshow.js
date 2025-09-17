@@ -1,40 +1,8 @@
-import { nextSlide, prevSlide } from '../common';
+import { nextSlide, prevSlide, ensureSlideshowAnimationsInjected, verifyAuthImagePath } from '../common';
+import './terms-consent';
 
-// Add CSS for pulse animation
-const addPulseAnimation = () => {
-  // Check if the animation style already exists
-  if (!document.getElementById('slideshow-animations')) {
-    const style = document.createElement('style');
-    style.id = 'slideshow-animations';
-    style.textContent = `
-      @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-      }
-      
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      
-      .indicator-active {
-        background-color: white;
-        transform: scale(1.05);
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-      }
-      
-      .indicator-inactive {
-        background-color: rgba(255, 255, 255, 0.7);
-      }
-      
-      .indicator-transition {
-        transition: all 0.3s ease-in-out;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-};
+// Ensure one-time animation CSS
+const addPulseAnimation = () => ensureSlideshowAnimationsInjected();
 
 /**
  * Auto Slideshow for Login Page
@@ -131,7 +99,7 @@ function initLoginSlideshow() {
       }
 
       const img = new Image();
-      const imagePath = verifyImagePath(LOGIN_SLIDES[index]);
+      const imagePath = verifyAuthImagePath(LOGIN_SLIDES[index]);
       img.src = imagePath;
       img.onload = () => {
         temp.style.backgroundImage = `url("${imagePath}")`;

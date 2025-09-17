@@ -1,0 +1,5 @@
+---
+globs: *.blade.php
+alwaysApply: false
+---
+Always use Tailwind CSS for all styling. Reference Tailwind CSS responsive design documentation for breakpoints and responsive utilities. Use responsive classes like sm:, md:, lg:, xl:, 2xl: for different screen sizes.
