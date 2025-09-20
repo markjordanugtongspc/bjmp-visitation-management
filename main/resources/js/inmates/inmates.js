@@ -610,254 +610,324 @@ document.addEventListener('DOMContentLoaded', () => {
     if (medicalEl) medicalEl.textContent = medicalInmates;
   }
 
-  // ========================================
-  // DETAILED INMATE INFORMATION MODAL
-  // ========================================
-  
-  // Open detailed inmate information modal
-  function openInmateDetailsModal(inmate) {
-    const statusClass = getStatusClass(inmate.status);
-    const width = isMobile() ? '95%' : '48rem';
-    
-    return window.Swal.fire({
-      title: 'Inmate Details',
-      html: `
-        <div class="space-y-6 text-left">
-          <!-- Header with Photo and Basic Info -->
-          <div class="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div class="flex-shrink-0">
-              <div class="w-24 h-24 rounded-full bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center mx-auto sm:mx-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/>
-                  <path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/>
-                </svg>
-              </div>
+// ========================================
+// MODERNIZED INMATE INFORMATION MODAL (Tailwind + SweetAlert2)
+// ========================================
+
+// Helpers
+const fullName = (i) => [i.firstName, i.middleName, i.lastName].filter(Boolean).join(' ');
+
+const statusBadgeClasses = (status) => ({
+  'In Custody': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  'Awaiting Trial': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+  'Released': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
+}[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300');
+
+const daysInCustody = (i) => calculateDaysInCustody(i.admissionDate);
+
+const inmateAvatarHTML = (inmate) => {
+  if (inmate.photoUrl) {
+    return `
+      <img src="${inmate.photoUrl}" alt="${fullName(inmate)}"
+        class="w-32 h-32 rounded-xl object-cover border-4 border-blue-500/20 shadow-lg bg-blue-500/10 mx-auto sm:mx-0" />
+    `;
+  }
+  // Fallback SVG avatar
+  return `
+    <div class="w-32 h-32 rounded-xl bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center mx-auto sm:mx-0 shadow-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/>
+        <path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/>
+      </svg>
+    </div>
+  `;
+};
+
+// Modernized card profile layout for inmate details
+function inmateProfileCardHTML(inmate) {
+  const name = fullName(inmate);
+  const statusClass = statusBadgeClasses(inmate.status);
+
+  return `
+    <div class="flex flex-col sm:flex-row gap-8 items-center sm:items-start bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 sm:p-8">
+      <!-- Avatar -->
+      <div class="flex-shrink-0 flex flex-col items-center gap-2 w-full sm:w-auto">
+        ${inmateAvatarHTML(inmate)}
+        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusClass} mt-3 shadow">
+          ${inmate.status}
+        </span>
+      </div>
+      <!-- Details -->
+      <div class="flex-1 w-full">
+        <div class="flex flex-col gap-2">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">${name}</h2>
+          <div class="flex flex-wrap gap-4 text-sm mb-2">
+            <div class="flex items-center gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Age:</span>
+              <span class="font-medium dark:text-gray-200">${inmate.age} years old</span>
             </div>
-            <div class="flex-1 space-y-2">
-              <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">
-                ${inmate.firstName} ${inmate.middleName ? inmate.middleName + ' ' : ''}${inmate.lastName}
-              </h2>
-              <div class="flex flex-wrap gap-4 text-sm">
-                <div class="flex items-center gap-1">
-                  <span class="text-gray-500 dark:text-gray-400">Age:</span>
-                  <span class="font-medium">${inmate.age} years old</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <span class="text-gray-500 dark:text-gray-400">Gender:</span>
-                  <span class="font-medium">${inmate.gender}</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <span class="text-gray-500 dark:text-gray-400">Status:</span>
-                  <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${statusClass}">${inmate.status}</span>
-                </div>
-              </div>
+            <div class="flex items-center gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Gender:</span>
+              <span class="font-medium dark:text-gray-200">${inmate.gender}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Cell:</span>
+              <span class="font-medium dark:text-gray-200">${inmate.cellNumber}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Inmate ID:</span>
+              <span class="font-mono text-blue-600 dark:text-blue-400">#${inmate.id.toString().padStart(4, '0')}</span>
             </div>
           </div>
-
-          <!-- Personal Information Section -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Personal Information</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                  ${inmate.firstName} ${inmate.middleName ? inmate.middleName + ' ' : ''}${inmate.lastName}
-                </p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Age</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">${inmate.age} years old</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Gender</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">${inmate.gender}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Admission Date</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">${formatDate(inmate.admissionDate)}</p>
-              </div>
+          <div class="flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
+            <div>
+              <span class="font-semibold text-gray-700 dark:text-gray-300">Crime:</span>
+              <span>${inmate.crime}</span>
             </div>
-          </div>
-
-          <!-- Legal Information Section -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Legal Information</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Crime Committed</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">${inmate.crime}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Sentence</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">${inmate.sentence}</p>
-              </div>
+            <div>
+              <span class="font-semibold text-gray-700 dark:text-gray-300">Sentence:</span>
+              <span>${inmate.sentence}</span>
             </div>
-          </div>
-
-          <!-- Cell Assignment Section -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Cell Assignment</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Current Cell</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">${inmate.cellNumber}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
-                <p class="mt-1">
-                  <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${statusClass}">${inmate.status}</span>
-                </p>
-              </div>
+            <div>
+              <span class="font-semibold text-gray-700 dark:text-gray-300">Admission:</span>
+              <span>${formatDate(inmate.admissionDate)}</span>
             </div>
-          </div>
-
-          <!-- Additional Information Section -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Additional Information</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Inmate ID</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">#${inmate.id.toString().padStart(4, '0')}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Days in Custody</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">${calculateDaysInCustody(inmate.admissionDate)} days</p>
-              </div>
+            <div>
+              <span class="font-semibold text-gray-700 dark:text-gray-300">Days in Custody:</span>
+              <span>${daysInCustody(inmate)} days</span>
             </div>
           </div>
         </div>
-      `,
-      width: width,
-      padding: isMobile() ? '1rem' : '2rem',
-      showCancelButton: true,
-      confirmButtonText: 'More Details',
-      cancelButtonText: 'Close',
-      confirmButtonColor: '#3B82F6',
-      cancelButtonColor: '#6B7280',
-      background: '#111827',
-      color: '#F9FAFB',
-      customClass: {
-        container: 'swal-responsive-container',
-        popup: 'swal-responsive-popup',
-        content: 'swal-responsive-content',
-      },
-      didOpen: () => {
-        // Add click handler for "More Details" button
-        const confirmBtn = document.querySelector('.swal2-confirm');
-        if (confirmBtn) {
-          confirmBtn.addEventListener('click', () => {
-            openExtendedInmateDetails(inmate);
-          });
-        }
-      }
-    });
-  }
+      </div>
+    </div>
+  `;
+}
 
-  // Open extended inmate details modal
-  function openExtendedInmateDetails(inmate) {
-    const width = isMobile() ? '95%' : '56rem';
-    
-    return window.Swal.fire({
-      title: 'Extended Inmate Information',
-      html: `
-        <div class="space-y-6 text-left">
-          <!-- Extended Personal Information -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Extended Personal Information</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Date of Birth</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">Not specified</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Place of Birth</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">Not specified</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Nationality</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">Filipino</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Marital Status</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">Not specified</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Legal History -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Legal History</h3>
-            <div class="space-y-3">
-              <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div class="flex justify-between items-start">
-                  <div>
-                    <p class="font-medium text-gray-900 dark:text-gray-100">${inmate.crime}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Sentence: ${inmate.sentence}</p>
-                  </div>
-                  <span class="text-xs text-gray-400">${formatDate(inmate.admissionDate)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Medical Information -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Medical Information</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Medical Status</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">No medical issues reported</p>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Last Medical Check</label>
-                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">Not available</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Visitation Records -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Visitation Records</h3>
-            <div class="text-center py-4 text-gray-500 dark:text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              <p class="text-sm">No visitation records available</p>
-            </div>
-          </div>
+// Modernized extended details (kept as a card)
+function openExtendedInmateDetails(inmate) {
+  const width = isMobile() ? '98vw' : '48rem';
+  const html = `
+    <div class="flex flex-col sm:flex-row gap-8 items-start">
+      <!-- Avatar and summary -->
+      <div class="flex-shrink-0 w-full sm:w-1/3">
+        ${inmateAvatarHTML(inmate)}
+        <div class="mt-4 text-center sm:text-left">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">${fullName(inmate)}</h2>
+          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClasses(inmate.status)} mt-2 shadow">
+            ${inmate.status}
+          </span>
         </div>
-      `,
-      width: width,
-      padding: isMobile() ? '1rem' : '2rem',
-      showCancelButton: true,
-      confirmButtonText: 'Edit Inmate',
-      cancelButtonText: 'Close',
-      confirmButtonColor: '#3B82F6',
-      cancelButtonColor: '#6B7280',
-      background: '#111827',
-      color: '#F9FAFB',
-      customClass: {
-        container: 'swal-responsive-container',
-        popup: 'swal-responsive-popup',
-        content: 'swal-responsive-content',
-      },
-      didOpen: () => {
-        // Add click handler for "Edit Inmate" button
-        const confirmBtn = document.querySelector('.swal2-confirm');
-        if (confirmBtn) {
-          confirmBtn.addEventListener('click', async () => {
-            Swal.close();
-            const { value } = await openInmateModal(inmate);
-            if (value) {
-              Object.assign(inmate, value);
-              renderOrUpdateViews(inmate);
-              showSuccessMessage('Inmate updated successfully');
-            }
-          });
-        }
+      </div>
+      <!-- Details -->
+      <div class="flex-1 w-full space-y-6">
+        <!-- Extended Personal Information -->
+        <section>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Extended Personal Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Date of Birth</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Not specified</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Place of Birth</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Not specified</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Nationality</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Filipino</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Marital Status</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Not specified</p>
+            </div>
+          </div>
+        </section>
+        <!-- Legal History -->
+        <section>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Legal History</h3>
+          <div class="p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg flex flex-col gap-1">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="font-medium text-gray-900 dark:text-gray-200">${inmate.crime}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Sentence: ${inmate.sentence}</p>
+              </div>
+              <span class="text-xs text-gray-400">${formatDate(inmate.admissionDate)}</span>
+            </div>
+          </div>
+        </section>
+        <!-- Medical Information -->
+        <section>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Medical Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Medical Status</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">No medical issues reported</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Last Medical Check</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Not available</p>
+            </div>
+          </div>
+        </section>
+        <!-- Visitation Records -->
+        <section>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Visitation Records</h3>
+          <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-sm">No visitation records available</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  `;
+
+  return window.Swal.fire({
+    title: `<span class="hidden">Extended Inmate Information</span>`, // visually hidden, use card header
+    html,
+    width,
+    padding: isMobile() ? '0.5rem' : '2rem',
+    showCancelButton: true,
+    confirmButtonText: 'Edit Inmate',
+    cancelButtonText: 'Close',
+    confirmButtonColor: '#3B82F6',
+    cancelButtonColor: '#6B7280',
+    background: '#111827',
+    color: '#F9FAFB',
+    customClass: {
+      container: 'swal-responsive-container',
+      popup: 'swal-responsive-popup',
+      content: 'swal-responsive-content',
+    },
+    allowOutsideClick: false
+  });
+}
+
+// Modernized main modal
+function openInmateDetailsModal(inmate) {
+  const width = isMobile() ? '98vw' : '48rem';
+  const html = `
+    <div class="flex flex-col sm:flex-row gap-8 items-center sm:items-start">
+      <!-- Avatar and summary -->
+      <div class="flex-shrink-0 w-full sm:w-1/3">
+        ${inmateAvatarHTML(inmate)}
+        <div class="mt-4 text-center sm:text-left">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">${fullName(inmate)}</h2>
+          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClasses(inmate.status)} mt-2 shadow">
+            ${inmate.status}
+          </span>
+        </div>
+      </div>
+      <!-- Details -->
+      <div class="flex-1 w-full space-y-6">
+        <!-- Personal Information -->
+        <section>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Personal Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Full Name</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${fullName(inmate)}</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Age</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.age} years old</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Gender</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.gender}</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Admission Date</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${formatDate(inmate.admissionDate)}</p>
+            </div>
+          </div>
+        </section>
+        <!-- Legal Information -->
+        <section>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Legal Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Crime Committed</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.crime}</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Sentence</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.sentence}</p>
+            </div>
+          </div>
+        </section>
+        <!-- Cell Assignment -->
+        <section>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Cell Assignment</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Current Cell</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.cellNumber}</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Status</label>
+              <p class="mt-1">
+                <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${statusBadgeClasses(inmate.status)}">
+                  ${inmate.status}
+                </span>
+              </p>
+            </div>
+          </div>
+        </section>
+        <!-- Additional Information -->
+        <section>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Additional Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Inmate ID</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">#${inmate.id.toString().padStart(4, '0')}</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Days in Custody</label>
+              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${daysInCustody(inmate)} days</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  `;
+
+  return window.Swal.fire({
+    title: `<span class="hidden">Inmate Details</span>`, // visually hidden, use card header
+    html,
+    width,
+    padding: isMobile() ? '0.5rem' : '2rem',
+    showCancelButton: true,
+    confirmButtonText: 'More Details',
+    cancelButtonText: 'Close',
+    confirmButtonColor: '#3B82F6',
+    cancelButtonColor: '#6B7280',
+    background: '#111827',
+    color: '#F9FAFB',
+    customClass: {
+      container: 'swal-responsive-container',
+      popup: 'swal-responsive-popup',
+      content: 'swal-responsive-content',
+    },
+    didOpen: () => {
+      const confirmBtn = Swal.getConfirmButton();
+      if (confirmBtn) {
+        confirmBtn.classList.add('cursor-pointer');
+        confirmBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          Swal.close();
+          openExtendedInmateDetails(inmate);
+        }, { once: true });
       }
-    });
-  }
+      
+      const cancelBtn = Swal.getCancelButton();
+      if (cancelBtn) {
+        cancelBtn.classList.add('cursor-pointer');
+      }
+    }
+  });
+}
 
   // Calculate days in custody
   function calculateDaysInCustody(admissionDate) {
