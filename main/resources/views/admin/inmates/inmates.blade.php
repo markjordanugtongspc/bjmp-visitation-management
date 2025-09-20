@@ -19,7 +19,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a.75.75 0 011.06 0l8.69 8.69a.75.75 0 11-1.06 1.06l-.19-.19V18a2.25 2.25 0 01-2.25 2.25H15a.75.75 0 01-.75-.75v-4.5h-3V19.5a.75.75 0 01-.75.75H6.25A2.25 2.25 0 014 18v-4.69l-.19.19a.75.75 0 11-1.06-1.06l7.75-7.75Z"/></svg>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                <a href="{{ route('inmates.index') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('inmates.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <svg width="16px" height="16px" viewBox="0 0 17.00 17.00" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="si-glyph si-glyph-person-prison" fill="#ffffff" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>771</title> <defs> </defs> <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g transform="translate(1.000000, 0.000000)" fill="#ffffff"> <path d="M12.6973076,16.022 L3.37869242,16.022 C1.53624385,16.022 0.0379999999,14.5191098 0.0379999999,12.6724147 L0.0379999999,3.37058005 C0.0379999999,1.5238849 1.53624385,0.022 3.37869242,0.022 L12.6973076,0.022 C14.5397561,0.022 16.038,1.5238849 16.038,3.37058005 L16.038,12.6724147 C16.038,14.5181045 14.5397561,16.022 12.6973076,16.022 L12.6973076,16.022 Z M3.10672887,1 C1.9450099,1 1,1.947963 1,3.11438255 L1,12.8836405 C1,14.0510485 1.9450099,15 3.10672887,15 L12.8922816,15 C14.0549901,15 15,14.0510485 15,12.8836405 L15,3.11438255 C15,1.947963 14.0549901,1 12.8922816,1 L3.10672887,1 L3.10672887,1 Z" class="si-glyph-fill"> </path> <path d="M3,1 L3,14.691 L4.03955078,14.691 L4.03955078,0.999999985 L3,1 Z" class="si-glyph-fill"> </path> <path d="M6,1 L6,14.691 L7.0189209,14.691 L7.0189209,0.999999985 L6,1 Z" class="si-glyph-fill"> </path> <path d="M9,1 L9,14.691 L10.0375977,14.691 L10.0375977,0.999999985 L9,1 Z" class="si-glyph-fill"> </path> <path d="M12,1 L12,14.691 L12.918457,14.691 L12.918457,1 L12,1 Z" class="si-glyph-fill"> </path> <g transform="translate(1.000000, 3.000000)"> <path d="M10.576,8.048 C10.177,8.635 9.681,9.507 9.105,10.546 C8.473,11.692 7.746,10.289 6.951,10.289 C6.135,10.289 5.371,11.64 4.711,10.465 C4.143,9.454 3.65,8.639 3.262,8.076 C1.252,8.076 0.216,9.376 -0.316,10.947 C-0.85,12.52 14.862,12.513 14.375,10.934 C13.89,9.354 12.838,8.048 10.576,8.048 L10.576,8.048 Z" class="si-glyph-fill"> </path> <path d="M9.977,3.154 C9.977,4.815 8.654,7.992 7.022,7.992 C5.388,7.992 4.066,4.815 4.066,3.154 C4.066,1.491 5.388,0.144 7.022,0.144 C8.653,0.145 9.977,1.491 9.977,3.154 L9.977,3.154 Z" class="si-glyph-fill"> </path> </g> </g> </g> </g></svg>
                     <span>Inmates</span>
                 </a>
@@ -44,45 +44,44 @@
 
                 <div class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Administration</div>
                 <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.58 9.902a.41.41 0 0 1-.407.408H5.826a.408.408 0 0 1 0-.816h4.347a.41.41 0 0 1 .408.408m-.407-2.581H5.826a.408.408 0 0 0 0 .815h4.347a.408.408 0 0 0 0-.815m3.668-4.483v11.411a.95.95 0 0 1-.95.951H3.108a.95.95 0 0 1-.95-.95V2.837a.95.95 0 0 1 .95-.951h2.525a3.118 3.118 0 0 1 4.732 0h2.524a.95.95 0 0 1 .951.95M5.69 3.923v.135h4.618v-.135a2.31 2.31 0 1 0-4.619 0m7.335-1.087a.136.136 0 0 0-.136-.136h-2.015c.165.386.25.802.25 1.223v.543a.41.41 0 0 1-.408.408H5.283a.41.41 0 0 1-.408-.408v-.543c0-.42.085-.837.25-1.223H3.108a.136.136 0 0 0-.136.136v11.411a.136.136 0 0 0 .136.136h9.781a.136.136 0 0 0 .136-.136z" stroke-width="0.3" stroke="currentColor"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.58 9.902a.41.41 0 0 1-.407.408H5.826a.408.408 0 0 1 0-.816h4.347a.41.41 0 0 1 .408.408m-.407-2.581H5.826a.408.408 0 0 0 0 .815h4.347a.408.408 0 0 0 0-.815m3.668-4.483v11.411a.95.95 0 0 1-.95.951H3.108a.95.95 0 0 1-.95-.95V2.837a.95.95 0 0 1 .95-.951h2.525a3.118 3.118 0 0 1 4.732 0h2.524a.95.95 0 0 1 .951.95M5.69 3.923v.135h4.618v-.135a2.31 2.31 0 1 0-4.619 0m7.335-1.087a.136.136 0 0 0-.136-.136h-2.015c.165.386.25.802.25 1.223v.543a.41.41 0 0 1-.408.408H5.283a.41.41 0 0 1-.408-.408v-.543c0-.42.085-.837.25-1.223H3.108a.136.136 0 0 0-.136.136v11.411a.136.136 0 0 0 .136.136h9.781a.136.136 0 0 0 .136-.136z" stroke-width="0.3" stroke="currentColor"/></svg>
                     <span>Reports</span>
                 </a>
-
                 <a href="{{ route('profile.edit') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>
                     <span>Profile</span>
                 </a>
-                <a href="{{ route('officers.index') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('officers.*') ? 'border-blue-500 bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
-                    <!-- Users icon -->
+                <a href="{{ route('officers.index') }}"
+                    class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('officers.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48"><g fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" stroke-width="0.5" stroke="currentColor"><path d="M13.5 10.097C13.5 7.774 24 6 24 6s10.5 1.774 10.5 4.097c0 3.097-1.91 4.403-1.91 4.403H15.41s-1.91-1.306-1.91-4.403m12.5-.53s-1.467-.534-2-1.067c-.533.533-2 1.067-2 1.067s.4 2.933 2 2.933s2-2.933 2-2.933m5.814 8.713c1.39-1.085 1.174-2.28 1.174-2.28H15.012s-.217 1.195 1.174 2.28a8 8 0 1 0 15.629 0M24 20c2.721 0 4.624-.314 5.952-.766q.047.376.048.766a6 6 0 1 1-11.952-.766c1.329.452 3.23.766 5.952.766"/><path d="m16.879 28l6.477 5.457a1 1 0 0 0 1.288 0L31.121 28S42 31.393 42 35.467V42H6v-6.533C6 31.393 16.879 28 16.879 28m-4.154 9.207a1 1 0 0 1-.725-.961V35h7v1.246a1 1 0 0 1-.725.961l-2.5.715a1 1 0 0 1-.55 0zm20.94-4.082a.17.17 0 0 0-.33 0l-.471 1.52a.174.174 0 0 1-.165.126h-1.526c-.167 0-.237.225-.101.328l1.234.94c.06.046.086.128.063.202l-.471 1.52c-.052.168.13.307.266.204l1.234-.94a.166.166 0 0 1 .204 0l1.234.94c.136.103.318-.036.267-.203l-.472-1.52a.19.19 0 0 1 .063-.203l1.234-.94c.136-.103.066-.328-.101-.328H34.3a.174.174 0 0 1-.165-.125z"/></g></svg>
                     <span>Officers</span>
-                    </a>
+                </a>
 
-                    <div class="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center gap-3">
-                            <div class="h-9 w-9 rounded-full bg-blue-500/10 ring-2 ring-blue-500/20 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25A9.75 9.75 0 1021.75 12 9.76 9.76 0 0012 2.25zm0 3a1.5 1.5 0 11-1.5 1.5A1.5 1.5 0 0112 5.25zM9 10.5h6v8.25H9z"/></svg>
-                            </div>
-                            <div class="text-xs text-gray-600 dark:text-gray-300">
-                                Keep records updated and verified.
-                            </div>
+                <div class="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 rounded-full bg-blue-500/10 ring-2 ring-blue-500/20 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25A9.75 9.75 0 1021.75 12 9.76 9.76 0 0012 2.25zm0 3a1.5 1.5 0 11-1.5 1.5A1.5 1.5 0 0112 5.25zM9 10.5h6v8.25H9z"/></svg>
+                        </div>
+                        <div class="text-xs text-gray-600 dark:text-gray-300">
+                            Facial recognition replaces QR scanning.
                         </div>
                     </div>
-                    </nav>
-                    </aside>
+                </div>
+            </nav>
+        </aside>
 
         <!-- Main content -->
-        <div class="flex-1 min-h-screen bg-gray-950">
+        <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950">
             <!-- Hope UI–style Header -->
-            <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-gray-900/70 bg-gray-900/95 border-b border-gray-800">
+            <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
                 <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">
-                    <!-- Mobile: sidebar toggle (hamburger icon) -->
+                 <!-- Mobile: sidebar toggle (hamburger icon) -->
                     <button data-sidebar-toggle class="sm:hidden inline-flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 h-9 w-9 text-gray-700 dark:text-gray-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-label="Menu" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 6h16" />
-                            <path d="M4 12h16" />
-                            <path d="M4 18h16" />
-                        </svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-label="Menu" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 6h16" />
+                        <path d="M4 12h16" />
+                        <path d="M4 18h16" />
+                      </svg>
                     </button>
 
                     <!-- Brand -->
@@ -96,52 +95,55 @@
                             <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a6.75 6.75 0 105.196 11.163l3.646 3.646a.75.75 0 101.06-1.06l-3.646-3.646A6.75 6.75 0 0010.5 3.75zM6 10.5a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/></svg>
                             </span>
-                            <input placeholder="Search officers..." class="w-full h-9 pl-9 pr-3 rounded-md bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input placeholder="Search..." class="w-full h-9 pl-9 pr-3 rounded-md bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </label>
                     </div>
 
                     <!-- Actions -->
                     <div class="flex items-center gap-2 ml-auto">
-                    <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
-                        <span class="sr-only">Announcements</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a7.5 7.5 0 00-7.5 7.5V12l-1.5 1.5V15h18v-1.5L19.5 12V9.75a7.5 7.5 0 00-7.5-7.5zM8.25 18a3.75 3.75 0 007.5 0h-7.5z"/></svg>
-                    </button>
+                        <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
+                            <span class="sr-only">Announcements</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a7.5 7.5 0 00-7.5 7.5V12l-1.5 1.5V15h18v-1.5L19.5 12V9.75a7.5 7.5 0 00-7.5-7.5zM8.25 18a3.75 3.75 0 007.5 0h-7.5z"/></svg>
+                        </button>
 
                         <!-- User dropdown -->
                         <div class="relative">
-                            <button data-user-menu
-                              data-user-name="{{ Auth::user()->name ?? 'User' }}"
-                              data-user-role="{{ Auth::user()->role ?? 'admin' }}"
-                              class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                              aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
-                              <span
-                                class="h-8 w-8 inline-flex items-center justify-center rounded-full ring-2 ring-blue-500/30 bg-white dark:bg-gray-800"
-                                aria-label="Profile image">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" viewBox="0 0 24 24" fill="currentColor" aria-label="Profile">
-                                  <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/>
-                                  <path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/>
-                                </svg>
-                              </span>
-                              <div class="hidden sm:block text-left leading-tight">
-                                <div class="text-xs font-medium text-gray-700 dark:text-gray-50" data-user-name-target>
-                                  {{ Auth::user()->name ?? 'User' }}
-                                </div>
-                                <div class="text-[10px] text-gray-500 dark:text-gray-400" data-user-role-target>
-                                  {{ Auth::user()->role ?? 'admin' }}
-                                </div>
-                              </div>
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 15l-4-4h8z"/>
-                              </svg>
-                            </button>
+                        <button data-user-menu
+                          data-user-name="{{ Auth::user()->name ?? 'User' }}"
+                          data-user-role="{{ Auth::user()->role ?? 'admin' }}"
+                          class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                          aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
+                          <span
+                            class="h-8 w-8 inline-flex items-center justify-center rounded-full ring-2 ring-blue-500/30 bg-white dark:bg-gray-800"
+                            aria-label="Profile image">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" viewBox="0 0 24 24" fill="currentColor" aria-label="Profile">
+                              <!-- simple user silhouette -->
+                              <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/>
+                              <path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/>
+                            </svg>
+                          </span>
+                          <div class="hidden sm:block text-left leading-tight">
+                            <div class="text-xs font-medium text-gray-900 dark:text-gray-50" data-user-name-target>
+                              {{ Auth::user()->name ?? 'User' }}
+                            </div>
+                            <div class="text-[10px] text-gray-500 dark:text-gray-400" data-user-role-target>
+                              {{ Auth::user()->getRoleName() }}
+                            </div>
+                          </div>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 15l-4-4h8z"/>
+                          </svg>
+                        </button>
                             <!-- Menu -->
                             <div data-user-menu-panel class="absolute right-0 mt-2 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg hidden">
                                 <div class="px-4 py-3">
                                     <span class="block text-xs text-gray-500 dark:text-gray-400">Signed in as</span>
-                                    <span class="block text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{{ Auth::user()->email }}</span>
+                                    <span class="block text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{{ Auth::user()->email }}</span>
                                 </div>
+                                
                                 <hr class="border-t border-gray-200 dark:border-gray-700">
-                                <button id="edit-profile-btn" class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-2">
+                                
+                                <button id="edit-profile-btn-template" class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                                     </svg>
@@ -154,6 +156,7 @@
                                     </svg>
                                         <span>{{ __('Account Settings') }}</span>
                                 </a>
+                                
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 cursor-pointer">
@@ -179,136 +182,13 @@
                 </div>
             </header>
 
-            <!-- Officers content -->
+            <!-- Empty body content -->
             <div class="p-4 sm:p-6">
-                <div class="rounded-xl bg-gray-900 border border-gray-800 shadow">
-                    <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
-                        <div>
-                            <div class="text-sm sm:text-base font-medium text-gray-50">Officers</div>
-                            <div class="text-xs text-gray-400">A list of all officers including their name, title, email and status.</div>
-                        </div>
-                        <button type="button" class="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs sm:text-sm cursor-pointer" data-add-officer>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a.75.75 0 01.75.75V12h6.75a.75.75 0 010 1.5H12.75V20a.75.75 0 01-1.5 0v-6.5H4.5a.75.75 0 010-1.5h6.75V5.25A.75.75 0 0112 4.5z"/></svg>
-                            Add officer
-                        </button>
-                    </div>
-
-                    <!-- Desktop Table (hidden on mobile) -->
-                    <div class="hidden sm:block overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-gray-800/60 text-gray-300">
-                                <tr>
-                                    <th class="text-left font-medium px-4 py-3">Name</th>
-                                    <th class="text-left font-medium px-4 py-3">Title</th>
-                                    <th class="text-left font-medium px-4 py-3">Status</th>
-                                    <th class="text-right font-medium px-4 py-3">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="officers-table-body" class="divide-y divide-gray-800 text-gray-200">
-                                @php
-                                    $officers = [
-                                        ['id'=>1,'name'=>'Jail Warden','email'=>'warden@bjmp.gov.ph','title'=>'Warden','subtitle'=>'Jail Management','status'=>'Active'],
-                                        ['id'=>2,'name'=>'Assistant Warden','email'=>'asst.warden@bjmp.gov.ph','title'=>'Assistant Warden','subtitle'=>'Operations','status'=>'Active'],
-                                        ['id'=>3,'name'=>'Chief Custodial','email'=>'custodial@bjmp.gov.ph','title'=>'Chief Custodial','subtitle'=>'Security','status'=>'Active'],
-                                        ['id'=>4,'name'=>'Chief ICT','email'=>'ict@bjmp.gov.ph','title'=>'Chief ICT','subtitle'=>'Information Systems','status'=>'Active'],
-                                        ['id'=>5,'name'=>'Senior Jail Officer','email'=>'sjo@bjmp.gov.ph','title'=>'Unit Executive Senior Jail Officer','subtitle'=>'Administration','status'=>'Active'],
-                                        ['id'=>6,'name'=>'Chief Nurse','email'=>'health@bjmp.gov.ph','title'=>'Chief Health Nurse','subtitle'=>'Medical Services','status'=>'Active'],
-                                    ];
-                                @endphp
-
-                                @foreach($officers as $o)
-                                    <tr data-row-id="{{ $o['id'] }}" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                        <td class="px-4 py-3 whitespace-nowrap">
-                                            <div class="flex items-center gap-3">
-                                                <div class="h-9 w-9 rounded-full bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
-                                                </div>
-                                                <div>
-                                                    <div class="font-medium text-gray-50" data-o-name>{{ $o['name'] }}</div>
-                                                    <div class="text-xs text-gray-400" data-o-email>{{ $o['email'] }}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-3">
-                                            <div class="font-medium text-gray-50" data-o-title>{{ $o['title'] }}</div>
-                                            <div class="text-xs text-gray-400" data-o-subtitle>{{ $o['subtitle'] }}</div>
-                                        </td>
-                                        <td class="px-4 py-3">
-                                            @php $active = strtolower($o['status']) === 'active'; @endphp
-                                            <span data-o-status class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] {{ $active ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500' }}">{{ $o['status'] }}</span>
-                                        </td>
-                                        <td class="px-4 py-3 text-right">
-                                        <button type="button" data-edit-officer class="text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 p-1.5 rounded-md transition-colors cursor-pointer" aria-label="Edit officer" title="Edit"
-                                            data-id="{{ $o['id'] }}"
-                                            data-name="{{ $o['name'] }}"
-                                            data-email="{{ $o['email'] }}"
-                                            data-title="{{ $o['title'] }}"
-                                            data-subtitle="{{ $o['subtitle'] }}"
-                                            data-status="{{ $o['status'] }}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
-                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" />
-                                                <path d="M16 5l3 3" />
-                                            </svg>
-                                        </button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Mobile Cards (visible only on mobile) -->
-                    <div class="sm:hidden">
-                        <div id="officers-cards-mobile" class="divide-y divide-gray-800">
-                            @foreach($officers as $o)
-                                <div class="p-4 space-y-3" data-card-id="{{ $o['id'] }}">
-                                    <div class="flex justify-between items-start">
-                                        <div class="flex items-center gap-3">
-                                            <div class="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
-                                            </div>
-                                            <div>
-                                                <div class="font-medium text-gray-50" data-o-name>{{ $o['name'] }}</div>
-                                                <div class="text-xs text-gray-400" data-o-email>{{ $o['email'] }}</div>
-                                            </div>
-                                        </div>
-                                        <button type="button" data-edit-officer 
-                                            class="bg-blue-500/10 text-blue-500 p-2 rounded-md" 
-                                            aria-label="Edit officer" 
-                                            data-id="{{ $o['id'] }}"
-                                            data-name="{{ $o['name'] }}"
-                                            data-email="{{ $o['email'] }}"
-                                            data-title="{{ $o['title'] }}"
-                                            data-subtitle="{{ $o['subtitle'] }}"
-                                            data-status="{{ $o['status'] }}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
-                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" />
-                                                <path d="M16 5l3 3" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <div class="mt-2 pl-13">
-                                        <div class="flex justify-between items-center">
-                                            <div>
-                                                <div class="font-medium text-gray-50" data-o-title>{{ $o['title'] }}</div>
-                                                <div class="text-xs text-gray-400" data-o-subtitle>{{ $o['subtitle'] }}</div>
-                                            </div>
-                                            @php $active = strtolower($o['status']) === 'active'; @endphp
-                                            <span data-o-status class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {{ $active ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500' }}">{{ $o['status'] }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
+                
             </div>
         </div>
     </div>
 
     @vite('resources/js/dashboard/home.js')
-    @vite('resources/js/officers/officers.js')
     @vite('resources/js/profile/edit-profile-modal.js')
 </x-app-layout>

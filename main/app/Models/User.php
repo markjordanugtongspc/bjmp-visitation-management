@@ -61,4 +61,29 @@ class User extends Authenticatable
      * @var string
      */
     protected $primaryKey = 'user_id';
+    
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role_id == 1;
+    }
+    
+    /**
+     * Get the user's role name.
+     *
+     * @return string
+     */
+    public function getRoleName()
+    {
+        return match($this->role_id) {
+            1 => 'Admin',
+            2 => 'Officer',
+            3 => 'Staff',
+            default => 'User'
+        };
+    }
 }

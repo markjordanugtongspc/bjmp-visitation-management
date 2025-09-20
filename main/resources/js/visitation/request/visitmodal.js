@@ -38,28 +38,42 @@
 
             if (conjugalBtn) {
                 conjugalBtn.addEventListener('click', async () => {
-                    await window.Swal.fire({
-                        title: 'Conjugal Visit Request',
-                        html: `
-                          <div class="text-left space-y-2">
-                            <p class="text-sm text-white">Conjugal visits are subject to facility policies and approval.</p>
-                            <ul class="list-disc pl-5 text-sm text-gray-200 space-y-1">
-                              <li>Requires identity verification and clearance.</li>
-                              <li>Schedule availability is limited; processing may take longer.</li>
-                              <li>All rules on privacy, safety, and conduct strictly apply.</li>
-                            </ul>
-                          </div>
-                        `,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Proceed',
-                        cancelButtonText: 'Cancel',
-                        confirmButtonColor: '#EC4899', // pink-500
-                        cancelButtonColor: '#111827',
-                        backdrop: true,
-                        background: '#0F172A',
-                        color: '#F9FAFB'
-                    });
+                  await window.Swal.fire({
+                    title: 'Conjugal Visit Request',
+                    html: `
+                      <div class="text-left space-y-3">
+                        <p class="text-sm text-white">
+                          Conjugal visits are exclusively for legally recognized <span class="font-semibold text-pink-400">Wife</span> or <span class="font-semibold text-pink-400">Husband</span>, or partners in a live-in relationship of at least <span class="font-semibold text-pink-400">5 years</span>.
+                        </p>
+                        <div class="text-sm text-gray-200 space-y-2">
+                          <p class="font-medium text-gray-300">Requirements:</p>
+                          <ul class="list-disc pl-5 space-y-1">
+                            <li>Live-in Cohabitation Certificate issued by Barangay Official</li>
+                            <li>Marriage Contract (if legally married)</li>
+                          </ul>
+                        </div>
+                        <div class="text-sm text-gray-200 space-y-2">
+                          <p class="font-medium text-gray-300">Visit Details:</p>
+                          <ul class="list-disc pl-5 space-y-1">
+                            <li>Time limit: 30 to 45 minutes (can extend to 1 hour)</li>
+                            <li>Available for the whole day</li>
+                            <li>₱50 payment required per session</li>
+                            <li>No limit on number of visits per month</li>
+                          </ul>
+                        </div>
+                        <p class="text-xs text-gray-400 italic">All visits are subject to facility rules on privacy, safety, and conduct.</p>
+                      </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Proceed',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#EC4899', // Tailwind pink-500
+                    cancelButtonColor: '#111827', // Tailwind gray-900
+                    backdrop: true,
+                    background: '#0F172A', // Tailwind slate-900
+                    color: '#F9FAFB' // Tailwind gray-50
+                  });
                 });
-            }
+              }
         });

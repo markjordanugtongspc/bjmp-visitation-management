@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,14 +12,19 @@ Route::get('/', function () {
 Route::view('/visitation/request/visitor', 'visitation.request.visitor')
     ->name('visitation.request.visitor');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [AdminController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 // Officers page
-Route::get('/officers', function () {
-    return view('officers.officers');
-})->middleware(['auth', 'verified'])->name('officers.index');
+Route::get('/officers', [AdminController::class, 'officers'])
+    ->middleware(['auth', 'verified'])
+    ->name('officers.index');
+
+// Inmates page
+Route::get('/inmates', [AdminController::class, 'inmates'])
+    ->middleware(['auth', 'verified'])
+    ->name('inmates.index');
 
 
 Route::middleware('auth')->group(function () {
