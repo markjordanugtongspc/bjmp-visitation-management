@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="space-y-2">
           <div class="flex justify-between text-sm">
             <span class="text-gray-600 dark:text-gray-400">Occupancy</span>
-            <span class="font-medium">${cell.currentCount}/${cell.capacity}</span>
+            <span class="font-medium text-white">${cell.currentCount}/${cell.capacity}</span>
           </div>
           <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div class="h-2 rounded-full transition-all duration-300 ${
