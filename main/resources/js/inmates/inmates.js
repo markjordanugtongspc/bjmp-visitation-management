@@ -1,3 +1,4 @@
+import 'flowbite';
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
 // - Cell management and capacity tracking
@@ -144,9 +145,15 @@ document.addEventListener('DOMContentLoaded', () => {
                        value="${inmate.middleName || ''}" placeholder="Enter middle name" />
               </div>
               <div>
-                <label class="block text-xs text-gray-300 mb-1">Age *</label>
-                <input id="i-age" type="number" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" 
-                       value="${inmate.age || ''}" placeholder="Enter age" min="18" max="100" />
+                <label class="block text-xs text-gray-300 mb-1">Age</label>
+                <input
+                  id="i-age"
+                  type="text"
+                  aria-label="disabled input"
+                  class="mb-5 bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                   value="${inmate.age ?? ''}" 
+                  disabled
+                />
               </div>
             </div>
             
@@ -264,11 +271,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       },
       preConfirm: () => {
+        const isEditing = !!inmate.id;
         const data = {
           firstName: document.getElementById('i-firstname').value.trim(),
           lastName: document.getElementById('i-lastname').value.trim(),
           middleName: document.getElementById('i-middlename').value.trim(),
-          age: parseInt(document.getElementById('i-age').value),
+          age: inmate.age ?? null,
           gender: document.getElementById('i-gender').value,
           crime: document.getElementById('i-crime').value.trim(),
           sentence: document.getElementById('i-sentence').value.trim(),
@@ -276,19 +284,21 @@ document.addEventListener('DOMContentLoaded', () => {
           status: document.getElementById('i-status').value,
           admissionDate: document.getElementById('i-admission-date').value
         };
-        
         // Validation
-        if (!data.firstName || !data.lastName || !data.age || !data.gender || 
-            !data.crime || !data.sentence || !data.cellNumber || !data.status || !data.admissionDate) {
-          window.Swal.showValidationMessage('All required fields must be filled.');
+        if (
+          !data.firstName ||
+          !data.lastName ||
+          false ||
+          !data.gender ||
+          !data.crime ||
+          !data.sentence ||
+          !data.cellNumber ||
+          !data.status ||
+          !data.admissionDate
+        ) {
+          window.Swal.showValidationMessage('All required fields must be filled and valid.');
           return false;
         }
-        
-        if (data.age < 18 || data.age > 100) {
-          window.Swal.showValidationMessage('Age must be between 18 and 100.');
-          return false;
-        }
-        
         return data;
       },
     });
@@ -340,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span data-i-status class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px]"></span>
         </td>
         <td class="px-4 py-3 text-right">
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1 justify-end ml-auto">
             <button type="button" data-edit-inmate class="text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 p-1.5 rounded-md transition-colors cursor-pointer" aria-label="Edit inmate">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
