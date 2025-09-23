@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentIntervalMs = 10000; // start with 10s
   const minIntervalMs = 5000;
   const maxIntervalMs = 60000;
-  const seenIds = new Set();
+  // Removed seenIds gating so backend becomes the single source of truth
 
   // Helper to get officer by id
   function getOfficerById(id) {
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!Number.isNaN(id)) existingIds.add(id);
     });
 
-    // Populate in-memory officers from DOM (for local cache)
+    // Populate in-memory officers from DOM (for local cache) and attach handlers by re-rendering
     officers = [];
     tableBody?.querySelectorAll('tr[data-row-id]')?.forEach(row => {
       const id = Number(row.getAttribute('data-row-id'));
@@ -443,6 +443,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }
+
+    // Re-render existing DOM items so edit buttons get wired consistently
+    officers.forEach(it => renderOrUpdateViews(it));
     // Hydrate from backend list and then start polling
     const listUrl = document.querySelector('[data-add-officer]')?.getAttribute('data-list-url');
     if (!listUrl) {
@@ -460,14 +463,13 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(items => {
         if (!Array.isArray(items)) return;
-        const toAppend = items
-          .filter(it => Number(it.id) >= 8 && !existingIds.has(Number(it.id)))
-          .sort((a, b) => Number(a.id) - Number(b.id));
-        toAppend.forEach(it => {
-          renderOrUpdateViews(it);
-          existingIds.add(Number(it.id));
-          seenIds.add(Number(it.id));
-        });
+        // Render/update all items from backend to override static DOM and attach handlers
+        items
+          .sort((a, b) => Number(a.id) - Number(b.id))
+          .forEach(it => {
+            renderOrUpdateViews(it);
+            existingIds.add(Number(it.id));
+          });
 
         // Determine nextId as max known + 1, but at least 8
         let maxId = 0;
@@ -498,15 +500,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const items = await resp.json();
         if (!Array.isArray(items)) return;
 
-        // Append any unseen items with id >= 8
-        let appended = 0;
+        // Update/append all items from backend; backend is the source of truth
         items
-          .filter(it => Number(it.id) >= 8 && !seenIds.has(Number(it.id)))
           .sort((a, b) => Number(a.id) - Number(b.id))
           .forEach(it => {
             renderOrUpdateViews(it);
-            seenIds.add(Number(it.id));
-            appended++;
           });
 
         // If success, tighten interval slightly (down to min)
