@@ -187,7 +187,7 @@
                             <div class="text-sm sm:text-base font-medium text-gray-50">Officers</div>
                             <div class="text-xs text-gray-400">A list of all officers including their name, title, email and status.</div>
                         </div>
-                        <button type="button" class="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs sm:text-sm cursor-pointer" data-add-officer>
+                        <button type="button" class="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs sm:text-sm cursor-pointer" data-add-officer data-store-url="{{ route('officers.store') }}" data-update-url="{{ route('officers.update', ['user' => 0]) }}" data-list-url="{{ route('officers.list') }}" data-csrf="{{ csrf_token() }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a.75.75 0 01.75.75V12h6.75a.75.75 0 010 1.5H12.75V20a.75.75 0 01-1.5 0v-6.5H4.5a.75.75 0 010-1.5h6.75V5.25A.75.75 0 0112 4.5z"/></svg>
                             Add officer
                         </button>

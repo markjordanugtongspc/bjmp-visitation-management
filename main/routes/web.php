@@ -26,6 +26,29 @@ Route::get('/inmates', [AdminController::class, 'inmates'])
     ->middleware(['auth', 'verified'])
     ->name('inmates.index');
 
+// Officers: create (auto-register in users)
+Route::post('/officers', [AdminController::class, 'storeOfficer'])
+    ->middleware(['auth', 'verified'])
+    ->name('officers.store');
+
+// Officers: list (for hydration/polling)
+Route::get('/officers/list', [AdminController::class, 'listOfficers'])
+    ->middleware(['auth', 'verified'])
+    ->name('officers.list');
+
+// Officers: update (bind by user_id)
+Route::patch('/officers/{user:user_id}', [AdminController::class, 'updateOfficer'])
+    ->middleware(['auth', 'verified'])
+    ->name('officers.update');
+
+Route::get('/officers/list', [AdminController::class, 'listOfficers'])
+    ->middleware(['auth', 'verified'])
+    ->name('officers.list');
+
+Route::patch('/officers/{user}', [AdminController::class, 'updateOfficer'])
+    ->middleware(['auth', 'verified'])
+    ->name('officers.update');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

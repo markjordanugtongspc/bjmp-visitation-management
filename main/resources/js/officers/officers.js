@@ -4,9 +4,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const tableBody = document.querySelector('#officers-table-body');
   const mobileCardsContainer = document.querySelector('#officers-cards-mobile');
   const addButtons = document.querySelectorAll('[data-add-officer]');
-  
+
   // Detect if we're on mobile
   const isMobile = () => window.innerWidth < 640; // sm breakpoint in Tailwind
+
+  // In-memory cache used only for incremental detection/UX (source of truth is backend)
+  let officers = [];
+  let nextId = 8;
+  let pollTimerId = null;
+  let currentIntervalMs = 10000; // start with 10s
+  const minIntervalMs = 5000;
+  const maxIntervalMs = 60000;
+  const seenIds = new Set();
+
+  // Helper to get officer by id
+  function getOfficerById(id) {
+    return officers.find(o => Number(o.id) === Number(id));
+  }
 
   function openOfficerModal(initial = {}) {
     const name = initial.name || '';
@@ -68,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusSelect.addEventListener('blur', () => {
           statusSelect.classList.remove('ring-2', 'ring-blue-500');
         });
-        
+
         // Add touch-friendly behavior for mobile
         if (isMobile()) {
           statusSelect.classList.add('text-base', 'py-3');
@@ -95,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderOrUpdateViews(data) {
     // Update desktop table row
     updateDesktopRow(data);
-    
+
     // Update mobile card
     updateMobileCard(data);
   }
@@ -103,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle desktop table row updates
   function updateDesktopRow(data) {
     if (!tableBody) return;
-    
+
     let row = tableBody.querySelector(`tr[data-row-id="${data.id}"]`);
     const statusClass = data.status.toLowerCase() === 'active'
       ? 'bg-green-500/10 text-green-500'
@@ -159,17 +173,53 @@ document.addEventListener('DOMContentLoaded', () => {
     editBtn.onclick = async () => {
       const { value } = await openOfficerModal(data);
       if (value) {
-        Object.assign(data, value);
-        renderOrUpdateViews(data);
-        window.Swal.fire({ 
-          icon: 'success', 
-          title: 'Saved', 
-          timer: 900, 
-          showConfirmButton: false, 
-          background: '#111827', // Gray 900
-          color: '#F9FAFB', // Gray 50
-          width: isMobile() ? '90%' : '32rem',
-        });
+        try {
+          const anchorBtn = document.querySelector('[data-add-officer]');
+          const base = anchorBtn?.getAttribute('data-update-url');
+          const csrf = anchorBtn?.getAttribute('data-csrf');
+          const url = base?.replace(/\d+$/, String(data.id));
+          const resp = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrf || '',
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              name: value.name,
+              email: value.email,
+              title: value.title,
+              subtitle: value.subtitle,
+              status: value.status,
+            }),
+            credentials: 'same-origin',
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.message || 'Failed to update officer');
+          }
+          const updated = await resp.json();
+          Object.assign(data, updated);
+          renderOrUpdateViews(data);
+          window.Swal.fire({
+            icon: 'success',
+            title: 'Saved',
+            timer: 900,
+            showConfirmButton: false,
+            background: '#111827',
+            color: '#F9FAFB',
+            width: isMobile() ? '90%' : '32rem',
+          });
+        } catch (e) {
+          window.Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: e.message || 'Unable to update officer',
+            background: '#111827',
+            color: '#F9FAFB',
+          });
+        }
       }
     };
   }
@@ -177,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle mobile card updates
   function updateMobileCard(data) {
     if (!mobileCardsContainer) return;
-    
+
     let card = mobileCardsContainer.querySelector(`[data-card-id="${data.id}"]`);
     const statusClass = data.status.toLowerCase() === 'active'
       ? 'bg-green-500/10 text-green-500'
@@ -235,41 +285,203 @@ document.addEventListener('DOMContentLoaded', () => {
     editBtn.onclick = async () => {
       const { value } = await openOfficerModal(data);
       if (value) {
-        Object.assign(data, value);
-        renderOrUpdateViews(data);
-        window.Swal.fire({ 
-          icon: 'success', 
-          title: 'Saved', 
-          timer: 900, 
-          showConfirmButton: false, 
-          background: '#111827', // Gray 900
-          color: '#F9FAFB', // Gray 50
-          width: isMobile() ? '90%' : '32rem',
-        });
+        try {
+          const anchorBtn = document.querySelector('[data-add-officer]');
+          const base = anchorBtn?.getAttribute('data-update-url');
+          const csrf = anchorBtn?.getAttribute('data-csrf');
+          const url = base?.replace(/\d+$/, String(data.id));
+          const resp = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrf || '',
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              name: value.name,
+              email: value.email,
+              title: value.title,
+              subtitle: value.subtitle,
+              status: value.status,
+            }),
+            credentials: 'same-origin',
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.message || 'Failed to update officer');
+          }
+          const updated = await resp.json();
+          Object.assign(data, updated);
+          renderOrUpdateViews(data);
+          window.Swal.fire({
+            icon: 'success',
+            title: 'Saved',
+            timer: 900,
+            showConfirmButton: false,
+            background: '#111827', // Gray 900
+            color: '#F9FAFB', // Gray 50
+            width: isMobile() ? '90%' : '32rem',
+          });
+        } catch (e) {
+          window.Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: e.message || 'Unable to update officer',
+            background: '#111827',
+            color: '#F9FAFB',
+          });
+        }
       }
     };
   }
 
-  // Initialize existing rows and cards
+  // Initialize existing rows and cards from static DOM, then hydrate from backend
   function initializeExistingItems() {
-    // Get all data from desktop rows
-    const officers = [];
-    
-    tableBody?.querySelectorAll('tr[data-row-id]')?.forEach((row) => {
-      const data = {
-        id: Number(row.getAttribute('data-row-id')),
-        name: row.querySelector('[data-o-name]')?.textContent?.trim() || '',
-        email: row.querySelector('[data-o-email]')?.textContent?.trim() || '',
-        title: row.querySelector('[data-o-title]')?.textContent?.trim() || '',
-        subtitle: row.querySelector('[data-o-subtitle]')?.textContent?.trim() || '',
-        status: row.querySelector('[data-o-status]')?.textContent?.trim() || 'Active',
-      };
-      officers.push(data);
+    // Build a set of existing IDs from static rows (kept as-is)
+    const existingIds = new Set();
+    tableBody?.querySelectorAll('tr[data-row-id]')?.forEach(row => {
+      const id = Number(row.getAttribute('data-row-id'));
+      if (!Number.isNaN(id)) existingIds.add(id);
     });
-    
-    // Update both desktop and mobile views for each officer
-    officers.forEach(data => {
-      renderOrUpdateViews(data);
+    mobileCardsContainer?.querySelectorAll('[data-card-id]')?.forEach(card => {
+      const id = Number(card.getAttribute('data-card-id'));
+      if (!Number.isNaN(id)) existingIds.add(id);
+    });
+
+    // Populate in-memory officers from DOM (for local cache)
+    officers = [];
+    tableBody?.querySelectorAll('tr[data-row-id]')?.forEach(row => {
+      const id = Number(row.getAttribute('data-row-id'));
+      if (!Number.isNaN(id)) {
+        officers.push({
+          id,
+          name: row.querySelector('[data-o-name]')?.textContent || '',
+          email: row.querySelector('[data-o-email]')?.textContent || '',
+          title: row.querySelector('[data-o-title]')?.textContent || '',
+          subtitle: row.querySelector('[data-o-subtitle]')?.textContent || '',
+          status: row.querySelector('[data-o-status]')?.textContent || 'Active',
+        });
+      }
+    });
+    // If no table, try mobile cards
+    if (officers.length === 0) {
+      mobileCardsContainer?.querySelectorAll('[data-card-id]')?.forEach(card => {
+        const id = Number(card.getAttribute('data-card-id'));
+        if (!Number.isNaN(id)) {
+          officers.push({
+            id,
+            name: card.querySelector('[data-o-name]')?.textContent || '',
+            email: card.querySelector('[data-o-email]')?.textContent || '',
+            title: card.querySelector('[data-o-title]')?.textContent || '',
+            subtitle: card.querySelector('[data-o-subtitle]')?.textContent || '',
+            status: card.querySelector('[data-o-status]')?.textContent || 'Active',
+          });
+        }
+      });
+    }
+    // Hydrate from backend list and then start polling
+    const listUrl = document.querySelector('[data-add-officer]')?.getAttribute('data-list-url');
+    if (!listUrl) {
+      // Set nextId from DOM only if no backend url configured
+      let maxId = 0;
+      officers.forEach(o => { if (Number(o.id) > maxId) maxId = Number(o.id); });
+      nextId = Math.max(8, maxId + 1);
+      return;
+    }
+
+    fetch(listUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+      .then(async (r) => {
+        if (!r.ok) throw new Error('Failed to load officers');
+        return r.json();
+      })
+      .then(items => {
+        if (!Array.isArray(items)) return;
+        const toAppend = items
+          .filter(it => Number(it.id) >= 8 && !existingIds.has(Number(it.id)))
+          .sort((a, b) => Number(a.id) - Number(b.id));
+        toAppend.forEach(it => {
+          renderOrUpdateViews(it);
+          existingIds.add(Number(it.id));
+          seenIds.add(Number(it.id));
+        });
+
+        // Determine nextId as max known + 1, but at least 8
+        let maxId = 0;
+        existingIds.forEach(id => { if (id > maxId) maxId = id; });
+        nextId = Math.max(8, maxId + 1);
+      })
+      .finally(() => {
+        startPollingList();
+      });
+  }
+
+  function startPollingList() {
+    const listUrl = document.querySelector('[data-add-officer]')?.getAttribute('data-list-url');
+    if (!listUrl) return;
+
+    // Clear any existing timer
+    if (pollTimerId) {
+      clearInterval(pollTimerId);
+      pollTimerId = null;
+    }
+
+    const poll = async () => {
+      // Pause when tab not visible
+      if (document.hidden) return;
+      try {
+        const resp = await fetch(listUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Failed');
+        const items = await resp.json();
+        if (!Array.isArray(items)) return;
+
+        // Append any unseen items with id >= 8
+        let appended = 0;
+        items
+          .filter(it => Number(it.id) >= 8 && !seenIds.has(Number(it.id)))
+          .sort((a, b) => Number(a.id) - Number(b.id))
+          .forEach(it => {
+            renderOrUpdateViews(it);
+            seenIds.add(Number(it.id));
+            appended++;
+          });
+
+        // If success, tighten interval slightly (down to min)
+        if (currentIntervalMs > minIntervalMs) {
+          currentIntervalMs = Math.max(minIntervalMs, Math.floor(currentIntervalMs * 0.9));
+          restartInterval();
+        }
+      } catch {
+        // On error, back off up to max interval to avoid spamming 500s
+        if (currentIntervalMs < maxIntervalMs) {
+          currentIntervalMs = Math.min(maxIntervalMs, Math.floor(currentIntervalMs * 1.5));
+          restartInterval();
+        }
+      }
+    };
+
+    function restartInterval() {
+      if (pollTimerId) clearInterval(pollTimerId);
+      pollTimerId = setInterval(poll, currentIntervalMs);
+    }
+
+    // First run immediately, then interval
+    poll();
+    restartInterval();
+
+    // Pause/resume on visibility change
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (pollTimerId) {
+          clearInterval(pollTimerId);
+          pollTimerId = null;
+        }
+      } else {
+        if (!pollTimerId) {
+          poll();
+          restartInterval();
+        }
+      }
     });
   }
 
@@ -281,21 +493,57 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', async () => {
       const { value } = await openOfficerModal({});
       if (value) {
-        const newId = Date.now();
-        renderOrUpdateViews({ id: newId, ...value });
-        window.Swal.fire({ 
-          icon: 'success', 
-          title: 'Officer added', 
-          timer: 900, 
-          showConfirmButton: false, 
-          background: '#111827', // Gray 900
-          color: '#F9FAFB', // Gray 50
-          width: isMobile() ? '90%' : '32rem',
-        });
+        try {
+          const url = btn.getAttribute('data-store-url');
+          const csrf = btn.getAttribute('data-csrf');
+          const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrf || '',
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+              name: value.name,
+              email: value.email,
+              title: value.title,
+              subtitle: value.subtitle,
+              status: value.status,
+            }),
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.message || 'Failed to add officer');
+          }
+          const created = await resp.json();
+          // Append the newly created officer returned by backend
+          renderOrUpdateViews(created);
+          // Update nextId to be at least created.id + 1
+          nextId = Math.max(nextId, Number(created.id) + 1, 8);
+          window.Swal.fire({
+            icon: 'success',
+            title: 'Officer added',
+            timer: 900,
+            showConfirmButton: false,
+            background: '#111827',
+            color: '#F9FAFB',
+            width: isMobile() ? '90%' : '32rem',
+          });
+        } catch (e) {
+          window.Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: e.message || 'Unable to add officer',
+            background: '#111827',
+            color: '#F9FAFB',
+          });
+        }
       }
     });
   });
-  
+
   // Handle window resize events for responsive behavior
   window.addEventListener('resize', () => {
     // Adjust modal styling based on screen size if it's open
