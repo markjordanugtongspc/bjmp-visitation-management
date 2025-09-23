@@ -45,8 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
           <label class="block text-xs text-gray-300 mt-2">Subtitle</label>
           <input id="o-subtitle" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2" value="${subtitle.replace(/"/g,'&quot;')}" />
           <label class="block text-xs text-gray-300 mt-2">Status</label>
-          <div class="relative">
-            <select id="o-status" class="w-full appearance-none rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 pr-8">
+          ${isMobile() ? `
+          <div class="relative overflow-visible">
+            <input id="o-status" type="hidden" value="${status==='inactive' ? 'Inactive' : 'Active'}" />
+            <button type="button" id="o-status-btn" class="flex w-full items-center justify-between rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+              <span id="o-status-label">${status==='inactive' ? 'Inactive' : 'Active'}</span>
+              <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+            </button>
+            <!-- For mobile, keep the menu in normal flow so modal stretches like elastic -->
+            <div id="o-status-menu" class="mt-1 origin-top w-full rounded-md border border-gray-700 bg-gray-800 shadow-lg ring-1 ring-black/5 overflow-hidden hidden">
+              <button type="button" data-value="Active" class="w-full text-left px-4 py-2 text-white hover:bg-gray-700 cursor-pointer">Active</button>
+              <button type="button" data-value="Inactive" class="w-full text-left px-4 py-2 text-white hover:bg-gray-700 cursor-pointer">Inactive</button>
+            </div>
+          </div>` : `
+          <div class="relative overflow-visible">
+            <select id="o-status" class="block w-full appearance-none rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 sm:py-2 py-3 sm:text-sm text-base pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
               <option ${status==='active'?'selected':''} value="Active">Active</option>
               <option ${status==='inactive'?'selected':''} value="Inactive">Inactive</option>
             </select>
@@ -55,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path>
               </svg>
             </div>
-          </div>
+          </div>`}
         </div>
       `,
       width: width,
@@ -70,22 +83,72 @@ document.addEventListener('DOMContentLoaded', () => {
       color: '#F9FAFB', // Gray 50
       customClass: {
         container: 'swal-responsive-container',
-        popup: 'swal-responsive-popup',
+        popup: 'swal-responsive-popup overflow-visible',
         content: 'swal-responsive-content',
       },
       didOpen: () => {
-        // Add responsive behavior to the dropdown
-        const statusSelect = document.getElementById('o-status');
-        statusSelect.addEventListener('focus', () => {
-          statusSelect.classList.add('ring-2', 'ring-blue-500');
-        });
-        statusSelect.addEventListener('blur', () => {
-          statusSelect.classList.remove('ring-2', 'ring-blue-500');
-        });
+        const popup = document.querySelector('.swal2-popup');
+        const container = document.querySelector('.swal2-container');
+        const htmlContainer = document.querySelector('.swal2-html-container');
+        // Ensure dropdown can overflow outside modal without scrolling it
+        popup?.classList?.add('overflow-visible');
+        container && (/** @type {HTMLElement} */(container)).style.setProperty('overflow', 'visible', 'important');
+        popup && (/** @type {HTMLElement} */(popup)).style.setProperty('overflow', 'visible', 'important');
+        htmlContainer && (/** @type {HTMLElement} */(htmlContainer)).style.setProperty('overflow', 'visible', 'important');
 
-        // Add touch-friendly behavior for mobile
         if (isMobile()) {
-          statusSelect.classList.add('text-base', 'py-3');
+          // Custom dropdown behavior
+          const hiddenInput = /** @type {HTMLInputElement} */(document.getElementById('o-status'));
+          const btn = /** @type {HTMLButtonElement} */(document.getElementById('o-status-btn'));
+          const label = /** @type {HTMLElement} */(document.getElementById('o-status-label'));
+          const menu = /** @type {HTMLElement} */(document.getElementById('o-status-menu'));
+          let open = false;
+          const closeMenu = () => {
+            menu.classList.add('hidden');
+            open = false;
+          };
+          const openMenu = () => {
+            menu.classList.remove('hidden');
+            open = true;
+          };
+          btn?.addEventListener('click', () => {
+            if (open) closeMenu(); else openMenu();
+          });
+          menu?.querySelectorAll('button[data-value]')?.forEach(item => {
+            item.addEventListener('click', (e) => {
+              const val = /** @type {HTMLElement} */(e.currentTarget).getAttribute('data-value');
+              if (!val) return;
+              hiddenInput.value = val;
+              label.textContent = val;
+              closeMenu();
+            });
+          });
+          // Close on outside click
+          document.addEventListener('click', (e) => {
+            if (!popup?.contains(/** @type {Node} */(e.target))) return;
+            if (e.target === btn || btn.contains(/** @type {Node} */(e.target))) return;
+            if (menu.contains(/** @type {Node} */(e.target))) return;
+            closeMenu();
+          });
+
+          // Mobile: spread Save (left) and Cancel (right)
+          const actions = /** @type {HTMLElement} */(document.querySelector('.swal2-actions'));
+          const confirmBtn = /** @type {HTMLButtonElement} */(document.querySelector('.swal2-confirm'));
+          const cancelBtn = /** @type {HTMLButtonElement} */(document.querySelector('.swal2-cancel'));
+          if (actions) {
+            actions.classList.add('w-full', 'flex', 'justify-between');
+          }
+          confirmBtn?.classList?.add('cursor-pointer', 'ml-0');
+          cancelBtn?.classList?.add('cursor-pointer', 'mr-0');
+        } else {
+          // Desktop native select focus rings
+          const statusSelect = /** @type {HTMLSelectElement} */(document.getElementById('o-status'));
+          statusSelect?.addEventListener('focus', () => {
+            statusSelect.classList.add('ring-2', 'ring-blue-500');
+          });
+          statusSelect?.addEventListener('blur', () => {
+            statusSelect.classList.remove('ring-2', 'ring-blue-500');
+          });
         }
       },
       preConfirm: () => {
@@ -94,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
           email: /** @type {HTMLInputElement} */(document.getElementById('o-email')).value.trim(),
           title: /** @type {HTMLInputElement} */(document.getElementById('o-title')).value.trim(),
           subtitle: /** @type {HTMLInputElement} */(document.getElementById('o-subtitle')).value.trim(),
-          status: /** @type {HTMLSelectElement} */(document.getElementById('o-status')).value,
+          status: /** @type {HTMLInputElement | HTMLSelectElement} */(document.getElementById('o-status')).value,
         };
         if (!v.name || !v.email) {
           window.Swal.showValidationMessage('Name and Email are required.');
@@ -249,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           <button type="button" data-edit-officer 
-            class="bg-blue-50 dark:bg-blue-900/20 text-blue-500 p-2 rounded-md" 
+            class="bg-blue-50 dark:bg-blue-900/20 text-blue-500 p-2 rounded-md cursor-pointer" 
             aria-label="Edit officer">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
               <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
@@ -261,8 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="mt-2 pl-13">
           <div class="flex justify-between items-center">
             <div>
-              <div class="font-medium" data-o-title></div>
-              <div class="text-xs text-gray-500 dark:text-gray-400" data-o-subtitle></div>
+              <div class="font-medium text-white" data-o-title></div>
+              <div class="text-xs text-gray-400" data-o-subtitle></div>
             </div>
             <span data-o-status class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"></span>
           </div>
