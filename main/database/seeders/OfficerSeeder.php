@@ -37,6 +37,8 @@ class OfficerSeeder extends Seeder
                     'email' => $o['email'],
                     'password' => Hash::make('password'), // default, change later
                     'full_name' => $o['full_name'],
+                    'title' => $o['title'],
+                    'subtitle' => $o['subtitle'],
                     'role_id' => null,
                     'is_active' => true,
                 ]);
@@ -45,6 +47,8 @@ class OfficerSeeder extends Seeder
                 $user->fill([
                     'username' => $username,
                     'full_name' => $o['full_name'],
+                    'title' => $o['title'],
+                    'subtitle' => $o['subtitle'],
                     'is_active' => true,
                 ])->save();
             }
