@@ -825,6 +825,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- Main Form Grid - Responsive -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <!-- 1x1 Photo Upload -->
+        <div class="sm:col-span-2 lg:col-span-1">
+          <label class="block text-sm text-gray-300 mb-2 font-medium">1x1 Photo</label>
+          <div class="flex items-center gap-3">
+            <img data-field="avatarPreview" src="/images/default-avatar.png" alt="Visitor avatar" class="h-16 w-16 rounded-full object-cover ring-2 ring-green-500/20 bg-gray-700/40" />
+            <div>
+              <label class="inline-flex items-center px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded-md cursor-pointer transition-colors">
+                Choose Image
+                <input type="file" accept="image/*" data-field="avatar" class="hidden" />
+              </label>
+              <p class="mt-1 text-[11px] text-gray-400">PNG/JPG up to 2MB</p>
+              <button type="button" data-action="view-visitor" class="mt-2 inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md cursor-pointer transition-colors">
+                View
+              </button>
+            </div>
+          </div>
+        </div>
         <!-- Visitor Name Field -->
         <div class="sm:col-span-2 lg:col-span-1">
           <label class="block text-sm text-gray-300 mb-2 font-medium">Visitor Name *</label>
@@ -904,6 +921,31 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
     container.appendChild(visitorDiv);
+
+    // Avatar preview handler
+    const fileInput = visitorDiv.querySelector('[data-field="avatar"]');
+    const previewEl = visitorDiv.querySelector('[data-field="avatarPreview"]');
+    if (fileInput && previewEl) {
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const src = String(ev.target?.result || '');
+          previewEl.setAttribute('src', src);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Open Visitor modal from 'View' button or avatar click
+    const viewBtn = visitorDiv.querySelector('[data-action="view-visitor"]');
+    const openVisitorPreview = () => {
+      const data = collectVisitorEntryData(visitorDiv);
+      openVisitorModal(data);
+    };
+    if (viewBtn) viewBtn.addEventListener('click', openVisitorPreview);
+    if (previewEl) previewEl.addEventListener('click', openVisitorPreview);
   }
 
   // Helper function to update visitors empty state visibility
@@ -920,6 +962,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Collect a single visitor entry's data from its DOM container
+  function collectVisitorEntryData(containerEl) {
+    const getVal = (selector) => {
+      const el = /** @type {HTMLInputElement|null} */(containerEl.querySelector(selector));
+      return el ? el.value : '';
+    };
+    const previewEl = /** @type {HTMLImageElement|null} */(containerEl.querySelector('[data-field="avatarPreview"]'));
+    const avatarDataUrl = previewEl ? String(previewEl.getAttribute('src') || '') : '';
+    const avatarInput = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="avatar"]'));
+    const avatarFilename = avatarInput && avatarInput.files && avatarInput.files[0] ? avatarInput.files[0].name : '';
+
+    return {
+      name: getVal('[data-field="name"]'),
+      relationship: getVal('[data-field\="relationship\"]'),
+      idType: getVal('[data-field\="idType\"]'),
+      idNumber: getVal('[data-field\="idNumber\"]'),
+      contactNumber: getVal('[data-field\="contactNumber\"]'),
+      address: getVal('[data-field\="address\"]'),
+      avatarFilename: avatarFilename,
+      avatarPath: 'images/visitors/profiles',
+      avatarDisk: 'public',
+      avatarDataUrl: avatarDataUrl
+    };
+  }
+
   function collectAllowedVisitors() {
     const container = document.getElementById('allowed-visitors-container');
     if (!container) return [];
@@ -932,6 +999,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const idNumber = visitorDiv.querySelector('[data-field="idNumber"]').value;
       const contactNumber = visitorDiv.querySelector('[data-field="contactNumber"]').value;
       const address = visitorDiv.querySelector('[data-field="address"]').value;
+      const avatarInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="avatar"]'));
+      const avatarFilename = avatarInput && avatarInput.files && avatarInput.files[0] ? avatarInput.files[0].name : '';
+      const avatarPath = 'images/visitors/profiles';
+      const avatarDisk = 'public';
+      const previewEl = /** @type {HTMLImageElement|null} */(visitorDiv.querySelector('[data-field="avatarPreview"]'));
+      const avatarDataUrl = previewEl ? String(previewEl.getAttribute('src') || '') : '';
 
       if (name && relationship) {
         visitors.push({
@@ -940,7 +1013,11 @@ document.addEventListener('DOMContentLoaded', () => {
           idType: idType,
           idNumber: idNumber,
           contactNumber: contactNumber,
-          address: address
+          address: address,
+          avatarFilename: avatarFilename,
+          avatarPath: avatarPath,
+          avatarDisk: avatarDisk,
+          avatarDataUrl: avatarDataUrl
         });
       }
     });
@@ -1656,6 +1733,16 @@ function openUnifiedInmateModal(inmate) {
         <td class="px-3 py-2 text-gray-500 dark:text-gray-400">${p.note || ''}</td>
       </tr>
   `).join('');
+  const pointsListItems = getPointsHistory(inmate).map(p => `
+    <li class="rounded-lg border border-gray-200 dark:border-gray-800 p-3 bg-white dark:bg-gray-900">
+      <div class="flex items-center justify-between">
+        <div class="text-sm font-medium text-gray-900 dark:text-gray-200">${formatDate(p.date)}</div>
+        <div class="text-sm font-semibold ${p.points >= 0 ? 'text-green-600' : 'text-red-500'}">${p.points}</div>
+      </div>
+      <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">${p.activity || '—'}</div>
+      ${p.note ? `<div class="mt-1 text-xs text-gray-400 dark:text-gray-500">${p.note}</div>` : ''}
+    </li>
+  `).join('');
   const pointsHTML = `
     <div class="space-y-4">
       <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
@@ -1673,7 +1760,14 @@ function openUnifiedInmateModal(inmate) {
           <div class="h-2 bg-blue-500" style="width: ${Math.min(Math.max(pointsTotal, 0), 100)}%"></div>
         </div>
       </div>
-      <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+      <!-- Mobile list -->
+      <div class="sm:hidden">
+        <ul class="space-y-3">
+          ${pointsListItems || `<li class=\"px-3 py-6 text-center text-gray-500 dark:text-gray-400\">No points recorded</li>`}
+        </ul>
+      </div>
+      <!-- Desktop table -->
+      <div class="hidden sm:block rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50 dark:bg-gray-800/60">
@@ -1685,7 +1779,7 @@ function openUnifiedInmateModal(inmate) {
               </tr>
             </thead>
             <tbody>
-              ${pointsRows || `<tr><td colspan="4" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No points recorded</td></tr>`}
+              ${pointsRows || `<tr><td colspan=\"4\" class=\"px-3 py-6 text-center text-gray-500 dark:text-gray-400\">No points recorded</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -1695,16 +1789,29 @@ function openUnifiedInmateModal(inmate) {
 
   const allowedVisitors = getAllowedVisitors(inmate);
   const visits = getRecentVisits(inmate);
-  const allowedList = allowedVisitors.map(v => `
+  const allowedList = allowedVisitors.map((v, idx) => `
     <li class="flex items-center justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
       <div class="min-w-0 flex-1">
-        <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-200">${v.name}</p>
+        <button type="button" data-open-visitor="${idx}" class="truncate text-left text-sm font-medium text-blue-600 hover:underline dark:text-blue-400 cursor-pointer">${v.name}</button>
         <p class="truncate text-xs text-gray-500 dark:text-gray-400">${v.relationship || '—'}${v.idType ? ` • ${v.idType}` : ''}${v.idNumber ? ` (${v.idNumber})` : ''}</p>
         ${v.contactNumber ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">📞 ${v.contactNumber}</p>` : ''}
         ${v.address ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">📍 ${v.address}</p>` : ''}
       </div>
       <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-green-500/10 text-green-600">Allowed</span>
     </li>
+  `).join('');
+  const visitsCards = visits.map(v => `
+    <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3 bg-white dark:bg-gray-900">
+      <div class="flex items-center justify-between">
+        <div class="text-sm font-medium text-gray-900 dark:text-gray-200">${v.visitor}</div>
+        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${v.status === 'Approved' ? 'bg-green-500/10 text-green-600' : v.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600' : v.status === 'Completed' ? 'bg-blue-500/10 text-blue-600' : v.status === 'Cancelled' ? 'bg-gray-500/10 text-gray-600' : 'bg-red-500/10 text-red-600'}">${v.status || '—'}</span>
+      </div>
+      <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">${formatDate(v.date)}${v.relationship ? ` • ${v.relationship}` : ''}</div>
+      ${v.purpose ? `<div class=\"mt-2 text-sm text-gray-700 dark:text-gray-300\">${v.purpose}</div>` : ''}
+      <div class="mt-2 flex text-xs text-gray-400 dark:text-gray-500 gap-4">
+        ${v.duration ? `<span>⏱ ${v.duration} min</span>` : ''}
+      </div>
+    </div>
   `).join('');
   const visitsRows = visits.map(v => `
     <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
@@ -1730,7 +1837,12 @@ function openUnifiedInmateModal(inmate) {
         <div class="p-4">
           <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Recent Visits</h3>
         </div>
-        <div class="overflow-x-auto">
+        <!-- Mobile cards -->
+        <div class="sm:hidden p-4 pt-0 space-y-3">
+          ${visitsCards || `<div class=\"text-sm text-gray-500 dark:text-gray-400\">No visit records</div>`}
+        </div>
+        <!-- Desktop table -->
+        <div class="hidden sm:block overflow-x-auto">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50 dark:bg-gray-800/60">
               <tr>
@@ -1743,7 +1855,7 @@ function openUnifiedInmateModal(inmate) {
               </tr>
             </thead>
             <tbody>
-              ${visitsRows || `<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No visit records</td></tr>`}
+              ${visitsRows || `<tr><td colspan=\"6\" class=\"px-3 py-6 text-center text-gray-500 dark:text-gray-400\">No visit records</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -1764,6 +1876,19 @@ function openUnifiedInmateModal(inmate) {
     });
   }
 
+  function attachVisitorModalHandlers() {
+    const nodes = document.querySelectorAll('[data-open-visitor]');
+    nodes.forEach((el) => {
+      el.addEventListener('click', () => {
+        const idxStr = el.getAttribute('data-open-visitor') || '-1';
+        const idx = parseInt(idxStr, 10);
+        if (!Number.isNaN(idx) && idx >= 0 && idx < allowedVisitors.length) {
+          openVisitorModal(allowedVisitors[idx]);
+        }
+      });
+    });
+  }
+
   // Custom close button (SVG X) for top-right
   const closeBtnHTML = `
     <button type="button"
@@ -1780,7 +1905,7 @@ function openUnifiedInmateModal(inmate) {
   const html = `
     ${closeBtnHTML}
     ${navHTML}
-    <div id="tab-content" class="space-y-4">${overviewHTML}</div>
+    <div id="tab-content" class="space-y-4 max-h-[70vh] overflow-y-auto scrollbar-none">${overviewHTML}</div>
   `;
 
   return window.Swal.fire({
@@ -1817,6 +1942,7 @@ function openUnifiedInmateModal(inmate) {
         if (id === 'points') container.innerHTML = pointsHTML;
         if (id === 'visitation') container.innerHTML = visitationHTML;
         if (id === 'overview') attachAccordionHandlers();
+        if (id === 'visitation') attachVisitorModalHandlers();
       };
       document.querySelectorAll('button[data-tab]').forEach((btn, idx) => {
         btn.addEventListener('click', () => setActive(btn.getAttribute('data-tab')));
@@ -1824,6 +1950,74 @@ function openUnifiedInmateModal(inmate) {
       });
       setActive('overview');
     }
+  });
+}
+
+// ===============================
+// VISITOR INFO MODAL (SweetAlert2)
+// ===============================
+function openVisitorModal(visitor) {
+  const width = isMobile() ? '95vw' : '32rem';
+  const avatarSrc = (() => {
+    if (visitor && typeof visitor.avatarDataUrl === 'string' && visitor.avatarDataUrl) return visitor.avatarDataUrl;
+    return '/images/default-avatar.png';
+  })();
+
+  const name = visitor?.name || 'Visitor';
+  const relationship = visitor?.relationship || '—';
+  const idType = visitor?.idType || '';
+  const idNumber = visitor?.idNumber || '';
+  const contactNumber = visitor?.contactNumber || '';
+  const address = visitor?.address || '';
+
+  const headerHTML = `
+    <div class="flex items-start gap-4">
+      <div class="shrink-0">
+        <img src="${avatarSrc}" alt="${name}" class="h-20 w-20 rounded-full object-cover ring-2 ring-blue-500/20 bg-gray-700/40 cursor-pointer" />
+      </div>
+      <div class="min-w-0">
+        <h2 class="text-lg sm:text-xl font-semibold text-gray-100">${name}</h2>
+        <p class="mt-1 text-xs sm:text-sm text-gray-400">${relationship}${idType ? ` • ${idType}` : ''}${idNumber ? ` (${idNumber})` : ''}</p>
+      </div>
+    </div>
+  `;
+
+  const bodyHTML = `
+    <div class="mt-4 grid grid-cols-1 gap-3">
+      <div class="rounded-lg border border-gray-700 bg-gray-800/50 p-3 sm:p-4">
+        <h3 class="text-sm font-semibold text-gray-200 mb-2">Contact</h3>
+        <div class="text-sm text-gray-300 space-y-1">
+          <div>${contactNumber ? `📞 ${contactNumber}` : '—'}</div>
+          <div class="break-words">${address ? `📍 ${address}` : '—'}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const html = `
+    <div class="max-h-[70vh] overflow-y-auto space-y-4">
+      ${headerHTML}
+      ${bodyHTML}
+    </div>
+  `;
+
+  return window.Swal.fire({
+    title: `<span class="hidden">Visitor</span>`,
+    html,
+    width,
+    padding: isMobile() ? '0.75rem' : '1.25rem',
+    showCancelButton: false,
+    showConfirmButton: true,
+    confirmButtonText: 'Close',
+    confirmButtonColor: '#3B82F6',
+    background: '#111827',
+    color: '#F9FAFB',
+    customClass: {
+      container: 'swal-responsive-container',
+      popup: 'swal-responsive-popup',
+      content: 'swal-responsive-content',
+      confirmButton: 'cursor-pointer'
+    },
   });
 }
 
