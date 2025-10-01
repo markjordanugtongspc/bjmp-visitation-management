@@ -36,7 +36,27 @@ document.addEventListener('DOMContentLoaded', () => {
       province: 'Lanao del Norte',
       postalCode: '9200',
       country: 'Philippines',
-      photo: null
+      photo: null,
+      // Medical Information
+      medicalStatus: 'Healthy',
+      lastMedicalCheck: '2024-01-20',
+      medicalNotes: 'No medical issues reported. Regular check-ups scheduled.',
+      // Points System
+      initialPoints: 0,
+      currentPoints: 15,
+      pointsHistory: [
+        { date: '2024-01-20', activity: 'Good behavior', points: 5, note: 'Helped with cleaning' },
+        { date: '2024-01-25', activity: 'Educational program', points: 10, note: 'Completed literacy course' }
+      ],
+      // Visitation Information
+      allowedVisitors: [
+        { name: 'Maria Dela Cruz', relationship: 'Wife', idType: 'Drivers License', idNumber: 'DL123456' },
+        { name: 'Pedro Dela Cruz', relationship: 'Father', idType: 'Senior Citizen ID', idNumber: 'SC789012' }
+      ],
+      recentVisits: [
+        { date: '2024-01-22', visitor: 'Maria Dela Cruz', relationship: 'Wife', purpose: 'Family visit', status: 'Approved' },
+        { date: '2024-01-28', visitor: 'Pedro Dela Cruz', relationship: 'Father', purpose: 'Family visit', status: 'Approved' }
+      ]
     },
     {
       id: 2,
@@ -57,7 +77,25 @@ document.addEventListener('DOMContentLoaded', () => {
       province: 'Lanao del Norte',
       postalCode: '9200',
       country: 'Philippines',
-      photo: null
+      photo: null,
+      // Medical Information
+      medicalStatus: 'Under Treatment',
+      lastMedicalCheck: '2024-02-15',
+      medicalNotes: 'Under treatment for anxiety. Regular counseling sessions scheduled.',
+      // Points System
+      initialPoints: 0,
+      currentPoints: 8,
+      pointsHistory: [
+        { date: '2024-02-12', activity: 'Good behavior', points: 3, note: 'Followed rules' },
+        { date: '2024-02-18', activity: 'Work assignment', points: 5, note: 'Kitchen duty' }
+      ],
+      // Visitation Information
+      allowedVisitors: [
+        { name: 'Carlos Garcia', relationship: 'Brother', idType: 'National ID', idNumber: 'NID345678' }
+      ],
+      recentVisits: [
+        { date: '2024-02-20', visitor: 'Carlos Garcia', relationship: 'Brother', purpose: 'Family visit', status: 'Approved' }
+      ]
     }
   ];
 
@@ -291,6 +329,142 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
           </div>
+
+          <!-- Medical Information -->
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Medical Information</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-300 mb-1">Medical Status</label>
+                <select id="i-medical-status" class="w-full appearance-none rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm pr-8">
+                  <option value="">Select Medical Status</option>
+                  <option value="Healthy" ${inmate.medicalStatus === 'Healthy' ? 'selected' : ''}>Healthy</option>
+                  <option value="Under Treatment" ${inmate.medicalStatus === 'Under Treatment' ? 'selected' : ''}>Under Treatment</option>
+                  <option value="Critical" ${inmate.medicalStatus === 'Critical' ? 'selected' : ''}>Critical</option>
+                  <option value="Not Assessed" ${inmate.medicalStatus === 'Not Assessed' ? 'selected' : ''}>Not Assessed</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                  <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-300 mb-1">Last Medical Check</label>
+                <input id="i-last-medical" type="date" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" 
+                       value="${inmate.lastMedicalCheck || ''}" />
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-xs text-gray-300 mb-1">Medical Notes</label>
+              <textarea id="i-medical-notes" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" 
+                        rows="3" placeholder="Enter any medical notes or conditions...">${inmate.medicalNotes || ''}</textarea>
+            </div>
+          </div>
+
+        <!-- Points System -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Points System</h3>
+          
+          <!-- Points Summary -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gray-800/30 rounded-lg border border-gray-700">
+            <div>
+              <label class="block text-sm text-gray-300 mb-2 font-medium">Initial Points</label>
+              <input id="i-initial-points" type="number" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                     value="${inmate.initialPoints || 0}" placeholder="Starting points" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-300 mb-2 font-medium">Current Points</label>
+              <input id="i-current-points" type="number" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                     value="${inmate.currentPoints || 0}" placeholder="Current points" />
+            </div>
+          </div>
+          
+          <!-- Points History Management - Expanded -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h4 class="text-md font-semibold text-gray-200">Points History</h4>
+              <button type="button" id="add-points-entry" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md cursor-pointer transition-colors">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Points Entry
+              </button>
+            </div>
+            
+            <!-- Points History Container - Expanded and Responsive -->
+            <div id="points-entries-container" class="space-y-3 max-h-96 overflow-y-auto">
+              <!-- Points entries will be dynamically added here -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="points-empty-state" class="text-center py-8 text-gray-400 hidden">
+              <svg class="w-12 h-12 mx-auto mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p class="text-sm">No points history yet. Click "Add Points Entry" to get started.</p>
+            </div>
+          </div>
+        </div>
+
+          <!-- Visitation Information -->
+          <div class="space-y-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Visitation Information</h3>
+            
+            <!-- Allowed Visitors Management - Expanded -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <h4 class="text-md font-semibold text-gray-200">Allowed Visitors</h4>
+                <button type="button" id="add-allowed-visitor" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md cursor-pointer transition-colors">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Add Visitor
+                </button>
+              </div>
+              
+              <!-- Allowed Visitors Container - Expanded and Responsive -->
+              <div id="allowed-visitors-container" class="space-y-3 max-h-96 overflow-y-auto">
+                <!-- Allowed visitors will be dynamically added here -->
+              </div>
+              
+              <!-- Empty State -->
+              <div id="visitors-empty-state" class="text-center py-8 text-gray-400 hidden">
+                <svg class="w-12 h-12 mx-auto mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <p class="text-sm">No allowed visitors yet. Click "Add Visitor" to get started.</p>
+              </div>
+            </div>
+            
+            <!-- Recent Visits Management - Expanded -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <h4 class="text-md font-semibold text-gray-200">Recent Visits</h4>
+                <button type="button" id="add-visit-record" class="inline-flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-md cursor-pointer transition-colors">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Add Visit
+                </button>
+              </div>
+              
+              <!-- Visit Records Container - Expanded and Responsive -->
+              <div id="visit-records-container" class="space-y-3">
+                <!-- Visit records will be dynamically added here -->
+              </div>
+              
+              <!-- Empty State -->
+              <div id="visits-empty-state" class="text-center py-8 text-gray-400 hidden">
+                <svg class="w-12 h-12 mx-auto mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <p class="text-sm">No visit records yet. Click "Add Visit" to get started.</p>
+              </div>
+            </div>
+          </div>
         </div>
         <style>
           .swal2-html-container > div::-webkit-scrollbar { display: none !important; }
@@ -340,9 +514,15 @@ document.addEventListener('DOMContentLoaded', () => {
           dobInput.addEventListener('change', updateAge);
           updateAge();
         }
+
+        // Initialize dynamic form elements
+        initializePointsHistory();
+        initializeAllowedVisitors();
+        initializeVisitRecords();
       },
       preConfirm: () => {
         const isEditing = !!inmate.id;
+
         const data = {
           firstName: document.getElementById('i-firstname').value.trim(),
           lastName: document.getElementById('i-lastname').value.trim(),
@@ -360,8 +540,20 @@ document.addEventListener('DOMContentLoaded', () => {
           sentence: document.getElementById('i-sentence').value.trim(),
           cellNumber: document.getElementById('i-cell').value,
           status: document.getElementById('i-status').value,
-          admissionDate: document.getElementById('i-admission-date').value
+          admissionDate: document.getElementById('i-admission-date').value,
+          // Medical Information
+          medicalStatus: document.getElementById('i-medical-status').value || 'Not Assessed',
+          lastMedicalCheck: document.getElementById('i-last-medical').value || null,
+          medicalNotes: document.getElementById('i-medical-notes').value.trim() || '',
+          // Points System
+          initialPoints: parseInt(document.getElementById('i-initial-points').value) || 0,
+          currentPoints: parseInt(document.getElementById('i-current-points').value) || 0,
+          pointsHistory: collectPointsHistory(),
+          // Visitation Information
+          allowedVisitors: collectAllowedVisitors(),
+          recentVisits: collectVisitRecords()
         };
+
         // Validation
         if (
           !data.firstName ||
@@ -384,6 +576,612 @@ document.addEventListener('DOMContentLoaded', () => {
         return data;
       },
     });
+  }
+
+  // Dynamic form management functions
+
+  /**
+   * Initialize the Points History form section.
+   * @param {Object} [inmateData] - Optional inmate object to use for populating points history.
+   */
+  function initializePointsHistory(inmateData) {
+    const container = document.getElementById('points-entries-container');
+    const addBtn = document.getElementById('add-points-entry');
+    const emptyState = document.getElementById('points-empty-state');
+    
+    if (!container || !addBtn) return;
+
+    // Clear existing entries
+    container.innerHTML = '';
+
+    // Load existing points history
+    // Use inmateData if provided, otherwise try to use global 'inmate' if it exists, else empty array
+    let existingHistory = [];
+    if (inmateData && Array.isArray(inmateData.pointsHistory)) {
+      existingHistory = inmateData.pointsHistory;
+    } else if (typeof inmate !== 'undefined' && inmate && Array.isArray(inmate.pointsHistory)) {
+      existingHistory = inmate.pointsHistory;
+    }
+    
+    // Add existing entries
+    existingHistory.forEach((entry, index) => {
+      addPointsEntry(entry, index);
+    });
+
+    // Show/hide empty state
+    if (emptyState) {
+      if (existingHistory.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+    }
+
+    // Add button event listener
+    addBtn.addEventListener('click', () => {
+      addPointsEntry();
+    });
+  }
+
+  function addPointsEntry(entry = {}, index = null) {
+    const container = document.getElementById('points-entries-container');
+    const emptyState = document.getElementById('points-empty-state');
+    if (!container) return;
+
+    // Hide empty state when adding entries
+    if (emptyState) {
+      emptyState.classList.add('hidden');
+    }
+
+    const entryIndex = index !== null ? index : container.children.length;
+    const entryDiv = document.createElement('div');
+    entryDiv.className = 'bg-gray-800/40 rounded-xl p-4 border border-gray-600 hover:bg-gray-800/60 transition-all duration-200 shadow-sm';
+    entryDiv.innerHTML = `
+      <!-- Entry Header -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+            <span class="text-white text-sm font-semibold">${entryIndex + 1}</span>
+          </div>
+          <h4 class="text-base font-semibold text-gray-200">Points Entry</h4>
+        </div>
+        <button type="button" class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md cursor-pointer transition-colors" 
+                onclick="this.parentElement.parentElement.remove(); updateEmptyState();">
+          <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Remove
+        </button>
+      </div>
+
+      <!-- Main Form Grid - Responsive -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-4">
+        <!-- Date Field -->
+        <div class="sm:col-span-1">
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Date *</label>
+          <input type="date" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                 value="${entry.date || ''}" data-field="date" required />
+        </div>
+        
+        <!-- Points Field -->
+        <div class="sm:col-span-1">
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Points *</label>
+          <div class="relative">
+            <input type="number" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                   value="${entry.points || ''}" data-field="points" placeholder="+5 or -2" required />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <span class="text-gray-400 text-xs">pts</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Activity Field - Takes more space on larger screens -->
+        <div class="sm:col-span-2 lg:col-span-1 xl:col-span-2">
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Activity *</label>
+          <select class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" data-field="activity" required>
+            <option value="">Select Activity</option>
+            <option value="Good behavior" ${entry.activity === 'Good behavior' ? 'selected' : ''}>Good behavior</option>
+            <option value="Work assignment" ${entry.activity === 'Work assignment' ? 'selected' : ''}>Work assignment</option>
+            <option value="Educational program" ${entry.activity === 'Educational program' ? 'selected' : ''}>Educational program</option>
+            <option value="Community service" ${entry.activity === 'Community service' ? 'selected' : ''}>Community service</option>
+            <option value="Rule violation" ${entry.activity === 'Rule violation' ? 'selected' : ''}>Rule violation</option>
+            <option value="Fighting" ${entry.activity === 'Fighting' ? 'selected' : ''}>Fighting</option>
+            <option value="Disobedience" ${entry.activity === 'Disobedience' ? 'selected' : ''}>Disobedience</option>
+            <option value="Other" ${entry.activity === 'Other' ? 'selected' : ''}>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Notes Section -->
+      <div>
+        <label class="block text-sm text-gray-300 mb-2 font-medium">Additional Notes</label>
+        <textarea class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none" 
+                  rows="3" data-field="note" placeholder="Additional details about the activity...">${entry.note || ''}</textarea>
+      </div>
+
+      <!-- Entry Footer with Status -->
+      <div class="mt-3 pt-3 border-t border-gray-600">
+        <div class="flex items-center justify-between text-xs text-gray-400">
+          <span>Entry #${entryIndex + 1}</span>
+          <span class="flex items-center">
+            <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+            Active
+          </span>
+        </div>
+      </div>
+    `;
+    container.appendChild(entryDiv);
+  }
+
+  // Helper function to update empty state visibility
+  function updateEmptyState() {
+    const container = document.getElementById('points-entries-container');
+    const emptyState = document.getElementById('points-empty-state');
+    
+    if (container && emptyState) {
+      if (container.children.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+    }
+  }
+
+  function collectPointsHistory() {
+    const container = document.getElementById('points-entries-container');
+    if (!container) return [];
+
+    const entries = [];
+    container.querySelectorAll('.bg-gray-800\\/40').forEach(entryDiv => {
+      const date = entryDiv.querySelector('[data-field="date"]').value;
+      const points = entryDiv.querySelector('[data-field="points"]').value;
+      const activity = entryDiv.querySelector('[data-field="activity"]').value;
+      const note = entryDiv.querySelector('[data-field="note"]').value;
+
+      if (date && points && activity) {
+        entries.push({
+          date: date,
+          points: parseInt(points),
+          activity: activity,
+          note: note
+        });
+      }
+    });
+    return entries;
+  }
+
+  /**
+   * Initialize the Allowed Visitors form section.
+   * @param {Object} [inmateData] - Optional inmate object to use for populating allowed visitors.
+   */
+  function initializeAllowedVisitors(inmateData) {
+    const container = document.getElementById('allowed-visitors-container');
+    const addBtn = document.getElementById('add-allowed-visitor');
+    const emptyState = document.getElementById('visitors-empty-state');
+    
+    if (!container || !addBtn) return;
+
+    // Clear existing entries
+    container.innerHTML = '';
+
+    // Load existing allowed visitors
+    let existingVisitors = [];
+    if (inmateData && Array.isArray(inmateData.allowedVisitors)) {
+      existingVisitors = inmateData.allowedVisitors;
+    } else if (typeof inmate !== 'undefined' && inmate && Array.isArray(inmate.allowedVisitors)) {
+      existingVisitors = inmate.allowedVisitors;
+    }
+    
+    // Add existing visitors
+    existingVisitors.forEach((visitor, index) => {
+      addAllowedVisitor(visitor, index);
+    });
+
+    // Show/hide empty state
+    if (emptyState) {
+      if (existingVisitors.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+    }
+
+    // Add button event listener
+    addBtn.addEventListener('click', () => {
+      addAllowedVisitor();
+    });
+  }
+
+  function addAllowedVisitor(visitor = {}, index = null) {
+    const container = document.getElementById('allowed-visitors-container');
+    const emptyState = document.getElementById('visitors-empty-state');
+    if (!container) return;
+
+    // Hide empty state when adding visitors
+    if (emptyState) {
+      emptyState.classList.add('hidden');
+    }
+
+    const entryIndex = index !== null ? index : container.children.length;
+    const visitorDiv = document.createElement('div');
+    visitorDiv.className = 'bg-gray-800/40 rounded-xl p-4 border border-gray-600 hover:bg-gray-800/60 transition-all duration-200 shadow-sm';
+    visitorDiv.innerHTML = `
+      <!-- Visitor Header -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+            <span class="text-white text-sm font-semibold">${entryIndex + 1}</span>
+          </div>
+          <h4 class="text-base font-semibold text-gray-200">Allowed Visitor</h4>
+        </div>
+        <button type="button" class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md cursor-pointer transition-colors" 
+                onclick="this.parentElement.parentElement.remove(); updateVisitorsEmptyState();">
+          <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Remove
+        </button>
+      </div>
+
+      <!-- Main Form Grid - Responsive -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <!-- Visitor Name Field -->
+        <div class="sm:col-span-2 lg:col-span-1">
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Visitor Name *</label>
+          <input type="text" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" 
+                 value="${visitor.name || ''}" data-field="name" placeholder="Full name" required />
+        </div>
+        
+        <!-- Relationship Field -->
+        <div class="sm:col-span-2 lg:col-span-1">
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Relationship *</label>
+          <select class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" data-field="relationship" required>
+            <option value="">Select relationship</option>
+            <option value="Father" ${visitor.relationship === 'Father' ? 'selected' : ''}>Father</option>
+            <option value="Mother" ${visitor.relationship === 'Mother' ? 'selected' : ''}>Mother</option>
+            <option value="Spouse" ${visitor.relationship === 'Spouse' ? 'selected' : ''}>Spouse</option>
+            <option value="Sibling" ${visitor.relationship === 'Sibling' ? 'selected' : ''}>Sibling</option>
+            <option value="Child" ${visitor.relationship === 'Child' ? 'selected' : ''}>Child</option>
+            <option value="Friend" ${visitor.relationship === 'Friend' ? 'selected' : ''}>Friend</option>
+            <option value="Lawyer" ${visitor.relationship === 'Lawyer' ? 'selected' : ''}>Lawyer</option>
+            <option value="Other" ${visitor.relationship === 'Other' ? 'selected' : ''}>Other</option>
+          </select>
+        </div>
+        
+        <!-- Contact Number Field -->
+        <div class="sm:col-span-2 lg:col-span-1">
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Contact Number</label>
+          <div class="relative">
+            <input type="tel" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" 
+                   value="${visitor.contactNumber || ''}" data-field="contactNumber" placeholder="+63 9XX XXX XXXX" />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ID Information Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">ID Type</label>
+          <select class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" data-field="idType">
+            <option value="">Select ID type</option>
+            <option value="Drivers License" ${visitor.idType === 'Drivers License' ? 'selected' : ''}>Drivers License</option>
+            <option value="National ID" ${visitor.idType === 'National ID' ? 'selected' : ''}>National ID</option>
+            <option value="Passport" ${visitor.idType === 'Passport' ? 'selected' : ''}>Passport</option>
+            <option value="Senior Citizen ID" ${visitor.idType === 'Senior Citizen ID' ? 'selected' : ''}>Senior Citizen ID</option>
+            <option value="Voters ID" ${visitor.idType === 'Voters ID' ? 'selected' : ''}>Voters ID</option>
+            <option value="SSS ID" ${visitor.idType === 'SSS ID' ? 'selected' : ''}>SSS ID</option>
+            <option value="Other" ${visitor.idType === 'Other' ? 'selected' : ''}>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">ID Number</label>
+          <input type="text" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" 
+                 value="${visitor.idNumber || ''}" data-field="idNumber" placeholder="ID number" />
+        </div>
+      </div>
+
+      <!-- Address Field -->
+      <div class="mb-4">
+        <label class="block text-sm text-gray-300 mb-2 font-medium">Address</label>
+        <input type="text" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" 
+               value="${visitor.address || ''}" data-field="address" placeholder="Visitor's address" />
+      </div>
+
+      <!-- Visitor Footer with Status -->
+      <div class="mt-3 pt-3 border-t border-gray-600">
+        <div class="flex items-center justify-between text-xs text-gray-400">
+          <span>Visitor #${entryIndex + 1}</span>
+          <span class="flex items-center">
+            <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+            Allowed
+          </span>
+        </div>
+      </div>
+    `;
+    container.appendChild(visitorDiv);
+  }
+
+  // Helper function to update visitors empty state visibility
+  function updateVisitorsEmptyState() {
+    const container = document.getElementById('allowed-visitors-container');
+    const emptyState = document.getElementById('visitors-empty-state');
+    
+    if (container && emptyState) {
+      if (container.children.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+    }
+  }
+
+  function collectAllowedVisitors() {
+    const container = document.getElementById('allowed-visitors-container');
+    if (!container) return [];
+
+    const visitors = [];
+    container.querySelectorAll('.bg-gray-800\\/40').forEach(visitorDiv => {
+      const name = visitorDiv.querySelector('[data-field="name"]').value;
+      const relationship = visitorDiv.querySelector('[data-field="relationship"]').value;
+      const idType = visitorDiv.querySelector('[data-field="idType"]').value;
+      const idNumber = visitorDiv.querySelector('[data-field="idNumber"]').value;
+      const contactNumber = visitorDiv.querySelector('[data-field="contactNumber"]').value;
+      const address = visitorDiv.querySelector('[data-field="address"]').value;
+
+      if (name && relationship) {
+        visitors.push({
+          name: name,
+          relationship: relationship,
+          idType: idType,
+          idNumber: idNumber,
+          contactNumber: contactNumber,
+          address: address
+        });
+      }
+    });
+    return visitors;
+  }
+
+  /**
+   * Initialize the Visit Records form section.
+   * @param {Object} [inmateData] - Optional inmate object to use for populating visit records.
+   */
+  function initializeVisitRecords(inmateData) {
+    const container = document.getElementById('visit-records-container');
+    const addBtn = document.getElementById('add-visit-record');
+    const emptyState = document.getElementById('visits-empty-state');
+    
+    if (!container || !addBtn) return;
+
+    // Clear existing entries
+    container.innerHTML = '';
+
+    // Load existing visit records
+    let existingVisits = [];
+    if (inmateData && Array.isArray(inmateData.recentVisits)) {
+      existingVisits = inmateData.recentVisits;
+    } else if (typeof inmate !== 'undefined' && inmate && Array.isArray(inmate.recentVisits)) {
+      existingVisits = inmate.recentVisits;
+    }
+    
+    // Add existing visits
+    existingVisits.forEach((visit, index) => {
+      addVisitRecord(visit, index);
+    });
+
+    // Show/hide empty state
+    if (emptyState) {
+      if (existingVisits.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+    }
+
+    // Add button event listener
+    addBtn.addEventListener('click', () => {
+      addVisitRecord();
+    });
+  }
+
+  function addVisitRecord(visit = {}, index = null) {
+    const container = document.getElementById('visit-records-container');
+    const emptyState = document.getElementById('visits-empty-state');
+    if (!container) return;
+
+    // Hide empty state when adding visits
+    if (emptyState) {
+      emptyState.classList.add('hidden');
+    }
+
+    const entryIndex = index !== null ? index : container.children.length;
+    const visitDiv = document.createElement('div');
+    visitDiv.className = 'bg-gray-800/40 rounded-xl p-4 border border-gray-600 hover:bg-gray-800/60 transition-all duration-200 shadow-sm';
+    visitDiv.innerHTML = `
+      <!-- Visit Header -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+            <span class="text-white text-sm font-semibold">${entryIndex + 1}</span>
+          </div>
+          <h4 class="text-base font-semibold text-gray-200">Visit Record</h4>
+        </div>
+        <button type="button" class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md cursor-pointer transition-colors" 
+                onclick="this.parentElement.parentElement.remove(); updateVisitsEmptyState();">
+          <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Remove
+        </button>
+      </div>
+
+      <!-- Main Form Grid - Responsive -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <!-- Visit Date Field -->
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Visit Date *</label>
+          <input type="date" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" 
+                 value="${visit.date || ''}" data-field="date" required />
+        </div>
+        
+        <!-- Visitor Name Field -->
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Visitor Name *</label>
+          <input type="text" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" 
+                 value="${visit.visitor || ''}" data-field="visitor" placeholder="Visitor name" required />
+        </div>
+        
+        <!-- Status Field -->
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Status *</label>
+          <select class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" data-field="status" required>
+            <option value="">Select status</option>
+            <option value="Approved" ${visit.status === 'Approved' ? 'selected' : ''}>Approved</option>
+            <option value="Pending" ${visit.status === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="Denied" ${visit.status === 'Denied' ? 'selected' : ''}>Denied</option>
+            <option value="Completed" ${visit.status === 'Completed' ? 'selected' : ''}>Completed</option>
+            <option value="Cancelled" ${visit.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Second Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <!-- Relationship Field -->
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Relationship</label>
+          <select class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" data-field="relationship">
+            <option value="">Select relationship</option>
+            <option value="Father" ${visit.relationship === 'Father' ? 'selected' : ''}>Father</option>
+            <option value="Mother" ${visit.relationship === 'Mother' ? 'selected' : ''}>Mother</option>
+            <option value="Spouse" ${visit.relationship === 'Spouse' ? 'selected' : ''}>Spouse</option>
+            <option value="Sibling" ${visit.relationship === 'Sibling' ? 'selected' : ''}>Sibling</option>
+            <option value="Child" ${visit.relationship === 'Child' ? 'selected' : ''}>Child</option>
+            <option value="Friend" ${visit.relationship === 'Friend' ? 'selected' : ''}>Friend</option>
+            <option value="Lawyer" ${visit.relationship === 'Lawyer' ? 'selected' : ''}>Lawyer</option>
+            <option value="Other" ${visit.relationship === 'Other' ? 'selected' : ''}>Other</option>
+          </select>
+        </div>
+        
+        <!-- Duration Field -->
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Duration (minutes)</label>
+          <div class="relative">
+            <input type="number" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" 
+                   value="${visit.duration || ''}" data-field="duration" placeholder="30" min="1" max="120" />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <span class="text-gray-400 text-xs">min</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Purpose Field -->
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Purpose</label>
+          <select class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" data-field="purpose">
+            <option value="">Select purpose</option>
+            <option value="Family visit" ${visit.purpose === 'Family visit' ? 'selected' : ''}>Family visit</option>
+            <option value="Legal consultation" ${visit.purpose === 'Legal consultation' ? 'selected' : ''}>Legal consultation</option>
+            <option value="Medical consultation" ${visit.purpose === 'Medical consultation' ? 'selected' : ''}>Medical consultation</option>
+            <option value="Religious visit" ${visit.purpose === 'Religious visit' ? 'selected' : ''}>Religious visit</option>
+            <option value="Emergency" ${visit.purpose === 'Emergency' ? 'selected' : ''}>Emergency</option>
+            <option value="Other" ${visit.purpose === 'Other' ? 'selected' : ''}>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Third Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Officer in Charge</label>
+          <div class="relative">
+            <input type="text" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" 
+                   value="${visit.officerInCharge || ''}" data-field="officerInCharge" placeholder="Officer name" />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Visit Time</label>
+          <input type="time" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" 
+                 value="${visit.time || ''}" data-field="time" />
+        </div>
+      </div>
+
+      <!-- Notes Section -->
+      <div class="mb-4">
+        <label class="block text-sm text-gray-300 mb-2 font-medium">Additional Notes</label>
+        <textarea class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none" 
+                  rows="3" data-field="notes" placeholder="Additional details about the visit...">${visit.notes || ''}</textarea>
+      </div>
+
+      <!-- Visit Footer with Status -->
+      <div class="mt-3 pt-3 border-t border-gray-600">
+        <div class="flex items-center justify-between text-xs text-gray-400">
+          <span>Visit #${entryIndex + 1}</span>
+          <span class="flex items-center">
+            <div class="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+            ${visit.status || 'Pending'}
+          </span>
+        </div>
+      </div>
+    `;
+    container.appendChild(visitDiv);
+  }
+
+  // Helper function to update visits empty state visibility
+  function updateVisitsEmptyState() {
+    const container = document.getElementById('visit-records-container');
+    const emptyState = document.getElementById('visits-empty-state');
+    
+    if (container && emptyState) {
+      if (container.children.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+    }
+  }
+
+  function collectVisitRecords() {
+    const container = document.getElementById('visit-records-container');
+    if (!container) return [];
+
+    const visits = [];
+    container.querySelectorAll('.bg-gray-800\\/40').forEach(visitDiv => {
+      const date = visitDiv.querySelector('[data-field="date"]').value;
+      const visitor = visitDiv.querySelector('[data-field="visitor"]').value;
+      const relationship = visitDiv.querySelector('[data-field="relationship"]').value;
+      const status = visitDiv.querySelector('[data-field="status"]').value;
+      const purpose = visitDiv.querySelector('[data-field="purpose"]').value;
+      const duration = visitDiv.querySelector('[data-field="duration"]').value;
+      const officerInCharge = visitDiv.querySelector('[data-field="officerInCharge"]').value;
+      const time = visitDiv.querySelector('[data-field="time"]').value;
+      const notes = visitDiv.querySelector('[data-field="notes"]').value;
+
+      if (date && visitor) {
+        visits.push({
+          date: date,
+          visitor: visitor,
+          relationship: relationship,
+          status: status,
+          purpose: purpose,
+          duration: duration ? parseInt(duration) : null,
+          officerInCharge: officerInCharge,
+          time: time,
+          notes: notes
+        });
+      }
+    });
+    return visits;
   }
 
   // Update both desktop and mobile views
@@ -733,18 +1531,51 @@ function openUnifiedInmateModal(inmate) {
   const overviewHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-1">
-        <div class="flex items-start gap-4">
-          <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-xl overflow-hidden ring-2 ring-blue-500/20 bg-blue-500/10 flex-shrink-0">
-            ${avatar}
-          </div>
-          <div class="hidden sm:flex flex-col">
-            <h2 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">${name}</h2>
-            <span class="mt-2 inline-flex items-center rounded-full px-2 py-1 text-[11px] font-medium ${statusBadgeClasses(inmate.status)}">${inmate.status}</span>
-          </div>
+        <!-- Desktop: Profile Card -->
+        <div class="hidden lg:flex flex-col items-center w-full">
+          <div class="flex items-center justify-center mb-4">
+            <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
+              <img 
+                src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+                alt="${name}'s avatar" 
+                class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
+                loading="lazy"
+              />
         </div>
-        <div class="sm:hidden mt-3">
-          <h2 class="text-base font-semibold text-gray-900 dark:text-white">${name}</h2>
-          <span class="mt-2 inline-flex items-center rounded-full px-2 py-1 text-[11px] font-medium ${statusBadgeClasses(inmate.status)}">${inmate.status}</span>
+        </div>
+          <div class="flex flex-col items-center w-full">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mt-2">${name}</h2>
+            <span 
+              class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium
+                ${inmate.status === 'Active'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-300 text-gray-800'}"
+              aria-label="Inmate status: ${inmate.status === 'Active' ? 'Active' : 'Inactive'}"
+            >
+              ${inmate.status === 'Active' ? 'Active' : 'Inactive'}
+            </span>
+      </div>
+        </div>
+        <!-- Mobile/Tablet: Stacked Profile Card -->
+        <div class="flex flex-col items-center lg:hidden gap-2">
+          <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
+            <img 
+              src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+              alt="${name}'s avatar" 
+              class="w-full h-full object-cover rounded-full border-4 border-white shadow"
+              loading="lazy"
+            />
+          </div>
+          <h2 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">${name}</h2>
+          <span 
+            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium
+              ${inmate.status === 'Active'
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-300 text-gray-800'}"
+            aria-label="Inmate status: ${inmate.status === 'Active' ? 'Active' : 'Inactive'}"
+          >
+            ${inmate.status === 'Active' ? 'Active' : 'Inactive'}
+          </span>
         </div>
       </div>
       <div class="lg:col-span-2 space-y-4">
@@ -785,18 +1616,26 @@ function openUnifiedInmateModal(inmate) {
   `;
 
   const medicalHTML = `
-    <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
-      <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Medical Information</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        <div><span class="text-gray-500 dark:text-gray-400">Medical Status:</span> <span class="text-gray-900 dark:text-gray-200">No medical issues reported</span></div>
-        <div><span class="text-gray-500 dark:text-gray-400">Last Check:</span> <span class="text-gray-900 dark:text-gray-200">Not available</span></div>
-      </div>
-    </div>
+    <div class="space-y-4">
+      <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Medical Information</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div><span class="text-gray-500 dark:text-gray-400">Medical Status:</span> <span class="text-gray-900 dark:text-gray-200">${inmate.medicalStatus || 'Not Assessed'}</span></div>
+          <div><span class="text-gray-500 dark:text-gray-400">Last Check:</span> <span class="text-gray-900 dark:text-gray-200">${inmate.lastMedicalCheck ? formatDate(inmate.lastMedicalCheck) : 'Not available'}</span></div>
+        </div>
+        ${inmate.medicalNotes ? `
+          <div class="mt-3">
+            <span class="text-gray-500 dark:text-gray-400 text-sm">Notes:</span>
+            <p class="text-gray-900 dark:text-gray-200 text-sm mt-1">${inmate.medicalNotes}</p>
+        </div>
+        ` : ''}
+        </div>
+        </div>
   `;
 
-  // Helpers for Points & Visitation data (placeholder demo until integrated with backend)
+  // Helpers for Points & Visitation data (updated to use new field names)
   function getPointsTotal(i) {
-    return (i.pointsTotal ?? 0);
+    return (i.currentPoints ?? i.pointsTotal ?? 0);
   }
   function getPointsHistory(i) {
     return Array.isArray(i.pointsHistory) ? i.pointsHistory : [];
@@ -805,7 +1644,7 @@ function openUnifiedInmateModal(inmate) {
     return Array.isArray(i.allowedVisitors) ? i.allowedVisitors : [];
   }
   function getRecentVisits(i) {
-    return Array.isArray(i.visits) ? i.visits : [];
+    return Array.isArray(i.recentVisits) ? i.recentVisits : [];
   }
 
   const pointsTotal = getPointsTotal(inmate);
@@ -824,7 +1663,7 @@ function openUnifiedInmateModal(inmate) {
           <div>
             <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Points Summary</h3>
             <p class="text-xs text-gray-500 dark:text-gray-400">Cumulative points based on activities</p>
-          </div>
+      </div>
           <div class="text-right">
             <div class="text-2xl font-bold ${pointsTotal >= 0 ? 'text-green-600' : 'text-red-500'}">${pointsTotal}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Total Points</div>
@@ -857,22 +1696,25 @@ function openUnifiedInmateModal(inmate) {
   const allowedVisitors = getAllowedVisitors(inmate);
   const visits = getRecentVisits(inmate);
   const allowedList = allowedVisitors.map(v => `
-    <li class="flex items-center justify-between gap-3">
-      <div class="min-w-0">
+    <li class="flex items-center justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+      <div class="min-w-0 flex-1">
         <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-200">${v.name}</p>
         <p class="truncate text-xs text-gray-500 dark:text-gray-400">${v.relationship || '—'}${v.idType ? ` • ${v.idType}` : ''}${v.idNumber ? ` (${v.idNumber})` : ''}</p>
+        ${v.contactNumber ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">📞 ${v.contactNumber}</p>` : ''}
+        ${v.address ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">📍 ${v.address}</p>` : ''}
       </div>
       <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-green-500/10 text-green-600">Allowed</span>
     </li>
   `).join('');
   const visitsRows = visits.map(v => `
-    <tr class="border-b border-gray-100 dark:border-gray-800">
-      <td class="px-3 py-2 whitespace-nowrap">${formatDate(v.date)}</td>
-      <td class="px-3 py-2">${v.visitor}</td>
-      <td class="px-3 py-2">${v.relationship || '—'}</td>
-      <td class="px-3 py-2">${v.purpose || '—'}</td>
+    <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+      <td class="px-3 py-2 whitespace-nowrap text-sm">${formatDate(v.date)}</td>
+      <td class="px-3 py-2 text-sm">${v.visitor}</td>
+      <td class="px-3 py-2 text-sm">${v.relationship || '—'}</td>
+      <td class="px-3 py-2 text-sm">${v.purpose || '—'}</td>
+      <td class="px-3 py-2 text-sm">${v.duration ? `${v.duration} min` : '—'}</td>
       <td class="px-3 py-2">
-        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${v.status === 'Approved' ? 'bg-green-500/10 text-green-600' : v.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600' : 'bg-red-500/10 text-red-600'}">${v.status || '—'}</span>
+        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${v.status === 'Approved' ? 'bg-green-500/10 text-green-600' : v.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600' : v.status === 'Completed' ? 'bg-blue-500/10 text-blue-600' : v.status === 'Cancelled' ? 'bg-gray-500/10 text-gray-600' : 'bg-red-500/10 text-red-600'}">${v.status || '—'}</span>
       </td>
     </tr>
   `).join('');
@@ -895,12 +1737,13 @@ function openUnifiedInmateModal(inmate) {
                 <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Date</th>
                 <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Visitor</th>
                 <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Relationship</th>
-                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Purpose/Notes</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Purpose</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Duration</th>
                 <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Status</th>
               </tr>
             </thead>
             <tbody>
-              ${visitsRows || `<tr><td colspan="5" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No visit records</td></tr>`}
+              ${visitsRows || `<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No visit records</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -921,7 +1764,21 @@ function openUnifiedInmateModal(inmate) {
     });
   }
 
+  // Custom close button (SVG X) for top-right
+  const closeBtnHTML = `
+    <button type="button"
+      id="swal-custom-close"
+      class="absolute top-3 right-3 z-50 rounded-full p-2 bg-transparent text-gray-400 hover:bg-red-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 cursor-pointer transition"
+      aria-label="Close"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l8 8M6 14L14 6" />
+      </svg>
+    </button>
+  `;
+
   const html = `
+    ${closeBtnHTML}
     ${navHTML}
     <div id="tab-content" class="space-y-4">${overviewHTML}</div>
   `;
@@ -931,8 +1788,7 @@ function openUnifiedInmateModal(inmate) {
     html,
     width,
     padding: isMobile() ? '0.75rem' : '1.5rem',
-    showCancelButton: true,
-    cancelButtonText: 'Close',
+    showCancelButton: false,
     showConfirmButton: false,
     background: '#111827',
     color: '#F9FAFB',
@@ -942,6 +1798,13 @@ function openUnifiedInmateModal(inmate) {
       content: 'swal-responsive-content',
     },
     didOpen: () => {
+      // Attach close handler to custom close button
+      const closeBtn = document.getElementById('swal-custom-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          window.Swal.close();
+        });
+      }
       const container = document.getElementById('tab-content');
       const setActive = (id) => {
         document.querySelectorAll('button[data-tab]').forEach((btn) => {
