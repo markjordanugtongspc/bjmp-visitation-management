@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtitle = initial.subtitle || '';
     const status = (initial.status || 'Active').toLowerCase();
 
-    // Responsive width for the modal
-    const width = isMobile() ? '90%' : '32rem';
+    // Responsive width for the modal - standard sizes
+    const width = isMobile() ? '95%' : '42rem'; // 672px max on desktop (max-w-2xl)
 
     return window.Swal.fire({
       title: initial.id ? 'Edit Officer' : 'Add Officer',
@@ -612,7 +612,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (activeModal) {
       const modalContent = activeModal.querySelector('.swal2-popup');
       if (modalContent) {
-        modalContent.style.width = isMobile() ? '90%' : '32rem';
+        // Use standard responsive sizing - max-w-2xl
+        if (isMobile()) {
+          modalContent.style.width = '95%';
+          modalContent.style.maxWidth = '95%';
+        } else {
+          modalContent.style.width = '42rem';
+          modalContent.style.maxWidth = '42rem';
+        }
         modalContent.style.padding = isMobile() ? '1rem' : '1.25rem';
       }
     }

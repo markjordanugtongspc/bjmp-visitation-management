@@ -22,13 +22,20 @@ document.addEventListener('DOMContentLoaded', () => {
       firstName: 'Juan',
       lastName: 'Dela Cruz',
       middleName: 'Santos',
-      age: 35,
+      age: 36,
       gender: 'Male',
       cellNumber: 'Cell 1',
       crime: 'Theft',
       sentence: '2 years',
       status: 'Active',
       admissionDate: '2024-01-15',
+      dateOfBirth: '1989-06-15',
+      addressLine1: '123 Mabini St., Brgy. San Miguel',
+      addressLine2: 'Blk 4 Lot 12',
+      city: 'Iligan City',
+      province: 'Lanao del Norte',
+      postalCode: '9200',
+      country: 'Philippines',
       photo: null
     },
     {
@@ -43,6 +50,13 @@ document.addEventListener('DOMContentLoaded', () => {
       sentence: '1 year',
       status: 'Active',
       admissionDate: '2024-02-10',
+      dateOfBirth: '1997-09-10',
+      addressLine1: '27 Rizal Ave., Brgy. Poblacion',
+      addressLine2: '',
+      city: 'Iligan City',
+      province: 'Lanao del Norte',
+      postalCode: '9200',
+      country: 'Philippines',
       photo: null
     }
   ];
@@ -120,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return window.Swal.fire({
       title: title,
       html: `
-        <div class="space-y-4 text-left max-h-[70vh] overflow-y-auto">
+        <div class="space-y-4 text-left max-h-[70vh] overflow-y-auto scrollbar-none" style="-ms-overflow-style: none; scrollbar-width: none;">
           <!-- Personal Information -->
           <div class="space-y-3">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Personal Information</h3>
@@ -175,6 +189,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label class="block text-xs text-gray-300 mb-1">Admission Date *</label>
                 <input id="i-admission-date" type="date" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" 
                        value="${inmate.admissionDate || ''}" />
+              </div>
+            </div>
+
+            <!-- Demographic: Date of Birth -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-300 mb-1">Date of Birth *</label>
+                <input id="i-dob" type="date" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" value="${inmate.dateOfBirth || ''}" />
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="space-y-3">
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Address</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-300 mb-1">Address Line 1 *</label>
+                  <input id="i-addr1" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" value="${inmate.addressLine1 || ''}" placeholder="House No., Street, Barangay" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-300 mb-1">Address Line 2</label>
+                  <input id="i-addr2" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" value="${inmate.addressLine2 || ''}" placeholder="Subdivision, Building (optional)" />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-300 mb-1">City/Municipality *</label>
+                  <input id="i-city" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" value="${inmate.city || ''}" placeholder="City/Municipality" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-300 mb-1">Province/State *</label>
+                  <input id="i-province" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" value="${inmate.province || ''}" placeholder="Province/State" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-300 mb-1">Postal Code</label>
+                  <input id="i-postal" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" value="${inmate.postalCode || ''}" placeholder="e.g., 9200" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-300 mb-1">Country *</label>
+                <input id="i-country" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" value="${inmate.country || 'Philippines'}" placeholder="Country" />
               </div>
             </div>
           </div>
@@ -237,6 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
         </div>
+        <style>
+          .swal2-html-container > div::-webkit-scrollbar { display: none !important; }
+          .swal2-html-container > div { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+        </style>
       `,
       width: width,
       padding: isMobile() ? '1rem' : '1.5rem',
@@ -269,6 +328,18 @@ document.addEventListener('DOMContentLoaded', () => {
             select.classList.add('text-base', 'py-3');
           }
         });
+
+        // Auto-calc age from DOB
+        const dobInput = /** @type {HTMLInputElement} */(document.getElementById('i-dob'));
+        const ageInput = /** @type {HTMLInputElement} */(document.getElementById('i-age'));
+        if (dobInput && ageInput) {
+          const updateAge = () => {
+            const v = dobInput.value;
+            ageInput.value = v ? String(calculateAge(v)) : '';
+          };
+          dobInput.addEventListener('change', updateAge);
+          updateAge();
+        }
       },
       preConfirm: () => {
         const isEditing = !!inmate.id;
@@ -276,8 +347,15 @@ document.addEventListener('DOMContentLoaded', () => {
           firstName: document.getElementById('i-firstname').value.trim(),
           lastName: document.getElementById('i-lastname').value.trim(),
           middleName: document.getElementById('i-middlename').value.trim(),
-          age: inmate.age ?? null,
+          dateOfBirth: /** @type {HTMLInputElement} */(document.getElementById('i-dob'))?.value || null,
+          age: (() => { const dob = /** @type {HTMLInputElement} */(document.getElementById('i-dob'))?.value; return dob ? calculateAge(dob) : (inmate.age ?? null); })(),
           gender: document.getElementById('i-gender').value,
+          addressLine1: document.getElementById('i-addr1')?.value.trim() || '',
+          addressLine2: document.getElementById('i-addr2')?.value.trim() || '',
+          city: document.getElementById('i-city')?.value.trim() || '',
+          province: document.getElementById('i-province')?.value.trim() || '',
+          postalCode: document.getElementById('i-postal')?.value.trim() || '',
+          country: document.getElementById('i-country')?.value.trim() || '',
           crime: document.getElementById('i-crime').value.trim(),
           sentence: document.getElementById('i-sentence').value.trim(),
           cellNumber: document.getElementById('i-cell').value,
@@ -288,8 +366,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (
           !data.firstName ||
           !data.lastName ||
-          false ||
+          !data.dateOfBirth ||
           !data.gender ||
+          !data.addressLine1 ||
+          !data.city ||
+          !data.province ||
+          !data.country ||
           !data.crime ||
           !data.sentence ||
           !data.cellNumber ||
@@ -374,6 +456,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update row content
     row.querySelector('[data-i-name]').textContent = `${inmate.firstName} ${inmate.lastName}`;
     row.querySelector('[data-i-details]').textContent = `${inmate.gender}, ${inmate.age} years old`;
+    const dobEl = row.querySelector('[data-i-dob]');
+    const addrEl = row.querySelector('[data-i-address]');
+    if (dobEl) dobEl.textContent = `DOB: ${formatDate(inmate.dateOfBirth)}`;
+    if (addrEl) addrEl.textContent = `Address: ${formatAddress(inmate)}`;
     row.querySelector('[data-i-crime]').textContent = inmate.crime;
     row.querySelector('[data-i-sentence]').textContent = inmate.sentence;
     row.querySelector('[data-i-cell]').textContent = inmate.cellNumber;
@@ -418,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add click listener for inmate name
     nameBtn.onclick = () => {
-      openInmateDetailsModal(inmate);
+      openUnifiedInmateModal(inmate);
     };
   }
 
@@ -449,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="flex items-center gap-1">
             <button type="button" data-edit-inmate 
-              class="bg-blue-50 dark:bg-blue-900/20 text-blue-500 p-2 rounded-md" 
+              class="bg-blue-50 dark:bg-blue-900/20 text-blue-500 p-2 rounded-md cursor-pointer" 
               aria-label="Edit inmate">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
@@ -458,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </svg>
             </button>
             <button type="button" data-delete-inmate 
-              class="bg-red-50 dark:bg-red-900/20 text-red-500 p-2 rounded-md" 
+              class="bg-red-50 dark:bg-red-900/20 text-red-500 p-2 rounded-md cursor-pointer" 
               aria-label="Delete inmate">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 6h18" />
@@ -536,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add click listener for inmate name
     nameBtn.onclick = () => {
-      openInmateDetailsModal(inmate);
+      openUnifiedInmateModal(inmate);
     };
   }
 
@@ -621,8 +707,262 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 // ========================================
-// MODERNIZED INMATE INFORMATION MODAL (Tailwind + SweetAlert2)
+// UNIFIED INMATE MODAL (SweetAlert2 + Tailwind, responsive)
 // ========================================
+function openUnifiedInmateModal(inmate) {
+  const width = isMobile() ? '98vw' : '64rem';
+  const avatar = inmateAvatarHTML(inmate);
+  const name = fullName(inmate);
+  const tabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'medical', label: 'Medical' },
+    { id: 'points', label: 'Points' },
+    { id: 'visitation', label: 'Visitation' },
+  ];
+
+  const navHTML = `
+    <nav class="flex flex-wrap gap-2 sm:gap-3 border-b border-gray-200 dark:border-gray-800 mb-4 justify-start lg:justify-end">
+      ${tabs.map(t => `
+        <button data-tab="${t.id}" class="px-3 py-2 text-xs sm:text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 data-[active=true]:bg-blue-600 data-[active=true]:text-white cursor-pointer">
+          ${t.label}
+        </button>
+      `).join('')}
+    </nav>
+  `;
+
+  const overviewHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1">
+        <div class="flex items-start gap-4">
+          <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-xl overflow-hidden ring-2 ring-blue-500/20 bg-blue-500/10 flex-shrink-0">
+            ${avatar}
+          </div>
+          <div class="hidden sm:flex flex-col">
+            <h2 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">${name}</h2>
+            <span class="mt-2 inline-flex items-center rounded-full px-2 py-1 text-[11px] font-medium ${statusBadgeClasses(inmate.status)}">${inmate.status}</span>
+          </div>
+        </div>
+        <div class="sm:hidden mt-3">
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white">${name}</h2>
+          <span class="mt-2 inline-flex items-center rounded-full px-2 py-1 text-[11px] font-medium ${statusBadgeClasses(inmate.status)}">${inmate.status}</span>
+        </div>
+      </div>
+      <div class="lg:col-span-2 space-y-4">
+        <!-- Basic Information (accordion) -->
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <button data-accordion-toggle="basic" class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg cursor-pointer">
+            <span>Basic Information</span>
+            <svg class="h-4 w-4 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.38a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+          </button>
+          <div data-accordion-panel="basic" class="px-4 py-4 border-t border-gray-200 dark:border-gray-800 hidden lg:block">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <dt class="text-gray-500 dark:text-gray-400">DOB</dt><dd class="text-gray-900 dark:text-gray-200">${formatDate(inmate.dateOfBirth)}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Age</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.age}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Gender</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.gender}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Address</dt><dd class="text-gray-900 dark:text-gray-200">${formatAddress(inmate) || '—'}</dd>
+            </dl>
+          </div>
+        </div>
+        <!-- Legal & Assignment (accordion) -->
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <button data-accordion-toggle="legal" class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg cursor-pointer">
+            <span>Legal & Assignment</span>
+            <svg class="h-4 w-4 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.38a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+          </button>
+          <div data-accordion-panel="legal" class="px-4 py-4 border-t border-gray-200 dark:border-gray-800 hidden lg:block">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <dt class="text-gray-500 dark:text-gray-400">Admission Date</dt><dd class="text-gray-900 dark:text-gray-200">${formatDate(inmate.admissionDate)}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Work / Job</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.job || '—'}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Crime Committed</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.crime}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Sentence</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.sentence}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Cell Assignment</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.cellNumber}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Additional</dt><dd class="text-gray-900 dark:text-gray-200">ID #${inmate.id.toString().padStart(4,'0')} • ${daysInCustody(inmate)} days in custody</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const medicalHTML = `
+    <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
+      <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Medical Information</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div><span class="text-gray-500 dark:text-gray-400">Medical Status:</span> <span class="text-gray-900 dark:text-gray-200">No medical issues reported</span></div>
+        <div><span class="text-gray-500 dark:text-gray-400">Last Check:</span> <span class="text-gray-900 dark:text-gray-200">Not available</span></div>
+      </div>
+    </div>
+  `;
+
+  // Helpers for Points & Visitation data (placeholder demo until integrated with backend)
+  function getPointsTotal(i) {
+    return (i.pointsTotal ?? 0);
+  }
+  function getPointsHistory(i) {
+    return Array.isArray(i.pointsHistory) ? i.pointsHistory : [];
+  }
+  function getAllowedVisitors(i) {
+    return Array.isArray(i.allowedVisitors) ? i.allowedVisitors : [];
+  }
+  function getRecentVisits(i) {
+    return Array.isArray(i.visits) ? i.visits : [];
+  }
+
+  const pointsTotal = getPointsTotal(inmate);
+  const pointsRows = getPointsHistory(inmate).map(p => `
+      <tr class="border-b border-gray-100 dark:border-gray-800">
+        <td class="px-3 py-2 whitespace-nowrap text-gray-900 dark:text-gray-200">${formatDate(p.date)}</td>
+        <td class="px-3 py-2 min-w-40 text-gray-700 dark:text-gray-300">${p.activity || '—'}</td>
+        <td class="px-3 py-2 text-right font-semibold ${p.points >= 0 ? 'text-green-600' : 'text-red-500'}">${p.points}</td>
+        <td class="px-3 py-2 text-gray-500 dark:text-gray-400">${p.note || ''}</td>
+      </tr>
+  `).join('');
+  const pointsHTML = `
+    <div class="space-y-4">
+      <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Points Summary</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Cumulative points based on activities</p>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-bold ${pointsTotal >= 0 ? 'text-green-600' : 'text-red-500'}">${pointsTotal}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Total Points</div>
+          </div>
+        </div>
+        <div class="mt-3 w-full h-2 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
+          <div class="h-2 bg-blue-500" style="width: ${Math.min(Math.max(pointsTotal, 0), 100)}%"></div>
+        </div>
+      </div>
+      <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 dark:bg-gray-800/60">
+              <tr>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Date</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Activity</th>
+                <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Points</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pointsRows || `<tr><td colspan="4" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No points recorded</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const allowedVisitors = getAllowedVisitors(inmate);
+  const visits = getRecentVisits(inmate);
+  const allowedList = allowedVisitors.map(v => `
+    <li class="flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-200">${v.name}</p>
+        <p class="truncate text-xs text-gray-500 dark:text-gray-400">${v.relationship || '—'}${v.idType ? ` • ${v.idType}` : ''}${v.idNumber ? ` (${v.idNumber})` : ''}</p>
+      </div>
+      <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-green-500/10 text-green-600">Allowed</span>
+    </li>
+  `).join('');
+  const visitsRows = visits.map(v => `
+    <tr class="border-b border-gray-100 dark:border-gray-800">
+      <td class="px-3 py-2 whitespace-nowrap">${formatDate(v.date)}</td>
+      <td class="px-3 py-2">${v.visitor}</td>
+      <td class="px-3 py-2">${v.relationship || '—'}</td>
+      <td class="px-3 py-2">${v.purpose || '—'}</td>
+      <td class="px-3 py-2">
+        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${v.status === 'Approved' ? 'bg-green-500/10 text-green-600' : v.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600' : 'bg-red-500/10 text-red-600'}">${v.status || '—'}</span>
+      </td>
+    </tr>
+  `).join('');
+  const visitationHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1 rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Allowed Visitors</h3>
+        <ul class="space-y-3">
+          ${allowedList || '<li class="text-sm text-gray-500 dark:text-gray-400">No allowed visitors configured</li>'}
+        </ul>
+      </div>
+      <div class="lg:col-span-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+        <div class="p-4">
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Recent Visits</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 dark:bg-gray-800/60">
+              <tr>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Date</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Visitor</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Relationship</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Purpose/Notes</th>
+                <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${visitsRows || `<tr><td colspan="5" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No visit records</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  function attachAccordionHandlers() {
+    const toggles = document.querySelectorAll('[data-accordion-toggle]');
+    toggles.forEach((btn) => {
+      const id = btn.getAttribute('data-accordion-toggle');
+      const panel = document.querySelector(`[data-accordion-panel="${id}"]`);
+      if (!panel) return;
+      btn.addEventListener('click', () => {
+        // Toggle only affects mobile/tablet. On lg screens, the "lg:block" ensures visibility.
+        panel.classList.toggle('hidden');
+      });
+    });
+  }
+
+  const html = `
+    ${navHTML}
+    <div id="tab-content" class="space-y-4">${overviewHTML}</div>
+  `;
+
+  return window.Swal.fire({
+    title: `<span class="hidden">Inmate</span>`,
+    html,
+    width,
+    padding: isMobile() ? '0.75rem' : '1.5rem',
+    showCancelButton: true,
+    cancelButtonText: 'Close',
+    showConfirmButton: false,
+    background: '#111827',
+    color: '#F9FAFB',
+    customClass: {
+      container: 'swal-responsive-container',
+      popup: 'swal-responsive-popup',
+      content: 'swal-responsive-content',
+    },
+    didOpen: () => {
+      const container = document.getElementById('tab-content');
+      const setActive = (id) => {
+        document.querySelectorAll('button[data-tab]').forEach((btn) => {
+          const isActive = btn.getAttribute('data-tab') === id;
+          btn.setAttribute('data-active', String(isActive));
+        });
+        if (!container) return;
+        if (id === 'overview') container.innerHTML = overviewHTML;
+        if (id === 'medical') container.innerHTML = medicalHTML;
+        if (id === 'points') container.innerHTML = pointsHTML;
+        if (id === 'visitation') container.innerHTML = visitationHTML;
+        if (id === 'overview') attachAccordionHandlers();
+      };
+      document.querySelectorAll('button[data-tab]').forEach((btn, idx) => {
+        btn.addEventListener('click', () => setActive(btn.getAttribute('data-tab')));
+        if (idx === 0) btn.setAttribute('data-active', 'true');
+      });
+      setActive('overview');
+    }
+  });
+}
 
 // Helpers
 const fullName = (i) => [i.firstName, i.middleName, i.lastName].filter(Boolean).join(' ');
@@ -653,7 +993,7 @@ const inmateAvatarHTML = (inmate) => {
   `;
 };
 
-// Modernized card profile layout for inmate details
+// Mao dayon ni sa MORE DETAILS nga BUTTON
 function inmateProfileCardHTML(inmate) {
   const name = fullName(inmate);
   const statusClass = statusBadgeClasses(inmate.status);
@@ -713,231 +1053,27 @@ function inmateProfileCardHTML(inmate) {
   `;
 }
 
-// Modernized extended details (kept as a card)
-function openExtendedInmateDetails(inmate) {
-  const width = isMobile() ? '98vw' : '48rem';
-  const html = `
-    <div class="flex flex-col sm:flex-row gap-8 items-start">
-      <!-- Avatar and summary -->
-      <div class="flex-shrink-0 w-full sm:w-1/3">
-        ${inmateAvatarHTML(inmate)}
-        <div class="mt-4 text-center sm:text-left">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white">${fullName(inmate)}</h2>
-          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClasses(inmate.status)} mt-2 shadow">
-            ${inmate.status}
-          </span>
-        </div>
-      </div>
-      <!-- Details -->
-      <div class="flex-1 w-full space-y-6">
-        <!-- Extended Personal Information -->
-        <section>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Extended Personal Information</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Date of Birth</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Not specified</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Place of Birth</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Not specified</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Nationality</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Filipino</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Marital Status</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Not specified</p>
-            </div>
-          </div>
-        </section>
-        <!-- Legal History -->
-        <section>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Legal History</h3>
-          <div class="p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg flex flex-col gap-1">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="font-medium text-gray-900 dark:text-gray-200">${inmate.crime}</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Sentence: ${inmate.sentence}</p>
-              </div>
-              <span class="text-xs text-gray-400">${formatDate(inmate.admissionDate)}</span>
-            </div>
-          </div>
-        </section>
-        <!-- Medical Information -->
-        <section>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Medical Information</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Medical Status</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">No medical issues reported</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Last Medical Check</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">Not available</p>
-            </div>
-          </div>
-        </section>
-        <!-- Visitation Records -->
-        <section>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Visitation Records</h3>
-          <div class="text-center py-4 text-gray-500 dark:text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <p class="text-sm">No visitation records available</p>
-          </div>
-        </section>
-      </div>
-    </div>
-  `;
-
-  return window.Swal.fire({
-    title: `<span class="hidden">Extended Inmate Information</span>`, // visually hidden, use card header
-    html,
-    width,
-    padding: isMobile() ? '0.5rem' : '2rem',
-    showCancelButton: true,
-    confirmButtonText: 'Edit Inmate',
-    cancelButtonText: 'Close',
-    confirmButtonColor: '#3B82F6',
-    cancelButtonColor: '#6B7280',
-    background: '#111827',
-    color: '#F9FAFB',
-    customClass: {
-      container: 'swal-responsive-container',
-      popup: 'swal-responsive-popup',
-      content: 'swal-responsive-content',
-    },
-    allowOutsideClick: false
-  });
+// Calculate age from date string (YYYY-MM-DD)
+function calculateAge(dateString) {
+  if (!dateString) return 0;
+  const dob = new Date(dateString);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
 }
 
-// Modernized main modal
-function openInmateDetailsModal(inmate) {
-  const width = isMobile() ? '98vw' : '48rem';
-  const html = `
-    <div class="flex flex-col sm:flex-row gap-8 items-center sm:items-start">
-      <!-- Avatar and summary -->
-      <div class="flex-shrink-0 w-full sm:w-1/3">
-        ${inmateAvatarHTML(inmate)}
-        <div class="mt-4 text-center sm:text-left">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white">${fullName(inmate)}</h2>
-          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClasses(inmate.status)} mt-2 shadow">
-            ${inmate.status}
-          </span>
-        </div>
-      </div>
-      <!-- Details -->
-      <div class="flex-1 w-full space-y-6">
-        <!-- Personal Information -->
-        <section>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Personal Information</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Full Name</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${fullName(inmate)}</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Age</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.age} years old</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Gender</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.gender}</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Admission Date</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${formatDate(inmate.admissionDate)}</p>
-            </div>
-          </div>
-        </section>
-        <!-- Legal Information -->
-        <section>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Legal Information</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Crime Committed</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.crime}</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Sentence</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.sentence}</p>
-            </div>
-          </div>
-        </section>
-        <!-- Cell Assignment -->
-        <section>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Cell Assignment</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Current Cell</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${inmate.cellNumber}</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Status</label>
-              <p class="mt-1">
-                <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${statusBadgeClasses(inmate.status)}">
-                  ${inmate.status}
-                </span>
-              </p>
-            </div>
-          </div>
-        </section>
-        <!-- Additional Information -->
-        <section>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">Additional Information</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Inmate ID</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">#${inmate.id.toString().padStart(4, '0')}</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Days in Custody</label>
-              <p class="mt-1 text-sm text-gray-900 dark:text-gray-200">${daysInCustody(inmate)} days</p>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  `;
-
-  return window.Swal.fire({
-    title: `<span class="hidden">Inmate Details</span>`, // visually hidden, use card header
-    html,
-    width,
-    padding: isMobile() ? '0.5rem' : '2rem',
-    showCancelButton: true,
-    confirmButtonText: 'More Details',
-    cancelButtonText: 'Close',
-    confirmButtonColor: '#3B82F6',
-    cancelButtonColor: '#6B7280',
-    background: '#111827',
-    color: '#F9FAFB',
-    customClass: {
-      container: 'swal-responsive-container',
-      popup: 'swal-responsive-popup',
-      content: 'swal-responsive-content',
-    },
-    didOpen: () => {
-      const confirmBtn = Swal.getConfirmButton();
-      if (confirmBtn) {
-        confirmBtn.classList.add('cursor-pointer');
-        confirmBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          Swal.close();
-          openExtendedInmateDetails(inmate);
-        }, { once: true });
-      }
-      
-      const cancelBtn = Swal.getCancelButton();
-      if (cancelBtn) {
-        cancelBtn.classList.add('cursor-pointer');
-      }
-    }
-  });
+function formatAddress(i) {
+  const parts = [i.addressLine1, i.addressLine2, i.city, i.province, i.postalCode, i.country]
+    .filter(Boolean)
+    .join(', ');
+  return parts;
 }
+
+// (Old extended/detail modals removed in favor of unified modal)
 
   // Calculate days in custody
   function calculateDaysInCustody(admissionDate) {
@@ -986,8 +1122,9 @@ function openInmateDetailsModal(inmate) {
     if (activeModal) {
       const modalContent = activeModal.querySelector('.swal2-popup');
       if (modalContent) {
-        modalContent.style.width = isMobile() ? '95%' : '42rem';
-        modalContent.style.padding = isMobile() ? '1rem' : '1.5rem';
+        // Respect unified modal sizing
+        modalContent.style.width = isMobile() ? '98vw' : '64rem';
+        modalContent.style.padding = isMobile() ? '0.75rem' : '1.5rem';
       }
     }
   });
@@ -995,3 +1132,4 @@ function openInmateDetailsModal(inmate) {
   // Initialize the page
   initializePage();
 });
+
