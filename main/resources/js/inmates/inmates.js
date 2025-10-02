@@ -1605,6 +1605,22 @@ function openUnifiedInmateModal(inmate) {
     </nav>
   `;
 
+  // Map status to consistent badge styles
+  function getStatusBadgeClasses(status) {
+    switch (status) {
+      case 'Active':
+        return 'bg-green-500 text-white';
+      case 'Released':
+        return 'bg-blue-500 text-white';
+      case 'Transferred':
+        return 'bg-amber-500 text-white';
+      case 'Medical':
+        return 'bg-red-500 text-white';
+      default:
+        return 'bg-gray-300 text-gray-800';
+    }
+  }
+
   const overviewHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-1">
@@ -1623,13 +1639,10 @@ function openUnifiedInmateModal(inmate) {
           <div class="flex flex-col items-center w-full">
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white mt-2">${name}</h2>
             <span 
-              class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium
-                ${inmate.status === 'Active'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-300 text-gray-800'}"
-              aria-label="Inmate status: ${inmate.status === 'Active' ? 'Active' : 'Inactive'}"
+              class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}"
+              aria-label="Inmate status: ${inmate.status || 'Unknown'}"
             >
-              ${inmate.status === 'Active' ? 'Active' : 'Inactive'}
+              ${inmate.status || '—'}
             </span>
       </div>
         </div>
@@ -1645,13 +1658,10 @@ function openUnifiedInmateModal(inmate) {
           </div>
           <h2 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">${name}</h2>
           <span 
-            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium
-              ${inmate.status === 'Active'
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-300 text-gray-800'}"
-            aria-label="Inmate status: ${inmate.status === 'Active' ? 'Active' : 'Inactive'}"
+            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}"
+            aria-label="Inmate status: ${inmate.status || 'Unknown'}"
           >
-            ${inmate.status === 'Active' ? 'Active' : 'Inactive'}
+            ${inmate.status || '—'}
           </span>
         </div>
       </div>
@@ -1693,21 +1703,71 @@ function openUnifiedInmateModal(inmate) {
   `;
 
   const medicalHTML = `
-    <div class="space-y-4">
-      <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
-        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Medical Information</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-          <div><span class="text-gray-500 dark:text-gray-400">Medical Status:</span> <span class="text-gray-900 dark:text-gray-200">${inmate.medicalStatus || 'Not Assessed'}</span></div>
-          <div><span class="text-gray-500 dark:text-gray-400">Last Check:</span> <span class="text-gray-900 dark:text-gray-200">${inmate.lastMedicalCheck ? formatDate(inmate.lastMedicalCheck) : 'Not available'}</span></div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1">
+        <!-- Desktop: Profile Card -->
+        <div class="hidden lg:flex flex-col items-center w-full">
+          <div class="flex items-center justify-center mb-4">
+            <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
+              <img 
+                src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+                alt="${name}'s avatar" 
+                class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
+                loading="lazy"
+              />
+            </div>
+          </div>
+          <div class="flex flex-col items-center w-full">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mt-2">${name}</h2>
+            <span 
+              class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}"
+              aria-label="Inmate status: ${inmate.status || 'Unknown'}"
+            >
+              ${inmate.status || '—'}
+            </span>
+          </div>
         </div>
-        ${inmate.medicalNotes ? `
-          <div class="mt-3">
-            <span class="text-gray-500 dark:text-gray-400 text-sm">Notes:</span>
-            <p class="text-gray-900 dark:text-gray-200 text-sm mt-1">${inmate.medicalNotes}</p>
+        <!-- Mobile/Tablet: Stacked Profile Card -->
+        <div class="flex flex-col items-center lg:hidden gap-2">
+          <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
+            <img 
+              src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+              alt="${name}'s avatar" 
+              class="w-full h-full object-cover rounded-full border-4 border-white shadow"
+              loading="lazy"
+            />
+          </div>
+          <h2 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">${name}</h2>
+          <span 
+            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}"
+            aria-label="Inmate status: ${inmate.status || 'Unknown'}"
+          >
+            ${inmate.status || '—'}
+          </span>
         </div>
-        ` : ''}
+      </div>
+      <div class="lg:col-span-2 space-y-4">
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Medical Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Medical Status:</span>
+              <span class="text-gray-900 dark:text-gray-200">${inmate.medicalStatus || 'Not Assessed'}</span>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Last Check:</span>
+              <span class="text-gray-900 dark:text-gray-200">${inmate.lastMedicalCheck ? formatDate(inmate.lastMedicalCheck) : 'Not available'}</span>
+            </div>
+          </div>
+          ${inmate.medicalNotes ? `
+            <div class="mt-3">
+              <span class="text-gray-500 dark:text-gray-400 text-sm">Notes:</span>
+              <p class="text-gray-900 dark:text-gray-200 text-sm mt-1">${inmate.medicalNotes}</p>
+            </div>
+          ` : ''}
         </div>
-        </div>
+      </div>
+    </div>
   `;
 
   // Helpers for Points & Visitation data (updated to use new field names)
@@ -1744,7 +1804,50 @@ function openUnifiedInmateModal(inmate) {
     </li>
   `).join('');
   const pointsHTML = `
-    <div class="space-y-4">
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1">
+        <!-- Desktop: Profile Card -->
+        <div class="hidden lg:flex flex-col items-center w-full">
+          <div class="flex items-center justify-center mb-4">
+            <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
+              <img 
+                src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+                alt="${name}'s avatar" 
+                class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
+                loading="lazy"
+              />
+        </div>
+        </div>
+          <div class="flex flex-col items-center w-full">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mt-2">${name}</h2>
+            <span 
+              class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}"
+              aria-label="Inmate status: ${inmate.status || 'Unknown'}"
+            >
+              ${inmate.status || '—'}
+            </span>
+      </div>
+        </div>
+        <!-- Mobile/Tablet: Stacked Profile Card -->
+        <div class="flex flex-col items-center lg:hidden gap-2">
+          <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
+            <img 
+              src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+              alt="${name}'s avatar" 
+              class="w-full h-full object-cover rounded-full border-4 border-white shadow"
+              loading="lazy"
+            />
+          </div>
+          <h2 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">${name}</h2>
+          <span 
+            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}"
+            aria-label="Inmate status: ${inmate.status || 'Unknown'}"
+          >
+            ${inmate.status || '—'}
+          </span>
+        </div>
+      </div>
+      <div class="lg:col-span-2 space-y-4">
       <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
         <div class="flex items-center justify-between gap-4">
           <div>
