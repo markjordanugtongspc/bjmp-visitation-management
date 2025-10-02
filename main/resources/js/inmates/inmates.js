@@ -1432,18 +1432,14 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="mt-2 pl-13 space-y-2">
           <div class="flex justify-between items-center">
             <div>
-              <div class="font-medium text-sm" data-i-crime></div>
+              <div class="font-medium text-red-500" data-i-crime></div>
               <div class="text-xs text-gray-500 dark:text-gray-400" data-i-sentence></div>
             </div>
             <span data-i-status class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"></span>
           </div>
           <div class="flex justify-between items-center text-sm">
-            <span class="text-gray-600 dark:text-gray-400">Cell:</span>
-            <span class="font-medium" data-i-cell></span>
-          </div>
-          <div class="flex justify-between items-center text-sm">
-            <span class="text-gray-600 dark:text-gray-400">Admitted:</span>
-            <span class="font-medium" data-i-admission></span>
+              <div class="font-medium text-yellow-500" data-i-cell></div>
+              <div class="text-xs text-gray-500 dark:text-gray-400" data-i-admission></div>
           </div>
         </div>
       `;
