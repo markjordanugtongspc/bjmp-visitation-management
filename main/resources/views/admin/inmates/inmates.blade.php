@@ -111,7 +111,7 @@
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->name ?? 'User' }}"
                           data-user-role="{{ Auth::user()->role ?? 'admin' }}"
-                          class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                          class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                           aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
                           <span
                             class="h-8 w-8 inline-flex items-center justify-center rounded-full ring-2 ring-blue-500/30 bg-white dark:bg-gray-800"
@@ -220,7 +220,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Inmates</p>
-                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="total-inmates">2</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="total-inmates">0</p>
                             </div>
                         </div>
                     </div>
@@ -234,7 +234,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>
-                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="active-inmates">1</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="active-inmates">0</p>
                             </div>
                         </div>
                     </div>

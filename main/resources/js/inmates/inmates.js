@@ -1,4 +1,5 @@
 import 'flowbite';
+import { createInmateStatusCounter } from './components/inmate-status-counter.js';
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
 // - Cell management and capacity tracking
@@ -18,6 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inmates data (start empty; will be populated dynamically later)
   let inmates = [];
 
+  // Initialize status counter component
+  const statusCounter = createInmateStatusCounter();
+
   // Sample cells data
   let cells = [
     { id: 1, name: 'Cell 1', capacity: 20, currentCount: 1, type: 'Male' },
@@ -30,6 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function initializePage() {
     renderCells();
     renderInmates();
+    
+    // Initialize status counter component
+    if (statusCounter.initialize()) {
+      console.log('Status counter initialized successfully');
+    } else {
+      console.warn('Status counter initialization failed');
+    }
+    
     // initializeExistingItems intentionally skipped to avoid injecting samples
     // updateStatistics intentionally skipped to preserve Blade placeholders until backend wiring
   }
@@ -1276,9 +1288,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameBtn = row.querySelector('[data-i-name]');
     
     editBtn.onclick = async () => {
+      const oldStatus = inmate.status;
       const { value } = await openInmateModal(inmate);
       if (value) {
+        const newStatus = value.status;
         Object.assign(inmate, value);
+        
+        // Update statistics if status changed
+        if (oldStatus !== newStatus && statusCounter) {
+          statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
+        }
+        
         renderOrUpdateViews(inmate);
         showSuccessMessage('Inmate updated successfully');
       }
@@ -1390,9 +1410,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameBtn = card.querySelector('[data-i-name]');
     
     editBtn.onclick = async () => {
+      const oldStatus = inmate.status;
       const { value } = await openInmateModal(inmate);
       if (value) {
+        const newStatus = value.status;
         Object.assign(inmate, value);
+        
+        // Update statistics if status changed
+        if (oldStatus !== newStatus && statusCounter) {
+          statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
+        }
+        
         renderOrUpdateViews(inmate);
         showSuccessMessage('Inmate updated successfully');
       }
@@ -1462,8 +1490,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function deleteInmate(id) {
+    const inmateToDelete = inmates.find(inmate => inmate.id === id);
     inmates = inmates.filter(inmate => inmate.id !== id);
     updateCellCounts();
+    
+    // Update statistics
+    if (inmateToDelete && statusCounter) {
+      statusCounter.removeInmate(inmateToDelete);
+    }
     
     // Remove from UI
     const row = tableBody?.querySelector(`tr[data-row-id="${id}"]`);
@@ -1487,8 +1521,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Update statistics display
   function updateStatistics() {
-    // Intentionally left as placeholder; will be populated dynamically later
-    // Keep Blade-provided placeholders until backend is wired
+    // Update status counter with current inmates data
+    if (statusCounter && statusCounter.isReady()) {
+      statusCounter.updateFromInmates(inmates);
+    }
   }
 
 // ========================================
@@ -2175,6 +2211,12 @@ function formatAddress(i) {
         const newId = Math.max(...inmates.map(i => i.id), 0) + 1;
         const newInmate = { id: newId, ...value };
         inmates.push(newInmate);
+        
+        // Update statistics
+        if (statusCounter) {
+          statusCounter.addInmate(newInmate);
+        }
+        
         renderOrUpdateViews(newInmate);
         showSuccessMessage('Inmate added successfully');
       }
@@ -2196,5 +2238,8 @@ function formatAddress(i) {
 
   // Initialize the page
   initializePage();
+
+  // Expose status counter for external use
+  window.inmateStatusCounter = statusCounter;
 });
 
