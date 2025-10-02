@@ -15,89 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Detect if we're on mobile
   const isMobile = () => window.innerWidth < 640; // sm breakpoint in Tailwind
 
-  // Sample data structure for inmates
-  let inmates = [
-    {
-      id: 1,
-      firstName: 'Juan',
-      lastName: 'Dela Cruz',
-      middleName: 'Santos',
-      age: 36,
-      gender: 'Male',
-      cellNumber: 'Cell 1',
-      crime: 'Theft',
-      sentence: '2 years',
-      status: 'Active',
-      admissionDate: '2024-01-15',
-      dateOfBirth: '1989-06-15',
-      addressLine1: '123 Mabini St., Brgy. San Miguel',
-      addressLine2: 'Blk 4 Lot 12',
-      city: 'Iligan City',
-      province: 'Lanao del Norte',
-      postalCode: '9200',
-      country: 'Philippines',
-      photo: null,
-      // Medical Information
-      medicalStatus: 'Healthy',
-      lastMedicalCheck: '2024-01-20',
-      medicalNotes: 'No medical issues reported. Regular check-ups scheduled.',
-      // Points System
-      initialPoints: 0,
-      currentPoints: 15,
-      pointsHistory: [
-        { date: '2024-01-20', activity: 'Good behavior', points: 5, note: 'Helped with cleaning' },
-        { date: '2024-01-25', activity: 'Educational program', points: 10, note: 'Completed literacy course' }
-      ],
-      // Visitation Information
-      allowedVisitors: [
-        { name: 'Maria Dela Cruz', relationship: 'Wife', idType: 'Drivers License', idNumber: 'DL123456' },
-        { name: 'Pedro Dela Cruz', relationship: 'Father', idType: 'Senior Citizen ID', idNumber: 'SC789012' }
-      ],
-      recentVisits: [
-        { date: '2024-01-22', visitor: 'Maria Dela Cruz', relationship: 'Wife', purpose: 'Family visit', status: 'Approved' },
-        { date: '2024-01-28', visitor: 'Pedro Dela Cruz', relationship: 'Father', purpose: 'Family visit', status: 'Approved' }
-      ]
-    },
-    {
-      id: 2,
-      firstName: 'Maria',
-      lastName: 'Garcia',
-      middleName: 'Lopez',
-      age: 28,
-      gender: 'Female',
-      cellNumber: 'Cell 2',
-      crime: 'Fraud',
-      sentence: '1 year',
-      status: 'Active',
-      admissionDate: '2024-02-10',
-      dateOfBirth: '1997-09-10',
-      addressLine1: '27 Rizal Ave., Brgy. Poblacion',
-      addressLine2: '',
-      city: 'Iligan City',
-      province: 'Lanao del Norte',
-      postalCode: '9200',
-      country: 'Philippines',
-      photo: null,
-      // Medical Information
-      medicalStatus: 'Under Treatment',
-      lastMedicalCheck: '2024-02-15',
-      medicalNotes: 'Under treatment for anxiety. Regular counseling sessions scheduled.',
-      // Points System
-      initialPoints: 0,
-      currentPoints: 8,
-      pointsHistory: [
-        { date: '2024-02-12', activity: 'Good behavior', points: 3, note: 'Followed rules' },
-        { date: '2024-02-18', activity: 'Work assignment', points: 5, note: 'Kitchen duty' }
-      ],
-      // Visitation Information
-      allowedVisitors: [
-        { name: 'Carlos Garcia', relationship: 'Brother', idType: 'National ID', idNumber: 'NID345678' }
-      ],
-      recentVisits: [
-        { date: '2024-02-20', visitor: 'Carlos Garcia', relationship: 'Brother', purpose: 'Family visit', status: 'Approved' }
-      ]
-    }
-  ];
+  // Inmates data (start empty; will be populated dynamically later)
+  let inmates = [];
 
   // Sample cells data
   let cells = [
@@ -111,8 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function initializePage() {
     renderCells();
     renderInmates();
-    initializeExistingItems();
-    updateStatistics();
+    // initializeExistingItems intentionally skipped to avoid injecting samples
+    // updateStatistics intentionally skipped to preserve Blade placeholders until backend wiring
   }
 
   // Render cells overview
@@ -286,6 +205,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label class="block text-xs text-gray-300 mb-1">Sentence *</label>
                 <input id="i-sentence" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" 
                        value="${inmate.sentence || ''}" placeholder="e.g., 2 years, Life, etc." />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-300 mb-1">Work / Job</label>
+                <input id="i-job" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" 
+                       value="${inmate.job || ''}" placeholder="e.g., Kitchen duty, Cleaning, None" />
               </div>
             </div>
           </div>
@@ -538,6 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
           country: document.getElementById('i-country')?.value.trim() || '',
           crime: document.getElementById('i-crime').value.trim(),
           sentence: document.getElementById('i-sentence').value.trim(),
+          job: document.getElementById('i-job')?.value.trim() || '',
           cellNumber: document.getElementById('i-cell').value,
           status: document.getElementById('i-status').value,
           admissionDate: document.getElementById('i-admission-date').value,
@@ -1560,21 +1487,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Update statistics display
   function updateStatistics() {
-    const totalInmates = inmates.length;
-    const activeInmates = inmates.filter(inmate => inmate.status === 'Active').length;
-    const releasedInmates = inmates.filter(inmate => inmate.status === 'Released').length;
-    const medicalInmates = inmates.filter(inmate => inmate.status === 'Medical').length;
-
-    // Update DOM elements
-    const totalEl = document.getElementById('total-inmates');
-    const activeEl = document.getElementById('active-inmates');
-    const releasedEl = document.getElementById('released-inmates');
-    const medicalEl = document.getElementById('medical-inmates');
-
-    if (totalEl) totalEl.textContent = totalInmates;
-    if (activeEl) activeEl.textContent = activeInmates;
-    if (releasedEl) releasedEl.textContent = releasedInmates;
-    if (medicalEl) medicalEl.textContent = medicalInmates;
+    // Intentionally left as placeholder; will be populated dynamically later
+    // Keep Blade-provided placeholders until backend is wired
   }
 
 // ========================================
@@ -2243,19 +2157,14 @@ function formatAddress(i) {
 
   // Initialize existing items
   function initializeExistingItems() {
-    inmates.forEach(inmate => {
-      renderOrUpdateViews(inmate);
-    });
+    // No-op for now; existing items will be loaded from backend later
   }
 
   // Render all inmates
   function renderInmates() {
     if (tableBody) tableBody.innerHTML = '';
     if (mobileCardsContainer) mobileCardsContainer.innerHTML = '';
-    
-    inmates.forEach(inmate => {
-      renderOrUpdateViews(inmate);
-    });
+    // Will populate from backend later
   }
 
   // Handle add inmate button clicks

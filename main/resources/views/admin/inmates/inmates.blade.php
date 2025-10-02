@@ -220,7 +220,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Inmates</p>
-                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="total-inmates">0</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="total-inmates">2</p>
                             </div>
                         </div>
                     </div>
@@ -234,7 +234,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>
-                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="active-inmates">0</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="active-inmates">1</p>
                             </div>
                         </div>
                     </div>
