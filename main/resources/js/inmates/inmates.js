@@ -1,5 +1,7 @@
 import 'flowbite';
 import { createInmateStatusCounter } from './components/inmate-status-counter.js';
+import { saveDraft, loadDraft, clearDraft, toDraftFromModalValue } from './components/inmate-form-draft.js';
+import InmateApiClient from './components/inmateApi.js';
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
 // - Cell management and capacity tracking
@@ -16,16 +18,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Detect if we're on mobile
   const isMobile = () => window.innerWidth < 640; // sm breakpoint in Tailwind
 
+  // Initialize API client
+  const inmateApi = new InmateApiClient();
+
   // Inmates data (start empty; will be populated dynamically later)
   let inmates = [];
 
   // Initialize status counter component
   const statusCounter = createInmateStatusCounter();
 
-  // Sample cells data
+  // Dynamic cells data - will be calculated from actual inmates
   let cells = [
-    { id: 1, name: 'Cell 1', capacity: 20, currentCount: 1, type: 'Male' },
-    { id: 2, name: 'Cell 2', capacity: 15, currentCount: 1, type: 'Female' },
+    { id: 1, name: 'Cell 1', capacity: 20, currentCount: 0, type: 'Male' },
+    { id: 2, name: 'Cell 2', capacity: 15, currentCount: 0, type: 'Female' },
     { id: 3, name: 'Cell 3', capacity: 25, currentCount: 0, type: 'Male' },
     { id: 4, name: 'Cell 4', capacity: 18, currentCount: 0, type: 'Female' }
   ];
@@ -46,9 +51,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // updateStatistics intentionally skipped to preserve Blade placeholders until backend wiring
   }
 
+  // Update cell occupancy based on actual inmate data
+  function updateCellOccupancy() {
+    // Reset all cell counts
+    cells.forEach(cell => {
+      cell.currentCount = 0;
+    });
+
+    // Count inmates by cell and gender
+    inmates.forEach(inmate => {
+      // Only count active inmates
+      if (inmate.status === 'Active' && inmate.cellId) {
+        const cell = cells.find(c => c.id === inmate.cellId);
+        if (cell && cell.type === inmate.gender) {
+          cell.currentCount++;
+        }
+      }
+    });
+  }
+
   // Render cells overview
   function renderCells() {
     if (!cellsContainer) return;
+    
+    // Update occupancy before rendering
+    updateCellOccupancy();
     
     cellsContainer.innerHTML = '';
     
@@ -493,25 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
           recentVisits: collectVisitRecords()
         };
 
-        // Validation
-        if (
-          !data.firstName ||
-          !data.lastName ||
-          !data.dateOfBirth ||
-          !data.gender ||
-          !data.addressLine1 ||
-          !data.city ||
-          !data.province ||
-          !data.country ||
-          !data.crime ||
-          !data.sentence ||
-          !data.cellNumber ||
-          !data.status ||
-          !data.admissionDate
-        ) {
-          window.Swal.showValidationMessage('All required fields must be filled and valid.');
-          return false;
-        }
+        // No validation for edit - allow any changes
         return data;
       },
     });
@@ -768,7 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="sm:col-span-2 lg:col-span-1">
           <label class="block text-sm text-gray-300 mb-2 font-medium">1x1 Photo</label>
           <div class="flex items-center gap-3">
-            <img data-field="avatarPreview" src="/images/default-avatar.png" alt="Visitor avatar" class="h-16 w-16 rounded-full object-cover ring-2 ring-green-500/20 bg-gray-700/40" />
+            <img data-field="avatarPreview" src="/images/logo/logo-temp_round.png" alt="Visitor avatar" class="h-16 w-16 rounded-full object-cover ring-2 ring-green-500/20 bg-gray-700/40" />
             <div>
               <label class="inline-flex items-center px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded-md cursor-pointer transition-colors">
                 Choose Image
@@ -1204,7 +1213,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderOrUpdateViews(inmate) {
     updateDesktopRow(inmate);
     updateMobileCard(inmate);
-    updateCellCounts();
+    updateCellOccupancy();
+    renderCells(); // Re-render cells to show updated occupancy
     updateStatistics();
   }
 
@@ -1291,16 +1301,34 @@ document.addEventListener('DOMContentLoaded', () => {
       const oldStatus = inmate.status;
       const { value } = await openInmateModal(inmate);
       if (value) {
-        const newStatus = value.status;
-        Object.assign(inmate, value);
-        
-        // Update statistics if status changed
-        if (oldStatus !== newStatus && statusCounter) {
-          statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
+        try {
+          // Transform form data to API format
+          const apiData = inmateApi.transformFormData(value);
+          
+          // Update inmate via API
+          const response = await inmateApi.update(inmate.id, apiData);
+          
+          if (response.success) {
+            const updatedInmate = response.data;
+            const newStatus = updatedInmate.status;
+            
+            // Update local data
+            Object.assign(inmate, updatedInmate);
+            
+            // Update statistics if status changed
+            if (oldStatus !== newStatus && statusCounter) {
+              statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
+            }
+            
+            renderOrUpdateViews(inmate);
+            showSuccessMessage('Inmate updated successfully');
+          } else {
+            throw new Error(response.message || 'Failed to update inmate');
+          }
+        } catch (error) {
+          console.error('Error updating inmate:', error);
+          showErrorMessage('Failed to update inmate: ' + error.message);
         }
-        
-        renderOrUpdateViews(inmate);
-        showSuccessMessage('Inmate updated successfully');
       }
     };
     
@@ -1319,8 +1347,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       
       if (result.isConfirmed) {
-        deleteInmate(inmate.id);
-        showSuccessMessage('Inmate deleted successfully');
+        try {
+          const response = await inmateApi.delete(inmate.id);
+          
+          if (response.success) {
+            deleteInmate(inmate.id);
+            // Update cell occupancy after deletion
+            updateCellOccupancy();
+            renderCells();
+            showSuccessMessage('Inmate deleted successfully');
+          } else {
+            throw new Error(response.message || 'Failed to delete inmate');
+          }
+        } catch (error) {
+          console.error('Error deleting inmate:', error);
+          showErrorMessage('Failed to delete inmate: ' + error.message);
+        }
       }
     };
 
@@ -1413,16 +1455,34 @@ document.addEventListener('DOMContentLoaded', () => {
       const oldStatus = inmate.status;
       const { value } = await openInmateModal(inmate);
       if (value) {
-        const newStatus = value.status;
-        Object.assign(inmate, value);
-        
-        // Update statistics if status changed
-        if (oldStatus !== newStatus && statusCounter) {
-          statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
+        try {
+          // Transform form data to API format
+          const apiData = inmateApi.transformFormData(value);
+          
+          // Update inmate via API
+          const response = await inmateApi.update(inmate.id, apiData);
+          
+          if (response.success) {
+            const updatedInmate = response.data;
+            const newStatus = updatedInmate.status;
+            
+            // Update local data
+            Object.assign(inmate, updatedInmate);
+            
+            // Update statistics if status changed
+            if (oldStatus !== newStatus && statusCounter) {
+              statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
+            }
+            
+            renderOrUpdateViews(inmate);
+            showSuccessMessage('Inmate updated successfully');
+          } else {
+            throw new Error(response.message || 'Failed to update inmate');
+          }
+        } catch (error) {
+          console.error('Error updating inmate:', error);
+          showErrorMessage('Failed to update inmate: ' + error.message);
         }
-        
-        renderOrUpdateViews(inmate);
-        showSuccessMessage('Inmate updated successfully');
       }
     };
     
@@ -1441,8 +1501,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       
       if (result.isConfirmed) {
-        deleteInmate(inmate.id);
-        showSuccessMessage('Inmate deleted successfully');
+        try {
+          const response = await inmateApi.delete(inmate.id);
+          
+          if (response.success) {
+            deleteInmate(inmate.id);
+            // Update cell occupancy after deletion
+            updateCellOccupancy();
+            renderCells();
+            showSuccessMessage('Inmate deleted successfully');
+          } else {
+            throw new Error(response.message || 'Failed to delete inmate');
+          }
+        } catch (error) {
+          console.error('Error deleting inmate:', error);
+          showErrorMessage('Failed to delete inmate: ' + error.message);
+        }
       }
     };
 
@@ -1519,6 +1593,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function showErrorMessage(message) {
+    window.Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: message,
+      confirmButtonText: 'OK',
+      background: '#111827',
+      color: '#F9FAFB',
+      width: isMobile() ? '90%' : '32rem',
+    });
+  }
+
   // Update statistics display
   function updateStatistics() {
     // Update status counter with current inmates data
@@ -1575,7 +1661,7 @@ function openUnifiedInmateModal(inmate) {
           <div class="flex items-center justify-center mb-4">
             <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
               <img 
-                src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+                src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
                 alt="${name}'s avatar" 
                 class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
                 loading="lazy"
@@ -1596,7 +1682,7 @@ function openUnifiedInmateModal(inmate) {
         <div class="flex flex-col items-center lg:hidden gap-2">
           <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
             <img 
-              src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+              src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
               alt="${name}'s avatar" 
               class="w-full h-full object-cover rounded-full border-4 border-white shadow"
               loading="lazy"
@@ -1656,7 +1742,7 @@ function openUnifiedInmateModal(inmate) {
           <div class="flex items-center justify-center mb-4">
             <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
               <img 
-                src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+                src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
                 alt="${name}'s avatar" 
                 class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
                 loading="lazy"
@@ -1677,7 +1763,7 @@ function openUnifiedInmateModal(inmate) {
         <div class="flex flex-col items-center lg:hidden gap-2">
           <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
             <img 
-              src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+              src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
               alt="${name}'s avatar" 
               class="w-full h-full object-cover rounded-full border-4 border-white shadow"
               loading="lazy"
@@ -1757,7 +1843,7 @@ function openUnifiedInmateModal(inmate) {
           <div class="flex items-center justify-center mb-4">
             <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
               <img 
-                src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+                src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
                 alt="${name}'s avatar" 
                 class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
                 loading="lazy"
@@ -1778,7 +1864,7 @@ function openUnifiedInmateModal(inmate) {
         <div class="flex flex-col items-center lg:hidden gap-2">
           <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
             <img 
-              src="${inmate.avatarUrl || '/images/default-avatar.png'}" 
+              src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
               alt="${name}'s avatar" 
               class="w-full h-full object-cover rounded-full border-4 border-white shadow"
               loading="lazy"
@@ -2009,7 +2095,7 @@ function openVisitorModal(visitor) {
   const width = isMobile() ? '95vw' : '32rem';
   const avatarSrc = (() => {
     if (visitor && typeof visitor.avatarDataUrl === 'string' && visitor.avatarDataUrl) return visitor.avatarDataUrl;
-    return '/images/default-avatar.png';
+    return '/images/logo/logo-temp_round.png';
   })();
 
   const name = visitor?.name || 'Visitor';
@@ -2197,28 +2283,176 @@ function formatAddress(i) {
   }
 
   // Render all inmates
-  function renderInmates() {
-    if (tableBody) tableBody.innerHTML = '';
-    if (mobileCardsContainer) mobileCardsContainer.innerHTML = '';
-    // Will populate from backend later
+  async function renderInmates() {
+    try {
+      // Show loading state
+      if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">Loading inmates...</td></tr>';
+      }
+      if (mobileCardsContainer) {
+        mobileCardsContainer.innerHTML = '<div class="text-center py-8 text-gray-500">Loading inmates...</div>';
+      }
+
+      // Fetch inmates from backend
+      const response = await inmateApi.getAll();
+      
+      if (response.success) {
+        inmates = response.data.data || [];
+        
+        // Update statistics
+        if (response.statistics && statusCounter) {
+          statusCounter.setStatistics(response.statistics);
+        }
+        
+        // Update cell occupancy based on loaded inmates
+        updateCellOccupancy();
+        
+        // Clear containers
+        if (tableBody) tableBody.innerHTML = '';
+        if (mobileCardsContainer) mobileCardsContainer.innerHTML = '';
+        
+        // Check if we have any inmates
+        if (inmates.length === 0) {
+          // Show empty state (same as static one in Blade template)
+          if (tableBody) {
+            tableBody.innerHTML = `
+              <tr>
+                <td colspan="5" class="px-4 py-12 text-center">
+                  <div class="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
+                    <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    </div>
+                    <div class="text-center px-4 sm:px-0">
+                      <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100">No Inmates Added Yet</h3>
+                      <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">There are no inmates in the system yet. Use the "Add Inmate" button above to get started.</p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }
+          if (mobileCardsContainer) {
+            mobileCardsContainer.innerHTML = `
+              <div class="text-center py-8 sm:py-12">
+                <div class="flex flex-col items-center justify-center space-y-4 sm:space-y-6 px-4 sm:px-0">
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                  <div class="text-center">
+                    <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100">No Inmates Added Yet</h3>
+                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">There are no inmates in the system yet. Use the "Add Inmate" button above to get started.</p>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+        } else {
+          // Render each inmate
+          inmates.forEach(inmate => {
+            renderOrUpdateViews(inmate);
+          });
+        }
+        
+        console.log('Inmates loaded successfully:', inmates.length);
+      } else {
+        throw new Error(response.message || 'Failed to load inmates');
+      }
+    } catch (error) {
+      console.error('Error loading inmates:', error);
+      
+      // For any error (including 404), just show the empty state - no error messages
+      if (tableBody) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-4 py-12 text-center">
+              <div class="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+                <div class="text-center px-4 sm:px-0">
+                  <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100">No Inmates Added Yet</h3>
+                  <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">There are no inmates in the system yet. Use the "Add Inmate" button above to get started.</p>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+      if (mobileCardsContainer) {
+        mobileCardsContainer.innerHTML = `
+          <div class="text-center py-8 sm:py-12">
+            <div class="flex flex-col items-center justify-center space-y-4 sm:space-y-6 px-4 sm:px-0">
+              <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <div class="text-center">
+                <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100">No Inmates Added Yet</h3>
+                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">There are no inmates in the system yet. Use the "Add Inmate" button above to get started.</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
   }
 
   // Handle add inmate button clicks
   addButtons.forEach((btn) => {
     btn.addEventListener('click', async () => {
-      const { value } = await openInmateModal({});
+      // Load any existing draft
+      const draft = loadDraft();
+      const { value } = await openInmateModal(draft || {});
       if (value) {
-        const newId = Math.max(...inmates.map(i => i.id), 0) + 1;
-        const newInmate = { id: newId, ...value };
-        inmates.push(newInmate);
-        
-        // Update statistics
-        if (statusCounter) {
-          statusCounter.addInmate(newInmate);
+        try {
+          // Transform form data to API format
+          const apiData = inmateApi.transformFormData(value);
+          
+          // Create inmate via API
+          const response = await inmateApi.create(apiData);
+          
+          if (response.success) {
+            const newInmate = response.data;
+            inmates.push(newInmate);
+            
+            // Update statistics
+            if (statusCounter) {
+              statusCounter.addInmate(newInmate);
+            }
+            
+            // Update cell occupancy
+            updateCellOccupancy();
+            
+            renderOrUpdateViews(newInmate);
+            clearDraft();
+            showSuccessMessage('Inmate added successfully');
+          } else {
+            throw new Error(response.message || 'Failed to create inmate');
+          }
+        } catch (error) {
+          console.error('Error creating inmate:', error);
+          // Persist the current form so user doesn't lose inputs
+          saveDraft(toDraftFromModalValue(value));
+          // Re-open modal with draft
+          setTimeout(async () => {
+            await openInmateModal(loadDraft());
+          }, 0);
         }
-        
-        renderOrUpdateViews(newInmate);
-        showSuccessMessage('Inmate added successfully');
       }
     });
   });

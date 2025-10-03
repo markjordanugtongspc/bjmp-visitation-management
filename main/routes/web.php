@@ -26,6 +26,7 @@ Route::get('/inmates', [AdminController::class, 'inmates'])
     ->middleware(['auth', 'verified'])
     ->name('inmates.index');
 
+
 // Officers: create (auto-register in users)
 Route::post('/officers', [AdminController::class, 'storeOfficer'])
     ->middleware(['auth', 'verified'])

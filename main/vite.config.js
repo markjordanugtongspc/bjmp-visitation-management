@@ -12,7 +12,8 @@ export default defineConfig({
                 'resources/js/visitation/request/visitmodal.js',
                 'resources/js/dashboard/home.js',
                 'resources/js/officers/officers.js',
-                'resources/js/profile/edit-profile-modal.js'
+                'resources/js/profile/edit-profile-modal.js',
+                'resources/js/inmates/inmates.js'
             ],
             refresh: true,
         }),
