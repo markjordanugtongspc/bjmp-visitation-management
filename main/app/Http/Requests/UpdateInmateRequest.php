@@ -37,7 +37,7 @@ class UpdateInmateRequest extends FormRequest
             'job' => ['nullable', 'string', 'max:255'],
             'date_of_admission' => ['required', 'date'],
             'status' => ['required', Rule::in(['Active', 'Released', 'Transferred', 'Medical'])],
-            'cell_id' => ['nullable'],
+            'cell_id' => ['nullable', 'exists:cells,id'],
             'admitted_by_user_id' => ['nullable', 'exists:users,id'],
             
             // Medical Information

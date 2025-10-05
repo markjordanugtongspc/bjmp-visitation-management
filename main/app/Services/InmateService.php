@@ -103,9 +103,15 @@ class InmateService
             DB::beginTransaction();
 
             $inmate = Inmate::findOrFail($id);
+            $oldCellId = $inmate->cell_id;
             $data = $this->prepareInmateData($request->validated());
+            $newCellId = $data['cell_id'];
 
+            // Update the inmate
             $inmate->update($data);
+
+            // Handle cell assignment changes and update cell counts
+            $this->handleCellAssignmentChange($inmate, $oldCellId, $newCellId);
 
             // Handle additional data if provided
             $this->handleAdditionalData($inmate, $request->validated());
@@ -115,10 +121,12 @@ class InmateService
             Log::info('Inmate updated successfully', [
                 'inmate_id' => $inmate->id,
                 'name' => $inmate->full_name,
+                'old_cell_id' => $oldCellId,
+                'new_cell_id' => $newCellId,
                 'updated_by' => auth()->id()
             ]);
 
-            return $inmate->fresh();
+            return $inmate->fresh(['cell']);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -234,13 +242,113 @@ class InmateService
             'job' => $data['job'] ?? null,
             'date_of_admission' => $data['date_of_admission'],
             'status' => $data['status'],
-            'cell_id' => null, // Temporarily set to null to avoid cell validation issues
+            'cell_id' => $data['cell_id'] ?? null,
             'medical_status' => $data['medical_status'],
             'last_medical_check' => $data['last_medical_check'] ?? null,
             'medical_notes' => $data['medical_notes'] ?? null,
             'initial_points' => $data['initial_points'],
             'current_points' => $data['current_points'],
         ];
+    }
+
+    /**
+     * Handle cell assignment changes and update cell counts accordingly.
+     */
+    private function handleCellAssignmentChange(Inmate $inmate, ?int $oldCellId, ?int $newCellId): void
+    {
+        Log::info('Handling cell assignment change', [
+            'inmate_id' => $inmate->id,
+            'inmate_name' => $inmate->full_name,
+            'inmate_gender' => $inmate->gender,
+            'inmate_status' => $inmate->status,
+            'old_cell_id' => $oldCellId,
+            'new_cell_id' => $newCellId
+        ]);
+
+        // Only update cell counts if there's a change in cell assignment
+        if ($oldCellId !== $newCellId) {
+            // Decrease count for old cell if inmate was assigned to one
+            if ($oldCellId) {
+                $oldCell = \App\Models\Cell::find($oldCellId);
+                if ($oldCell) {
+                    $oldCell->current_count = max(0, $oldCell->current_count - 1);
+                    $oldCell->save();
+                    
+                    Log::info('Decreased cell count', [
+                        'cell_id' => $oldCellId,
+                        'cell_name' => $oldCell->name,
+                        'cell_type' => $oldCell->type,
+                        'new_count' => $oldCell->current_count,
+                        'inmate_id' => $inmate->id,
+                        'inmate_gender' => $inmate->gender
+                    ]);
+                }
+            }
+
+            // Increase count for new cell if inmate is assigned to one
+            if ($newCellId) {
+                $newCell = \App\Models\Cell::find($newCellId);
+                if ($newCell) {
+                    // Check if cell has available space (only for Active inmates)
+                    if ($inmate->status === 'Active' && !$newCell->hasAvailableSpace()) {
+                        Log::warning('Attempted to assign inmate to full cell', [
+                            'cell_id' => $newCellId,
+                            'cell_name' => $newCell->name,
+                            'current_count' => $newCell->current_count,
+                            'capacity' => $newCell->capacity,
+                            'inmate_id' => $inmate->id
+                        ]);
+                    }
+                    
+                    // Only increment count for Active inmates
+                    if ($inmate->status === 'Active') {
+                        $newCell->current_count = min($newCell->capacity, $newCell->current_count + 1);
+                        $newCell->save();
+                        
+                        Log::info('Increased cell count', [
+                            'cell_id' => $newCellId,
+                            'cell_name' => $newCell->name,
+                            'cell_type' => $newCell->type,
+                            'new_count' => $newCell->current_count,
+                            'inmate_id' => $inmate->id,
+                            'inmate_gender' => $inmate->gender
+                        ]);
+                    }
+                }
+            }
+        }
+        
+        // Handle status changes that affect cell counts
+        if ($oldCellId && $inmate->status !== 'Active') {
+            // If inmate status changed from Active to something else, decrease old cell count
+            $oldCell = \App\Models\Cell::find($oldCellId);
+            if ($oldCell) {
+                $oldCell->current_count = max(0, $oldCell->current_count - 1);
+                $oldCell->save();
+                
+                Log::info('Decreased cell count due to status change', [
+                    'cell_id' => $oldCellId,
+                    'cell_name' => $oldCell->name,
+                    'new_count' => $oldCell->current_count,
+                    'inmate_id' => $inmate->id,
+                    'new_status' => $inmate->status
+                ]);
+            }
+        } elseif ($newCellId && $inmate->status === 'Active') {
+            // If inmate status is Active and assigned to a cell, ensure count is correct
+            $newCell = \App\Models\Cell::find($newCellId);
+            if ($newCell) {
+                // Recalculate to ensure accuracy
+                $newCell->updateCurrentCount();
+                
+                Log::info('Recalculated cell count', [
+                    'cell_id' => $newCellId,
+                    'cell_name' => $newCell->name,
+                    'new_count' => $newCell->current_count,
+                    'inmate_id' => $inmate->id
+                ]);
+            }
+        }
     }
 
     /**

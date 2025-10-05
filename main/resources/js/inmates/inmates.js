@@ -3,6 +3,7 @@ import { createInmateStatusCounter } from './components/inmate-status-counter.js
 import { saveDraft, loadDraft, clearDraft, toDraftFromModalValue } from './components/inmate-form-draft.js';
 import InmateApiClient from './components/inmateApi.js';
 import { initializeInmateCells } from './components/inmate-cells.js';
+import CellCountManager from './components/cell-count-manager.js';
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
 // - Cell management and capacity tracking
@@ -27,6 +28,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize status counter component
   const statusCounter = createInmateStatusCounter();
+
+  // Initialize cell count manager
+  const cellCountManager = new CellCountManager();
+
+  // Setup cell count manager event listeners
+  cellCountManager.addListener((eventType, ...args) => {
+    console.log('Cell count event:', eventType, args);
+    
+    switch (eventType) {
+      case 'cell_count_increased':
+      case 'cell_count_decreased':
+      case 'cell_count_recalculated':
+        // Re-render cells when counts change
+        renderCells();
+        break;
+      case 'cell_at_capacity':
+        console.warn('Cell at capacity:', args[0]);
+        break;
+      case 'inmate_added':
+      case 'inmate_updated':
+      case 'inmate_removed':
+        // Update statistics when inmates change
+        updateStatistics();
+        break;
+    }
+  });
 
   // Dynamic cells data - will be fetched from database
   let cells = [];
@@ -71,7 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function initializePage() {
     await fetchCellsFromDatabase();
     await renderCells();
-    renderInmates();
+    await renderInmates();
+    
+    // Initialize cell count manager with current data
+    cellCountManager.initialize(cells, inmates);
     
     // Initialize status counter component
     if (statusCounter.initialize()) {
@@ -83,8 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize inmate cells management component
     initializeInmateCells();
     
-    // initializeExistingItems intentionally skipped to avoid injecting samples
-    // updateStatistics intentionally skipped to preserve Blade placeholders until backend wiring
+    // Update statistics after everything is loaded
+    updateStatistics();
   }
 
 
@@ -163,6 +193,44 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     cellsPageCache.set(cacheKey, payload);
     return payload;
+  }
+
+  // Refresh cell data from backend
+  async function refreshCellData() {
+    try {
+      const response = await fetch('/api/cells', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+      });
+      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message || 'Failed to refresh cells');
+
+      // Update global cells array
+      cells = data.data || [];
+      
+      // Update cell count manager with fresh data
+      if (window.cellCountManager) {
+        window.cellCountManager.refreshCellData(cells);
+      }
+      
+      console.log('Refreshed cell data:', cells.length, 'cells');
+    } catch (error) {
+      console.error('Error refreshing cell data:', error);
+    }
+  }
+
+  // TASK 2: Auto-reload page after successful modal operations
+  function autoReloadPage() {
+    console.log('Auto-reloading page after successful modal operation...');
+    // Small delay to ensure user sees the success message
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
   }
 
   // Render carousel wrapper and wire controls for 5+ cells
@@ -345,7 +413,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const title = isEdit ? 'Edit Inmate' : 'Add New Inmate';
     
     // Fetch fresh cell data before opening modal
-    await fetchCellsFromDatabase();
+    try {
+      await fetchCellsFromDatabase();
+      console.log('Cells loaded for modal:', cells.length);
+    } catch (error) {
+      console.error('Failed to load cells for modal:', error);
+      // Continue with existing cells data
+    }
     
     // Responsive width for the modal
     const width = isMobile() ? '95%' : '42rem';
@@ -487,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label class="block text-xs text-gray-300 mb-1">Cell Assignment *</label>
                 <select id="i-cell" class="w-full appearance-none rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm pr-8" required>
                   <option value="">Select Cell</option>
-                  ${cells.map(cell => {
+                  ${(cells || []).map(cell => {
                     const occupancyPercentage = Math.round((cell.currentCount / cell.capacity) * 100);
                     const isSelected = inmate.cell_id === cell.id;
                     const isFull = cell.currentCount >= cell.capacity;
@@ -1448,8 +1522,6 @@ document.addEventListener('DOMContentLoaded', () => {
   async function renderOrUpdateViews(inmate) {
     updateDesktopRow(inmate);
     updateMobileCard(inmate);
-    updateCellOccupancy();
-    await renderCells(); // Re-render cells to show updated occupancy
     updateStatistics();
   }
 
@@ -1549,19 +1621,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const newStatus = updatedInmate.status;
             
             // Update local data
+            const oldInmate = { ...inmate };
             Object.assign(inmate, updatedInmate);
+            
+            // Update cell count manager
+            cellCountManager.updateInmate(inmate, oldInmate);
+            
+            // Refresh cell data from backend to ensure accuracy
+            await refreshCellData();
             
             // Update statistics if status changed
             if (oldStatus !== newStatus && statusCounter) {
               statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
             }
             
-            // Re-render cells to show updated counts
-            updateCellOccupancy();
-            await renderCells();
-            
             renderOrUpdateViews(inmate);
             showSuccessMessage('Inmate updated successfully');
+            
+            // TASK 2: Auto-reload page after successful edit operation
+            autoReloadPage();
           } else {
             throw new Error(response.message || 'Failed to update inmate');
           }
@@ -1592,9 +1670,6 @@ document.addEventListener('DOMContentLoaded', () => {
           
           if (response.success) {
             await deleteInmate(inmate.id);
-            // Update cell occupancy after deletion
-            updateCellOccupancy();
-            await renderCells();
             showSuccessMessage('Inmate deleted successfully');
           } else {
             throw new Error(response.message || 'Failed to delete inmate');
@@ -1708,19 +1783,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const newStatus = updatedInmate.status;
             
             // Update local data
+            const oldInmate = { ...inmate };
             Object.assign(inmate, updatedInmate);
+            
+            // Update cell count manager
+            cellCountManager.updateInmate(inmate, oldInmate);
+            
+            // Refresh cell data from backend to ensure accuracy
+            await refreshCellData();
             
             // Update statistics if status changed
             if (oldStatus !== newStatus && statusCounter) {
               statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
             }
             
-            // Re-render cells to show updated counts
-            updateCellOccupancy();
-            await renderCells();
-            
             renderOrUpdateViews(inmate);
             showSuccessMessage('Inmate updated successfully');
+            
+            // TASK 2: Auto-reload page after successful edit operation
+            autoReloadPage();
           } else {
             throw new Error(response.message || 'Failed to update inmate');
           }
@@ -1751,9 +1832,6 @@ document.addEventListener('DOMContentLoaded', () => {
           
           if (response.success) {
             await deleteInmate(inmate.id);
-            // Update cell occupancy after deletion
-            updateCellOccupancy();
-            await renderCells();
             showSuccessMessage('Inmate deleted successfully');
           } else {
             throw new Error(response.message || 'Failed to delete inmate');
@@ -1811,7 +1889,11 @@ document.addEventListener('DOMContentLoaded', () => {
   async function deleteInmate(id) {
     const inmateToDelete = inmates.find(inmate => inmate.id === id);
     inmates = inmates.filter(inmate => inmate.id !== id);
-    await updateCellCounts();
+    
+    // Update cell count manager
+    if (inmateToDelete) {
+      cellCountManager.removeInmate(id);
+    }
     
     // Update statistics
     if (inmateToDelete && statusCounter) {
@@ -2544,13 +2626,20 @@ function formatAddress(i) {
       if (response.success) {
         inmates = response.data.data || [];
         
+        // TASK 1: Sort inmates alphabetically by name (A-Z) by default
+        inmates.sort((a, b) => {
+          const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+          const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+        
         // Update statistics
         if (response.statistics && statusCounter) {
           statusCounter.setStatistics(response.statistics);
         }
         
-        // Update cell occupancy based on loaded inmates
-        updateCellOccupancy();
+        // Update cell count manager with loaded inmates
+        cellCountManager.initialize(cells, inmates);
         
         // Clear containers
         if (tableBody) tableBody.innerHTML = '';
@@ -2675,18 +2764,20 @@ function formatAddress(i) {
             const newInmate = response.data;
             inmates.push(newInmate);
             
+            // Update cell count manager
+            cellCountManager.addInmate(newInmate);
+            
             // Update statistics
             if (statusCounter) {
               statusCounter.addInmate(newInmate);
             }
             
-            // Update cell occupancy and re-render
-            updateCellOccupancy();
-            await renderCells();
-            
             renderOrUpdateViews(newInmate);
             clearDraft();
             showSuccessMessage('Inmate added successfully');
+            
+            // TASK 2: Auto-reload page after successful add operation
+            autoReloadPage();
           } else {
             throw new Error(response.message || 'Failed to create inmate');
           }
@@ -2719,7 +2810,8 @@ function formatAddress(i) {
   // Initialize the page
   initializePage();
 
-  // Expose status counter for external use
+  // Expose components for external use
   window.inmateStatusCounter = statusCounter;
+  window.cellCountManager = cellCountManager;
 });
 

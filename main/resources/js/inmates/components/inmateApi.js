@@ -252,6 +252,7 @@ class InmateApiClient {
             job: formData.job || null,
             admissionDate: formData.admissionDate,
             status: formData.status,
+            cellId: formData.cell_id || null,
             medicalStatus: medicalStatus,
             lastMedicalCheck: formData.lastMedicalCheck || null,
             medicalNotes: formData.medicalNotes || null,
