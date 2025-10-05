@@ -41,4 +41,6 @@ Route::prefix('cells')->middleware(['web'])->group(function () {
     Route::patch('/{cell}', [CellController::class, 'update'])->name('api.cells.update');
     Route::delete('/{cell}', [CellController::class, 'destroy'])->name('api.cells.destroy');
     Route::patch('/{cell}/occupancy', [CellController::class, 'updateOccupancy'])->name('api.cells.update-occupancy');
+    Route::patch('/{cell}/update-count', [CellController::class, 'updateCount'])->name('api.cells.update-count');
+    Route::patch('/update-all-occupancy', [CellController::class, 'updateAllOccupancy'])->name('api.cells.update-all-occupancy');
 });

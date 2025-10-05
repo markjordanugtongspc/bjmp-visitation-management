@@ -389,4 +389,82 @@ class CellController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Update cell current count by incrementing or decrementing
+     */
+    public function updateCount(Request $request, Cell $cell): JsonResponse
+    {
+        try {
+            $request->validate([
+                'operation' => 'required|in:+,-'
+            ]);
+
+            $operation = $request->get('operation');
+            
+            if ($operation === '+') {
+                if ($cell->current_count >= $cell->capacity) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cell is at capacity'
+                    ], 400);
+                }
+                $cell->current_count++;
+            } else {
+                if ($cell->current_count <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cell count cannot go below zero'
+                    ], 400);
+                }
+                $cell->current_count--;
+            }
+
+            $cell->save();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $cell->id,
+                    'name' => $cell->name,
+                    'current_count' => $cell->current_count,
+                    'capacity' => $cell->capacity,
+                    'occupancy_percentage' => round(($cell->current_count / $cell->capacity) * 100, 1),
+                    'isAtCapacity' => $cell->current_count >= $cell->capacity,
+                ],
+                'message' => 'Cell count updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update cell count: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update occupancy for all cells
+     */
+    public function updateAllOccupancy(): JsonResponse
+    {
+        try {
+            $cells = Cell::all();
+            
+            foreach ($cells as $cell) {
+                $cell->updateCurrentCount();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All cell occupancy counts updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update cell occupancy counts: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

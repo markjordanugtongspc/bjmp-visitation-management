@@ -28,16 +28,48 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize status counter component
   const statusCounter = createInmateStatusCounter();
 
-  // Dynamic cells data - will be calculated from actual inmates
-  let cells = [
-    { id: 1, name: 'Cell 1', capacity: 20, currentCount: 0, type: 'Male' },
-    { id: 2, name: 'Cell 2', capacity: 15, currentCount: 0, type: 'Female' },
-    { id: 3, name: 'Cell 3', capacity: 25, currentCount: 0, type: 'Male' },
-    { id: 4, name: 'Cell 4', capacity: 18, currentCount: 0, type: 'Female' }
-  ];
+  // Dynamic cells data - will be fetched from database
+  let cells = [];
+
+  // Fetch cells from database
+  async function fetchCellsFromDatabase() {
+    try {
+      // First update all cell occupancy counts to ensure accurate data
+      const updateResponse = await fetch('/api/cells/update-all-occupancy', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+      });
+      
+      // Then fetch the updated cells data
+      const response = await fetch('/api/cells', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+      });
+      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        cells = data.data || [];
+        return cells;
+      } else {
+        throw new Error(data.message || 'Failed to fetch cells');
+      }
+    } catch (error) {
+      console.error('Error fetching cells:', error);
+      return [];
+    }
+  }
 
   // Initialize the page
   async function initializePage() {
+    await fetchCellsFromDatabase();
     await renderCells();
     renderInmates();
     
@@ -55,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // updateStatistics intentionally skipped to preserve Blade placeholders until backend wiring
   }
 
+
   // Update cell occupancy based on actual inmate data
   function updateCellOccupancy() {
     // Reset all cell counts
@@ -62,12 +95,12 @@ document.addEventListener('DOMContentLoaded', () => {
       cell.currentCount = 0;
     });
 
-    // Count inmates by cell and gender
+    // Count inmates by cell
     inmates.forEach(inmate => {
       // Only count active inmates
-      if (inmate.status === 'Active' && inmate.cellId) {
-        const cell = cells.find(c => c.id === inmate.cellId);
-        if (cell && cell.type === inmate.gender) {
+      if (inmate.status === 'Active' && inmate.cell_id) {
+        const cell = cells.find(c => c.id === inmate.cell_id);
+        if (cell) {
           cell.currentCount++;
         }
       }
@@ -307,9 +340,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Open inmate modal for add/edit
-  function openInmateModal(inmate = {}) {
+  async function openInmateModal(inmate = {}) {
     const isEdit = !!inmate.id;
     const title = isEdit ? 'Edit Inmate' : 'Add New Inmate';
+    
+    // Fetch fresh cell data before opening modal
+    await fetchCellsFromDatabase();
     
     // Responsive width for the modal
     const width = isMobile() ? '95%' : '42rem';
@@ -448,15 +484,22 @@ document.addEventListener('DOMContentLoaded', () => {
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs text-gray-300 mb-1">Cell Number *</label>
-                <select id="i-cell" class="w-full appearance-none rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm pr-8">
+                <label class="block text-xs text-gray-300 mb-1">Cell Assignment *</label>
+                <select id="i-cell" class="w-full appearance-none rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm pr-8" required>
                   <option value="">Select Cell</option>
-                  ${cells.map(cell => `
-                    <option value="${cell.name}" ${inmate.cellNumber === cell.name ? 'selected' : ''} 
-                            ${cell.currentCount >= cell.capacity ? 'disabled' : ''}>
-                      ${cell.name} (${cell.currentCount}/${cell.capacity}) - ${cell.type}
-                    </option>
-                  `).join('')}
+                  ${cells.map(cell => {
+                    const occupancyPercentage = Math.round((cell.currentCount / cell.capacity) * 100);
+                    const isSelected = inmate.cell_id === cell.id;
+                    const isFull = cell.currentCount >= cell.capacity;
+                    const isWrongGender = inmate.gender && cell.type !== inmate.gender;
+                    const isDisabled = isFull || isWrongGender;
+                    
+                    return `
+                      <option value="${cell.id}" ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}>
+                        ${cell.name} (${occupancyPercentage}%) - ${cell.type}${isFull ? ' - FULL' : ''}${isWrongGender ? ' - Wrong Gender' : ''}
+                      </option>
+                    `;
+                  }).join('')}
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
                   <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -691,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
           crime: document.getElementById('i-crime').value.trim(),
           sentence: document.getElementById('i-sentence').value.trim(),
           job: document.getElementById('i-job')?.value.trim() || '',
-          cellNumber: document.getElementById('i-cell').value,
+          cell_id: parseInt(document.getElementById('i-cell').value) || null,
           status: document.getElementById('i-status').value,
           admissionDate: document.getElementById('i-admission-date').value,
           // Medical Information
@@ -707,7 +750,12 @@ document.addEventListener('DOMContentLoaded', () => {
           recentVisits: collectVisitRecords()
         };
 
-        // No validation for edit - allow any changes
+        // Validate required fields
+        if (!data.firstName || !data.lastName || !data.gender || !data.crime || !data.sentence || !data.status || !data.admissionDate || !data.cell_id) {
+          window.Swal.showValidationMessage('Please fill in all required fields including cell assignment.');
+          return false;
+        }
+
         return data;
       },
     });
@@ -1473,7 +1521,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addrEl) addrEl.textContent = `Address: ${formatAddress(inmate)}`;
     row.querySelector('[data-i-crime]').textContent = inmate.crime;
     row.querySelector('[data-i-sentence]').textContent = inmate.sentence;
-    row.querySelector('[data-i-cell]').textContent = inmate.cellNumber;
+    const cellName = inmate.cell ? inmate.cell.name : 'Not Assigned';
+    row.querySelector('[data-i-cell]').textContent = cellName;
     row.querySelector('[data-i-admission]').textContent = formatDate(inmate.admissionDate);
     const statusEl = row.querySelector('[data-i-status]');
     statusEl.textContent = inmate.status;
@@ -1506,6 +1555,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (oldStatus !== newStatus && statusCounter) {
               statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
             }
+            
+            // Re-render cells to show updated counts
+            updateCellOccupancy();
+            await renderCells();
             
             renderOrUpdateViews(inmate);
             showSuccessMessage('Inmate updated successfully');
@@ -1627,7 +1680,8 @@ document.addEventListener('DOMContentLoaded', () => {
     card.querySelector('[data-i-details]').textContent = `${inmate.gender}, ${inmate.age} years old`;
     card.querySelector('[data-i-crime]').textContent = inmate.crime;
     card.querySelector('[data-i-sentence]').textContent = inmate.sentence;
-    card.querySelector('[data-i-cell]').textContent = inmate.cellNumber;
+    const cellName = inmate.cell ? inmate.cell.name : 'Not Assigned';
+    card.querySelector('[data-i-cell]').textContent = cellName;
     card.querySelector('[data-i-admission]').textContent = formatDate(inmate.admissionDate);
     const statusEl = card.querySelector('[data-i-status]');
     statusEl.textContent = inmate.status;
@@ -1660,6 +1714,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (oldStatus !== newStatus && statusCounter) {
               statusCounter.updateInmateStatus(inmate, oldStatus, newStatus);
             }
+            
+            // Re-render cells to show updated counts
+            updateCellOccupancy();
+            await renderCells();
             
             renderOrUpdateViews(inmate);
             showSuccessMessage('Inmate updated successfully');
@@ -1912,7 +1970,7 @@ function openUnifiedInmateModal(inmate) {
               <dt class="text-gray-500 dark:text-gray-400">Work / Job</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.job || '—'}</dd>
               <dt class="text-gray-500 dark:text-gray-400">Crime Committed</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.crime}</dd>
               <dt class="text-gray-500 dark:text-gray-400">Sentence</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.sentence}</dd>
-              <dt class="text-gray-500 dark:text-gray-400">Cell Assignment</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.cellNumber}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Cell Assignment</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.cell ? `${inmate.cell.name} (${inmate.cell.location || 'Location N/A'})` : 'Not Assigned'}</dd>
               <dt class="text-gray-500 dark:text-gray-400">Additional</dt><dd class="text-gray-900 dark:text-gray-200">ID #${inmate.id.toString().padStart(4,'0')} • ${daysInCustody(inmate)} days in custody</dd>
             </dl>
           </div>
@@ -2622,8 +2680,9 @@ function formatAddress(i) {
               statusCounter.addInmate(newInmate);
             }
             
-            // Update cell occupancy
+            // Update cell occupancy and re-render
             updateCellOccupancy();
+            await renderCells();
             
             renderOrUpdateViews(newInmate);
             clearDraft();
