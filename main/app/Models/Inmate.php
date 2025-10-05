@@ -174,4 +174,64 @@ class Inmate extends Model
     {
         return $this->status === 'Medical';
     }
+
+    // Cell management methods
+    public function assignToCell(Cell $cell): bool
+    {
+        // Check if cell has available space
+        if (!$cell->hasAvailableSpace()) {
+            return false;
+        }
+
+        // Check if cell type matches inmate gender
+        if ($cell->type !== $this->gender) {
+            return false;
+        }
+
+        // Check if cell is active
+        if ($cell->status !== 'Active') {
+            return false;
+        }
+
+        $this->cell_id = $cell->id;
+        $this->save();
+
+        // Update cell occupancy
+        $cell->updateCurrentCount();
+
+        return true;
+    }
+
+    public function removeFromCell(): void
+    {
+        if ($this->cell_id) {
+            $cell = $this->cell;
+            $this->cell_id = null;
+            $this->save();
+
+            // Update cell occupancy
+            if ($cell) {
+                $cell->updateCurrentCount();
+            }
+        }
+    }
+
+    public function transferToCell(Cell $newCell): bool
+    {
+        $oldCell = $this->cell;
+        
+        // Remove from current cell
+        $this->removeFromCell();
+        
+        // Assign to new cell
+        $success = $this->assignToCell($newCell);
+        
+        if (!$success && $oldCell) {
+            // If assignment failed, restore to old cell
+            $this->assignToCell($oldCell);
+        }
+        
+        return $success;
+    }
+
 }

@@ -18,9 +18,20 @@ class Cell extends Model
     protected $fillable = [
         'name',
         'capacity',
+        'current_count',
         'type',
-        'description',
+        'location',
         'status',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'capacity' => 'integer',
+        'current_count' => 'integer',
     ];
 
     /**
@@ -29,5 +40,71 @@ class Cell extends Model
     public function inmates(): HasMany
     {
         return $this->hasMany(Inmate::class);
+    }
+
+    /**
+     * Update the current count based on actual inmates
+     */
+    public function updateCurrentCount(): void
+    {
+        $this->current_count = $this->inmates()->where('status', 'Active')->count();
+        $this->save();
+    }
+
+    /**
+     * Check if the cell is at capacity
+     */
+    public function isAtCapacity(): bool
+    {
+        return $this->current_count >= $this->capacity;
+    }
+
+    /**
+     * Check if the cell has available space
+     */
+    public function hasAvailableSpace(): bool
+    {
+        return $this->current_count < $this->capacity;
+    }
+
+    /**
+     * Get available space count
+     */
+    public function getAvailableSpaceAttribute(): int
+    {
+        return max(0, $this->capacity - $this->current_count);
+    }
+
+    /**
+     * Get occupancy percentage
+     */
+    public function getOccupancyPercentageAttribute(): float
+    {
+        if ($this->capacity === 0) return 0;
+        return ($this->current_count / $this->capacity) * 100;
+    }
+
+    /**
+     * Scope for active cells
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'Active');
+    }
+
+    /**
+     * Scope for cells by type
+     */
+    public function scopeByType($query, string $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    /**
+     * Scope for cells with available space
+     */
+    public function scopeWithAvailableSpace($query)
+    {
+        return $query->whereRaw('current_count < capacity');
     }
 }

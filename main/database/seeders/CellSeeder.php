@@ -12,40 +12,59 @@ class CellSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create initial cells
         $cells = [
             [
-                'name' => 'Cell 1',
+                'name' => 'Cell 1A',
                 'capacity' => 20,
+                'current_count' => 0,
                 'type' => 'Male',
-                'description' => 'Male detention cell',
+                'location' => 'Block A',
                 'status' => 'Active',
             ],
             [
-                'name' => 'Cell 2',
+                'name' => 'Cell 1B',
+                'capacity' => 20,
+                'current_count' => 0,
+                'type' => 'Male',
+                'location' => 'Block A',
+                'status' => 'Active',
+            ],
+            [
+                'name' => 'Cell 2A',
                 'capacity' => 15,
+                'current_count' => 0,
                 'type' => 'Female',
-                'description' => 'Female detention cell',
+                'location' => 'Block B',
                 'status' => 'Active',
             ],
             [
-                'name' => 'Cell 3',
+                'name' => 'Cell 2B',
+                'capacity' => 15,
+                'current_count' => 0,
+                'type' => 'Female',
+                'location' => 'Block B',
+                'status' => 'Active',
+            ],
+            [
+                'name' => 'Cell 3A',
                 'capacity' => 25,
+                'current_count' => 0,
                 'type' => 'Male',
-                'description' => 'Male detention cell',
+                'location' => 'Block C',
                 'status' => 'Active',
             ],
             [
-                'name' => 'Cell 4',
-                'capacity' => 18,
-                'type' => 'Female',
-                'description' => 'Female detention cell',
-                'status' => 'Active',
+                'name' => 'Cell 3B',
+                'capacity' => 25,
+                'current_count' => 0,
+                'type' => 'Male',
+                'location' => 'Block C',
+                'status' => 'Maintenance',
             ],
         ];
 
-        foreach ($cells as $cell) {
-            Cell::create($cell);
+        foreach ($cells as $cellData) {
+            Cell::create($cellData);
         }
     }
 }

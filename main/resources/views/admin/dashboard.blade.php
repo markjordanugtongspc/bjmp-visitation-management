@@ -245,7 +245,7 @@
                             <div class="text-sm text-gray-600 dark:text-gray-300">Total Inmates</div>
                             <span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Live</span>
                         </div>
-                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">218</div>
+                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50" id="total-inmates">0</div>
                     </div>
                     <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
                         <div class="text-sm text-gray-600 dark:text-gray-300">Approved Visits</div>

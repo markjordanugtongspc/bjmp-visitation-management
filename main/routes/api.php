@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\InmateController;
+use App\Http\Controllers\CellController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -29,4 +30,15 @@ Route::prefix('inmates')->middleware(['web'])->group(function () {
     Route::patch('/{id}', [InmateController::class, 'update'])->name('api.inmates.update');
     Route::delete('/{id}', [InmateController::class, 'destroy'])->name('api.inmates.destroy');
     Route::patch('/{id}/points', [InmateController::class, 'updatePoints'])->name('api.inmates.update-points');
+});
+
+// Cells API routes
+Route::prefix('cells')->middleware(['web'])->group(function () {
+    Route::get('/', [CellController::class, 'index'])->name('api.cells.index');
+    Route::post('/', [CellController::class, 'store'])->name('api.cells.store');
+    Route::get('/available', [CellController::class, 'getAvailableCells'])->name('api.cells.available');
+    Route::get('/{cell}', [CellController::class, 'show'])->name('api.cells.show');
+    Route::patch('/{cell}', [CellController::class, 'update'])->name('api.cells.update');
+    Route::delete('/{cell}', [CellController::class, 'destroy'])->name('api.cells.destroy');
+    Route::patch('/{cell}/occupancy', [CellController::class, 'updateOccupancy'])->name('api.cells.update-occupancy');
 });

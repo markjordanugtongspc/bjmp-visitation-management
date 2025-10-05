@@ -13,12 +13,18 @@ return new class extends Migration
     {
         Schema::create('cells', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->integer('capacity')->default(20);
-            $table->enum('type', ['Male', 'Female'])->default('Male');
-            $table->text('description')->nullable();
-            $table->enum('status', ['Active', 'Maintenance', 'Closed'])->default('Active');
+            $table->string('name'); // Cell Name
+            $table->integer('capacity')->default(20); // Total Capacity
+            $table->integer('current_count')->default(0); // Total Current Occupancy
+            $table->enum('type', ['Male', 'Female'])->default('Male'); // Type Male/Female
+            $table->string('location')->nullable(); // Location (e.g., Block A, Block B)
+            $table->enum('status', ['Active', 'Inactive', 'Maintenance'])->default('Active'); // Status Active/Inactive/Maintenance
             $table->timestamps();
+            
+            // Add indexes for better performance
+            $table->index(['type', 'status']);
+            $table->index('location');
+            $table->unique('name'); // Ensure unique cell names
         });
     }
 

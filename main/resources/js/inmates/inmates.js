@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   // Initialize the page
-  function initializePage() {
-    renderCells();
+  async function initializePage() {
+    await renderCells();
     renderInmates();
     
     // Initialize status counter component
@@ -74,53 +74,236 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Render cells overview
-  function renderCells() {
+  // Render cells overview with backend integration
+  async function renderCells() {
     if (!cellsContainer) return;
     
-    // Update occupancy before rendering
-    updateCellOccupancy();
-    
+    try {
+      const LIMIT = 4;
+      const initialOffset = 0;
+      const { cells: firstBatch, pagination } = await fetchCellsPage(initialOffset, LIMIT);
+
+      if (firstBatch && Array.isArray(firstBatch)) {
+        const total = pagination?.total ?? firstBatch.length;
+        if (total <= 4) {
+          renderCellsGrid(firstBatch);
+        } else {
+          renderCellsCarousel({
+            total,
+            limit: LIMIT,
+            offset: initialOffset,
+            initialCells: firstBatch
+          });
+        }
+      } else {
+        renderEmptyState();
+      }
+    } catch (error) {
+      console.error('Error fetching cells:', error);
+      renderEmptyState();
+    }
+  }
+
+  // Fetch one page of cells with limit/offset and small cache
+  const cellsPageCache = new Map(); // key: offset -> array of cells
+  async function fetchCellsPage(offset = 0, limit = 4) {
+    const cacheKey = `${offset}:${limit}`;
+    if (cellsPageCache.has(cacheKey)) {
+      return cellsPageCache.get(cacheKey);
+    }
+
+    const url = `/api/cells?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      }
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    if (!data.success) throw new Error(data.message || 'Failed to fetch cells');
+
+    const payload = {
+      cells: data.data || [],
+      pagination: data.pagination || { total: (data.data || []).length, limit, offset }
+    };
+    cellsPageCache.set(cacheKey, payload);
+    return payload;
+  }
+
+  // Render carousel wrapper and wire controls for 5+ cells
+  function renderCellsCarousel({ total, limit, offset, initialCells }) {
+    const pageCount = Math.max(1, Math.ceil(total / limit));
+    const currentPage = Math.floor(offset / limit) + 1;
+
+    // Shell
+    cellsContainer.className = '';
+    cellsContainer.innerHTML = `
+      <div class="relative">
+        <div id="cells-slide" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+        <!-- Controls -->
+        <div class="mt-4 flex items-center justify-between">
+          <button id="cells-prev" class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-sm disabled:hover:bg-white dark:disabled:hover:bg-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+          <div id="cells-indicators" class="flex items-center gap-2"></div>
+          <button id="cells-next" class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-sm disabled:hover:bg-white dark:disabled:hover:bg-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+
+    const slideEl = document.getElementById('cells-slide');
+    const prevBtn = document.getElementById('cells-prev');
+    const nextBtn = document.getElementById('cells-next');
+    const indicatorsEl = document.getElementById('cells-indicators');
+
+    function renderSlide(cells) {
+      slideEl.innerHTML = '';
+      slideEl.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4';
+      cells.forEach((cell, idx) => {
+        slideEl.insertAdjacentHTML('beforeend', createCellCard(cell, idx));
+      });
+    }
+
+    function renderIndicators(activePage) {
+      indicatorsEl.innerHTML = '';
+      for (let i = 1; i <= pageCount; i++) {
+        const isActive = i === activePage;
+        indicatorsEl.insertAdjacentHTML('beforeend', `
+          <button data-page="${i}" class="h-2.5 w-2.5 rounded-full ${isActive ? 'bg-blue-600' : 'bg-gray-300'} hover:bg-blue-500 transition-colors cursor-pointer" aria-label="Go to page ${i}"></button>
+        `);
+      }
+    }
+
+    let currentOffset = offset;
+    let currentPageIndex = currentPage; // 1-based
+
+    renderSlide(initialCells);
+    renderIndicators(currentPageIndex);
+    updateControlsState();
+
+    async function goToPage(pageIndex) {
+      const clamped = Math.max(1, Math.min(pageCount, pageIndex));
+      const newOffset = (clamped - 1) * limit;
+      if (newOffset === currentOffset) return;
+
+      try {
+        const { cells: pageCells } = await fetchCellsPage(newOffset, limit);
+        currentOffset = newOffset;
+        currentPageIndex = clamped;
+        renderSlide(pageCells);
+        renderIndicators(currentPageIndex);
+        updateControlsState();
+      } catch (e) {
+        console.error('Failed to change carousel page:', e);
+      }
+    }
+
+    function updateControlsState() {
+      prevBtn.disabled = currentPageIndex <= 1;
+      nextBtn.disabled = currentPageIndex >= pageCount;
+    }
+
+    prevBtn.addEventListener('click', () => goToPage(currentPageIndex - 1));
+    nextBtn.addEventListener('click', () => goToPage(currentPageIndex + 1));
+    indicatorsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-page]');
+      if (!btn) return;
+      const p = parseInt(btn.getAttribute('data-page')) || 1;
+      goToPage(p);
+    });
+  }
+
+  // Render cells in a responsive grid (no carousel)
+  function renderCellsGrid(cells) {
     cellsContainer.innerHTML = '';
+    cellsContainer.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4';
+    cells.forEach((cell, index) => {
+      const cellCard = createCellCard(cell, index);
+      cellsContainer.innerHTML += cellCard;
+    });
+  }
+
+  // Create individual cell card
+  function createCellCard(cell, index) {
+    const occupancyRate = (cell.currentCount / cell.capacity) * 100;
+    const isFull = occupancyRate >= 90;
+    const isNearFull = occupancyRate >= 75;
     
-    cells.forEach(cell => {
-      const cellCard = document.createElement('div');
-      const occupancyRate = (cell.currentCount / cell.capacity) * 100;
-      const isFull = occupancyRate >= 90;
-      const isNearFull = occupancyRate >= 75;
-      
-      cellCard.className = `p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${
-        isFull ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800' :
-        isNearFull ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800' :
-        'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-      }`;
-      
-      cellCard.innerHTML = `
+    // Use gender-based colors instead of index-based colors
+    const isMale = cell.type === 'Male';
+    const baseColor = isMale ? 
+      'bg-sky-50 border-sky-200 dark:bg-sky-900/20 dark:border-sky-800' : 
+      'bg-pink-50 border-pink-200 dark:bg-pink-900/20 dark:border-pink-800';
+    
+    const progressColor = isFull ? 'bg-red-500' : isNearFull ? 'bg-yellow-500' : 
+                         isMale ? 'bg-sky-500' : 'bg-pink-500';
+    
+    const badgeColor = isMale ? 'bg-sky-100 text-sky-800 dark:bg-sky-800 dark:text-sky-100' :
+                      'bg-pink-100 text-pink-800 dark:bg-pink-800 dark:text-pink-100';
+
+    return `
+      <div class="p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${baseColor} min-w-[280px] sm:min-w-0">
         <div class="flex items-center justify-between mb-2">
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">${cell.name}</h3>
-          <span class="text-xs px-2 py-1 rounded-full ${
-            cell.type === 'Male' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
-            'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300'
-          }">${cell.type}</span>
+          <span class="text-xs px-2 py-1 rounded-full ${badgeColor} flex items-center gap-1">
+            ${cell.type === 'Male' ? `
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 512 512" class="text-sky-600 dark:text-sky-400">
+                <path fill="currentColor" d="M292.563 65.656v40h85.156l-81.658 82.656l-12.937 13.125a136.4 136.4 0 0 0-29.406-16.75a136.3 136.3 0 0 0-52.064-10.343c-17.835 0-35.553 3.52-52.03 10.344a136.2 136.2 0 0 0-44.126 29.468a136.2 136.2 0 0 0-29.47 44.125c-6.825 16.48-10.373 34.228-10.374 52.064a136.1 136.1 0 0 0 10.344 52.03a136.2 136.2 0 0 0 29.5 44.126a136.2 136.2 0 0 0 44.125 29.47c16.478 6.824 34.195 10.374 52.03 10.374c17.837 0 35.586-3.55 52.064-10.375a136.2 136.2 0 0 0 44.124-29.47a136.2 136.2 0 0 0 29.47-44.125a136.1 136.1 0 0 0 10.342-52.03a136.3 136.3 0 0 0-10.344-52.064a136.3 136.3 0 0 0-16.03-28.436l13.218-13.406l81.844-82.875v85.875h40V65.656zm-90.907 148.688a96.6 96.6 0 0 1 36.75 7.312c11.58 4.797 22.263 11.95 31.125 20.813c8.863 8.86 16.017 19.545 20.814 31.124a96.6 96.6 0 0 1 7.312 36.75c0 12.533-2.517 25.14-7.312 36.72c-4.796 11.577-11.92 22.292-20.78 31.155c-8.864 8.862-19.578 16.014-31.158 20.81a96.6 96.6 0 0 1-36.75 7.314c-12.533 0-25.14-2.516-36.72-7.313a96.6 96.6 0 0 1-31.155-20.81a96.6 96.6 0 0 1-20.81-31.158c-4.798-11.58-7.314-24.185-7.314-36.718a96.6 96.6 0 0 1 7.313-36.75l.093-.22c4.796-11.494 11.91-22.13 20.718-30.937c8.808-8.805 19.444-15.892 30.94-20.687l.218-.094c11.58-4.795 24.185-7.313 36.718-7.312z" />
+              </svg>
+            ` : cell.type === 'Female' ? `
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" class="text-pink-600 dark:text-pink-400">
+                <g fill="none" fill-rule="evenodd">
+                  <path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
+                  <path fill="currentColor" d="M7 9.5a7.5 7.5 0 1 1 2.942 5.957l-1.788 1.787L9.58 18.67a1 1 0 1 1-1.414 1.414L6.74 18.659l-2.12 2.12a1 1 0 0 1-1.414-1.415l2.12-2.12l-1.403-1.403a1 1 0 1 1 1.414-1.414L6.74 15.83l1.79-1.79A7.47 7.47 0 0 1 7 9.5M14.5 4a5.5 5.5 0 1 0 0 11a5.5 5.5 0 0 0 0-11" />
+                </g>
+              </svg>
+            ` : ''}
+            ${cell.type}
+          </span>
         </div>
         <div class="space-y-2">
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-600 dark:text-gray-400">Occupancy</span>
-            <span class="font-medium text-white">${cell.currentCount}/${cell.capacity}</span>
+          <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+            <span>Occupancy</span>
+            <span>${cell.currentCount}/${cell.capacity}</span>
           </div>
           <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div class="h-2 rounded-full transition-all duration-300 ${
-              isFull ? 'bg-red-500' : isNearFull ? 'bg-yellow-500' : 'bg-green-500'
-            }" style="width: ${occupancyRate}%"></div>
+            <div class="h-2 rounded-full transition-all duration-300 ${progressColor}" style="width: ${occupancyRate}%"></div>
           </div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">
+          <div class="text-xs text-gray-500 dark:text-gray-400 text-center">
             ${Math.round(occupancyRate)}% occupied
           </div>
         </div>
-      `;
-      
-      cellsContainer.appendChild(cellCard);
-    });
+      </div>
+    `;
+  }
+
+  // Render empty state
+  function renderEmptyState() {
+    cellsContainer.innerHTML = `
+      <div class="col-span-full text-center py-8">
+        <div class="flex flex-col items-center justify-center space-y-4">
+          <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
+              <path d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"/>
+            </svg>
+          </div>
+          <div class="text-center">
+            <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">No Cells Found</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Add your first cell to get started.</p>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   // Open inmate modal for add/edit
@@ -1214,11 +1397,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Update both desktop and mobile views
-  function renderOrUpdateViews(inmate) {
+  async function renderOrUpdateViews(inmate) {
     updateDesktopRow(inmate);
     updateMobileCard(inmate);
     updateCellOccupancy();
-    renderCells(); // Re-render cells to show updated occupancy
+    await renderCells(); // Re-render cells to show updated occupancy
     updateStatistics();
   }
 
@@ -1355,10 +1538,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const response = await inmateApi.delete(inmate.id);
           
           if (response.success) {
-            deleteInmate(inmate.id);
+            await deleteInmate(inmate.id);
             // Update cell occupancy after deletion
             updateCellOccupancy();
-            renderCells();
+            await renderCells();
             showSuccessMessage('Inmate deleted successfully');
           } else {
             throw new Error(response.message || 'Failed to delete inmate');
@@ -1509,10 +1692,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const response = await inmateApi.delete(inmate.id);
           
           if (response.success) {
-            deleteInmate(inmate.id);
+            await deleteInmate(inmate.id);
             // Update cell occupancy after deletion
             updateCellOccupancy();
-            renderCells();
+            await renderCells();
             showSuccessMessage('Inmate deleted successfully');
           } else {
             throw new Error(response.message || 'Failed to delete inmate');
@@ -1551,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function updateCellCounts() {
+  async function updateCellCounts() {
     // Reset all cell counts
     cells.forEach(cell => cell.currentCount = 0);
     
@@ -1564,13 +1747,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Re-render cells
-    renderCells();
+    await renderCells();
   }
 
-  function deleteInmate(id) {
+  async function deleteInmate(id) {
     const inmateToDelete = inmates.find(inmate => inmate.id === id);
     inmates = inmates.filter(inmate => inmate.id !== id);
-    updateCellCounts();
+    await updateCellCounts();
     
     // Update statistics
     if (inmateToDelete && statusCounter) {
