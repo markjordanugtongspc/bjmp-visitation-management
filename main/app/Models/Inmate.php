@@ -141,7 +141,12 @@ class Inmate extends Model
         return $query->where(function ($q) use ($search) {
             $q->where('first_name', 'like', "%{$search}%")
               ->orWhere('last_name', 'like', "%{$search}%")
-              ->orWhere('middle_name', 'like', "%{$search}%");
+              ->orWhere('middle_name', 'like', "%{$search}%")
+              ->orWhere('crime', 'like', "%{$search}%")
+              ->orWhere('sentence', 'like', "%{$search}%")
+              ->orWhereHas('cell', function ($cellQuery) use ($search) {
+                  $cellQuery->where('name', 'like', "%{$search}%");
+              });
         });
     }
 

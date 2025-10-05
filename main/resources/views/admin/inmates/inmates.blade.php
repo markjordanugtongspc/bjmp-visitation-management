@@ -288,25 +288,26 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M10.5 3.75a6.75 6.75 0 105.196 11.163l3.646 3.646a.75.75 0 101.06-1.06l-3.646-3.646A6.75 6.75 0 0010.5 3.75zM6 10.5a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/>
                                 </svg>
-                                <input type="text" placeholder="Search inmates by name, crime, or cell..." 
+                                <input id="inmates-search" type="text" placeholder="Search inmates by name, crime, or cell..." 
                                        class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <select class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select id="inmates-status-filter" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">All Status</option>
                                 <option value="Active">Active</option>
                                 <option value="Released">Released</option>
                                 <option value="Transferred">Transferred</option>
                                 <option value="Medical">Medical</option>
                             </select>
-                            <select class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">All Cells</option>
-                                <option value="Cell 1">Cell 1</option>
-                                <option value="Cell 2">Cell 2</option>
-                                <option value="Cell 3">Cell 3</option>
-                                <option value="Cell 4">Cell 4</option>
-                            </select>
+                            <div class="relative">
+                                <select id="inmates-cell-filter" class="appearance-none pr-8 pl-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Cells</option>
+                                </select>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none h-4 w-4 absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7 10l5 5 5-5z"/>
+                                </svg>
+                            </div>
                         </div>
                     </div>
                 </div>

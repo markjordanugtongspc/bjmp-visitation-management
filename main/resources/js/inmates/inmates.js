@@ -94,11 +94,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Populate Cells dropdown from backend
+  async function populateCellsFilterDropdown() {
+    const cellSelect = document.getElementById('inmates-cell-filter');
+    if (!cellSelect) return;
+
+    // Ensure cells list is loaded
+    if (!cells || cells.length === 0) {
+      await fetchCellsFromDatabase();
+    }
+
+    // Preserve the first option (All Cells)
+    cellSelect.innerHTML = '<option value="">All Cells</option>';
+
+    // Build options: "Cell 1 (10%) - Male"
+    cells.forEach(cell => {
+      const occupancyRate = cell.capacity ? Math.round((cell.currentCount / cell.capacity) * 100) : 0;
+      const label = `${cell.name} (${occupancyRate}%) - ${cell.type}`;
+      const option = document.createElement('option');
+      option.value = String(cell.id);
+      option.textContent = label;
+      cellSelect.appendChild(option);
+    });
+  }
+
   // Initialize the page
   async function initializePage() {
     await fetchCellsFromDatabase();
     await renderCells();
     await renderInmates();
+    await populateCellsFilterDropdown();
     
     // Initialize cell count manager with current data
     cellCountManager.initialize(cells, inmates);
@@ -115,6 +140,82 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Update statistics after everything is loaded
     updateStatistics();
+
+    // Wire search and filters
+    wireInmateSearchAndFilters();
+  }
+
+  function wireInmateSearchAndFilters() {
+    const searchInput = document.getElementById('inmates-search');
+    const statusFilter = document.getElementById('inmates-status-filter');
+    const cellFilter = document.getElementById('inmates-cell-filter');
+
+    let debounceId = null;
+
+    const performSearch = async () => {
+      const query = (searchInput?.value || '').trim();
+      const status = statusFilter?.value || '';
+      const cellId = cellFilter?.value || '';
+
+      const params = new URLSearchParams();
+      if (query) params.append('search', query);
+      if (status) params.append('status', status);
+      if (cellId) params.append('cell_id', cellId);
+      params.append('per_page', '50');
+
+      const url = `/api/inmates?${params.toString()}`;
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
+        });
+        const data = await res.json();
+        if (data?.success) {
+          const page = data.data; // paginator
+          // Inmates are already transformed by controller
+          inmates = Array.isArray(page.data) ? page.data : [];
+          
+          // Recalculate cell occupancy
+          updateCellOccupancy();
+
+          // Clear current views
+          if (tableBody) tableBody.innerHTML = '';
+          if (mobileCardsContainer) mobileCardsContainer.innerHTML = '';
+
+          if (inmates.length === 0) {
+            // Minimal empty states
+            if (tableBody) {
+              tableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-12 text-center text-gray-500 dark:text-gray-400">No Inmates Found</td></tr>';
+            }
+            if (mobileCardsContainer) {
+              mobileCardsContainer.innerHTML = '<div class="text-center py-8 text-gray-500 dark:text-gray-400">No Inmates Found</div>';
+            }
+          } else {
+            // Re-render using existing per-item renderer
+            inmates.forEach((inmate) => {
+              renderOrUpdateViews(inmate);
+            });
+          }
+
+          // Update statistics after render
+          updateStatistics();
+        }
+      } catch (e) {
+        console.error('Inmate search failed:', e);
+      }
+    };
+
+    const debounced = () => {
+      if (debounceId) clearTimeout(debounceId);
+      debounceId = setTimeout(performSearch, 300);
+    };
+
+    if (searchInput) searchInput.addEventListener('input', debounced);
+    if (statusFilter) statusFilter.addEventListener('change', debounced);
+    if (cellFilter) cellFilter.addEventListener('change', debounced);
   }
 
 
