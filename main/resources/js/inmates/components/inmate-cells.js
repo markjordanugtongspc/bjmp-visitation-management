@@ -1,8 +1,14 @@
 // Inmate Cells Management Component
 // - Cell CRUD operations with SweetAlert2 modals
 // - Responsive design with Tailwind CSS
-// - Search and filter functionality
+// - Advanced search, sort, and filter functionality
 // - Client-side storage and draft saving
+
+// ========================================
+// IMPORTS
+// ========================================
+
+import { SearchSortFilterManager } from './search-sort-filter.js';
 
 // ========================================
 // CLIENT-SIDE STORAGE AND DRAFT FUNCTIONS
@@ -10,6 +16,9 @@
 
 const CELLS_STORAGE_KEY = 'bjmp.cells.data';
 const CELLS_DRAFT_KEY = 'bjmp.cells.formDraft';
+
+// Global search manager instance
+let cellsSearchManager = null;
 
 /**
  * Safe JSON parsing with fallback
@@ -76,6 +85,70 @@ function clearCellDraft() {
 function toDraftFromCellModalValue(value) {
   return { ...value };
 }
+
+/**
+ * Create sample cells data for testing
+ */
+function createSampleCellsData() {
+  return [
+    {
+      id: 1,
+      name: 'Cell 1',
+      type: 'Male',
+      location: 'Block A',
+      status: 'Active',
+      capacity: 20,
+      currentCount: 15,
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-15T10:00:00Z'
+    },
+    {
+      id: 2,
+      name: 'Cell 2',
+      type: 'Male',
+      location: 'Block A',
+      status: 'Active',
+      capacity: 20,
+      currentCount: 18,
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-15T10:00:00Z'
+    },
+    {
+      id: 3,
+      name: 'Cell 3',
+      type: 'Female',
+      location: 'Block B',
+      status: 'Active',
+      capacity: 15,
+      currentCount: 12,
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-15T10:00:00Z'
+    },
+    {
+      id: 4,
+      name: 'Cell 4',
+      type: 'Female',
+      location: 'Block B',
+      status: 'Maintenance',
+      capacity: 15,
+      currentCount: 0,
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-15T10:00:00Z'
+    },
+    {
+      id: 5,
+      name: 'Cell 5',
+      type: 'Male',
+      location: 'Block C',
+      status: 'Inactive',
+      capacity: 25,
+      currentCount: 0,
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-15T10:00:00Z'
+    }
+  ];
+}
+
 // - Cell capacity and occupancy tracking
 
 /**
@@ -219,31 +292,8 @@ async function openCellsManagementModal() {
         </div>
       </div>
 
-      <!-- Search and Filters -->
-      <div class="space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:gap-4">
-        <div class="flex-1">
-          <div class="relative">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M10.5 3.75a6.75 6.75 0 105.196 11.163l3.646 3.646a.75.75 0 101.06-1.06l-3.646-3.646A6.75 6.75 0 0010.5 3.75zM6 10.5a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/>
-            </svg>
-            <input type="text" id="cell-search" placeholder="Search cells..." 
-                   class="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-        </div>
-        <div class="flex flex-col sm:flex-row gap-2">
-          <select id="cell-type-filter" class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">All Types</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-          <select id="cell-status-filter" class="px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-        </div>
-      </div>
+      <!-- Search, Sort, and Filter Component -->
+      <div id="cells-search-sort-filter"></div>
 
       <!-- Desktop Table View -->
       <div class="hidden sm:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -272,7 +322,7 @@ async function openCellsManagementModal() {
 
       <!-- Pagination -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
+        <div id="pagination-info" class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
           Showing <span class="font-medium">1</span> to <span class="font-medium">${cells.length}</span> of <span class="font-medium">${cells.length}</span> results
         </div>
         <div class="flex items-center justify-center gap-1 sm:gap-2">
@@ -346,7 +396,7 @@ async function openCellsManagementModal() {
  * TODO: Replace with dynamic data from API
  */
 function generateCellsMobileCards(cells) {
-  if (cells.length === 0) {
+  if (!cells || cells.length === 0) {
     return `
       <div class="text-center py-8">
         <div class="flex flex-col items-center justify-center space-y-4">
@@ -358,7 +408,7 @@ function generateCellsMobileCards(cells) {
           </div>
           <div class="text-center">
             <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">No Cells Found</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Add your first cell to get started.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Try adjusting your search or filter criteria.</p>
           </div>
         </div>
       </div>
@@ -456,6 +506,28 @@ function generateCellsMobileCards(cells) {
  * TODO: Replace with dynamic data from API
  */
 function generateCellsTableRows(cells) {
+  // Handle empty results
+  if (!cells || cells.length === 0) {
+    return `
+      <tr>
+        <td colspan="5" class="px-4 py-12 text-center">
+          <div class="flex flex-col items-center justify-center space-y-4">
+            <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
+                <path d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"/>
+              </svg>
+            </div>
+            <div class="text-center">
+              <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">No Cells Found</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Try adjusting your search or filter criteria.</p>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
   return cells.map(cell => {
     const occupancyRate = (cell.currentCount / cell.capacity) * 100;
     const isFull = occupancyRate >= 90;
@@ -574,11 +646,10 @@ function attachCellsModalEventListeners(cells) {
         const response = await refreshCellsData();
         if (response.success) {
           showSuccessMessage('Cells data refreshed successfully');
-          // Refresh the cells modal to show updated data
-          setTimeout(() => {
-            window.Swal.close();
-            openCellsManagementModal();
-          }, 1000);
+          // Update search manager with new data
+          if (cellsSearchManager) {
+            cellsSearchManager.setData(response.data);
+          }
           console.log('Refreshed cells:', response.data);
         } else {
           showErrorMessage(response.message);
@@ -590,64 +661,127 @@ function attachCellsModalEventListeners(cells) {
     });
   }
 
-  // Search functionality
-  const searchInput = document.getElementById('cell-search');
-  if (searchInput) {
-    searchInput.addEventListener('input', async (e) => {
-      const query = e.target.value.trim();
-      try {
-        const response = await searchCells(query);
-        if (response.success) {
-          // TODO: Update the UI with search results
-          console.log('Search results:', response.data);
-        }
-      } catch (error) {
-        console.error('Search error:', error);
-      }
+  // Initialize Search, Sort, and Filter Manager
+  initializeCellsSearchManager(cells);
+
+  // Initial attachment of edit/delete button listeners
+  attachCellActionListeners(cells);
+}
+
+/**
+ * Initialize the Search, Sort, and Filter Manager for Cells
+ */
+function initializeCellsSearchManager(cells) {
+  // Initialize the search manager
+  cellsSearchManager = new SearchSortFilterManager({
+    debounceDelay: 300,
+    minSearchLength: 2,
+    maxResults: 100
+  });
+
+  // Configure the search manager
+  cellsSearchManager
+    .initialize('cells-search-sort-filter', {
+      showSearch: true,
+      showSort: true,
+      showFilters: true,
+      searchPlaceholder: 'Search cells...',
+      apiEndpoint: '/api/cells' // This will make all search/filter operations use API
+    })
+    .setOnDataChange((filteredData) => {
+      // Update the table and mobile cards with filtered data
+      updateCellsDisplay(filteredData);
+    })
+    .setOnSearchStart((query) => {
+      console.log('API Search started:', query);
+    })
+    .setOnSearchComplete((filteredData) => {
+      console.log('API Search completed:', filteredData.length, 'results');
+    })
+    .setOnFilterChange((key, value) => {
+      console.log('API Filter changed:', key, value);
+    })
+    .setOnSortChange((field, direction) => {
+      console.log('API Sort changed:', field, direction);
     });
+
+  // Set initial data (this will load all cells initially)
+  cellsSearchManager.setData(cells);
+
+  // Debug information
+  console.log('API-based search functionality ready!');
+  console.log('All search, filter, and sort operations will use the Laravel API');
+  console.log('Initial cells loaded:', cells.length);
+  console.log('Try searching for: "Cell 1", "Male", "Block A", "Active", etc.');
+}
+
+/**
+ * Update the cells display with filtered data
+ */
+function updateCellsDisplay(filteredCells) {
+  console.log('Updating cells display with:', filteredCells);
+  
+  // Ensure we have an array
+  const cells = Array.isArray(filteredCells) ? filteredCells : [];
+  
+  // Update desktop table
+  const tableBody = document.getElementById('cells-table-body');
+  if (tableBody) {
+    tableBody.innerHTML = generateCellsTableRows(cells);
+    // Re-attach event listeners for edit/delete buttons
+    attachCellActionListeners(cells);
   }
 
-  // Filter functionality
-  const typeFilter = document.getElementById('cell-type-filter');
-  const statusFilter = document.getElementById('cell-status-filter');
-  
-  if (typeFilter) {
-    typeFilter.addEventListener('change', async (e) => {
-      const typeValue = e.target.value;
-      const searchQuery = searchInput ? searchInput.value.trim() : '';
-      const statusValue = statusFilter ? statusFilter.value : '';
-      
-      try {
-        const response = await searchCells(searchQuery, typeValue, statusValue);
-        if (response.success) {
-          // TODO: Update the UI with filtered results
-          console.log('Filtered results:', response.data);
-        }
-      } catch (error) {
-        console.error('Filter error:', error);
-      }
-    });
-  }
-  
-  if (statusFilter) {
-    statusFilter.addEventListener('change', async (e) => {
-      const statusValue = e.target.value;
-      const searchQuery = searchInput ? searchInput.value.trim() : '';
-      const typeValue = typeFilter ? typeFilter.value : '';
-      
-      try {
-        const response = await searchCells(searchQuery, typeValue, statusValue);
-        if (response.success) {
-          // TODO: Update the UI with filtered results
-          console.log('Filtered results:', response.data);
-        }
-      } catch (error) {
-        console.error('Filter error:', error);
-      }
-    });
+  // Update mobile cards
+  const mobileCards = document.getElementById('cells-cards-mobile');
+  if (mobileCards) {
+    mobileCards.innerHTML = generateCellsMobileCards(cells);
+    // Re-attach event listeners for edit/delete buttons
+    attachCellActionListeners(cells);
   }
 
-  // Edit and Delete buttons (works for both desktop table and mobile cards)
+  // Update statistics
+  updateCellsStatistics(cells);
+
+  // Update pagination info
+  updatePaginationInfo(cells);
+}
+
+/**
+ * Update pagination information
+ */
+function updatePaginationInfo(filteredCells) {
+  const paginationInfo = document.getElementById('pagination-info');
+  if (paginationInfo) {
+    const total = cellsSearchManager ? cellsSearchManager.currentData.length : filteredCells.length;
+    const filtered = filteredCells.length;
+    
+    paginationInfo.innerHTML = `
+      Showing <span class="font-medium">1</span> to <span class="font-medium">${filtered}</span> of <span class="font-medium">${total}</span> results
+    `;
+  }
+}
+
+/**
+ * Update cells statistics with filtered data
+ */
+function updateCellsStatistics(cells) {
+  const totalCellsEl = document.getElementById('total-cells');
+  const activeCellsEl = document.getElementById('active-cells');
+  const totalCapacityEl = document.getElementById('total-capacity');
+  const currentOccupancyEl = document.getElementById('current-occupancy');
+
+  if (totalCellsEl) totalCellsEl.textContent = cells.length;
+  if (activeCellsEl) activeCellsEl.textContent = cells.filter(c => c.status === 'Active').length;
+  if (totalCapacityEl) totalCapacityEl.textContent = cells.reduce((sum, cell) => sum + cell.capacity, 0);
+  if (currentOccupancyEl) currentOccupancyEl.textContent = cells.reduce((sum, cell) => sum + cell.currentCount, 0);
+}
+
+/**
+ * Attach event listeners for cell action buttons (edit/delete)
+ */
+function attachCellActionListeners(cells) {
+  // Edit buttons
   document.querySelectorAll('[data-edit-cell]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const cellId = e.target.closest('[data-edit-cell]').getAttribute('data-edit-cell');
@@ -658,6 +792,7 @@ function attachCellsModalEventListeners(cells) {
     });
   });
 
+  // Delete buttons
   document.querySelectorAll('[data-delete-cell]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const cellId = e.target.closest('[data-delete-cell]').getAttribute('data-delete-cell');
@@ -681,11 +816,11 @@ function attachCellsModalEventListeners(cells) {
             const response = await deleteCell(cell.id);
             if (response.success) {
               showSuccessMessage('Cell deleted successfully');
-              // Refresh the cells modal to show updated data
-              setTimeout(() => {
-                window.Swal.close();
-                openCellsManagementModal();
-              }, 1000);
+              // Update search manager with new data
+              if (cellsSearchManager) {
+                const currentData = cellsSearchManager.currentData.filter(c => c.id !== cell.id);
+                cellsSearchManager.setData(currentData);
+              }
               console.log('Cell deleted:', cell);
             } else {
               showErrorMessage(response.message);
@@ -853,11 +988,19 @@ function openAddEditCellModal(cell = null) {
           if (!isEdit) {
             clearCellDraft();
           }
-          // Refresh the cells modal to show updated data
-          setTimeout(() => {
-            window.Swal.close();
-            openCellsManagementModal();
-          }, 1000);
+          // Update search manager with new data
+          if (cellsSearchManager) {
+            const currentData = [...cellsSearchManager.currentData];
+            if (isEdit) {
+              const index = currentData.findIndex(c => c.id === cell.id);
+              if (index !== -1) {
+                currentData[index] = response.data;
+              }
+            } else {
+              currentData.push(response.data);
+            }
+            cellsSearchManager.setData(currentData);
+          }
           console.log(isEdit ? 'Cell updated:' : 'Cell added:', response.data);
         } else {
           showErrorMessage(response.message);
