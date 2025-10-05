@@ -2,6 +2,7 @@ import 'flowbite';
 import { createInmateStatusCounter } from './components/inmate-status-counter.js';
 import { saveDraft, loadDraft, clearDraft, toDraftFromModalValue } from './components/inmate-form-draft.js';
 import InmateApiClient from './components/inmateApi.js';
+import { initializeInmateCells } from './components/inmate-cells.js';
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
 // - Cell management and capacity tracking
@@ -46,6 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       console.warn('Status counter initialization failed');
     }
+    
+    // Initialize inmate cells management component
+    initializeInmateCells();
     
     // initializeExistingItems intentionally skipped to avoid injecting samples
     // updateStatistics intentionally skipped to preserve Blade placeholders until backend wiring

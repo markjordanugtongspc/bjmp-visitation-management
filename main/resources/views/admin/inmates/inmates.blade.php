@@ -272,7 +272,7 @@
                 <div class="mb-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Cell Occupancy</h2>
-                        <button class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer">
+                        <button id="view-all-cells-btn" class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer">
                             View All Cells
                         </button>
                     </div>
