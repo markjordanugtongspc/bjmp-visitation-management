@@ -21,7 +21,7 @@ class UpdateInmateRequest extends FormRequest
             'last_name' => ['required', 'string', 'max:255'],
             'birthdate' => ['required', 'date', 'before:today'],
             'gender' => ['required', Rule::in(['Male', 'Female'])],
-            'civil_status' => ['nullable', Rule::in(['Single', 'Married', 'Separated', 'Widowed', 'Other'])],
+            // 'civil_status' => ['nullable', 'string', 'max:255'], // Column doesn't exist in database
             
             // Address Information
             'address_line1' => ['required', 'string', 'max:255'],
@@ -41,13 +41,13 @@ class UpdateInmateRequest extends FormRequest
             'admitted_by_user_id' => ['nullable', 'exists:users,id'],
             
             // Medical Information
-            'medical_status' => ['required', Rule::in(['Healthy', 'Under Treatment', 'Critical', 'Not Assessed'])],
+            'medical_status' => ['nullable', Rule::in(['Healthy', 'Under Treatment', 'Critical', 'Not Assessed'])],
             'last_medical_check' => ['nullable', 'date'],
             'medical_notes' => ['nullable', 'string'],
             
             // Points System
-            'initial_points' => ['required', 'integer', 'min:0'],
-            'current_points' => ['required', 'integer', 'min:0'],
+            'initial_points' => ['nullable', 'integer', 'min:0'],
+            'current_points' => ['nullable', 'integer', 'min:0'],
             
             // Additional data (for future use)
             'points_history' => ['nullable', 'array'],
@@ -91,7 +91,7 @@ class UpdateInmateRequest extends FormRequest
             'last_name' => $this->input('lastName'),
             'birthdate' => $this->input('dateOfBirth'),
             'gender' => $this->input('gender'),
-            'civil_status' => $this->input('civilStatus'),
+            // 'civil_status' => $this->input('civilStatus'), // Column doesn't exist in database
             'address_line1' => $this->input('addressLine1'),
             'address_line2' => $this->input('addressLine2'),
             'city' => $this->input('city'),
@@ -103,12 +103,12 @@ class UpdateInmateRequest extends FormRequest
             'job' => $this->input('job'),
             'date_of_admission' => $this->input('admissionDate'),
             'status' => $this->input('status'),
-            'cell_id' => $this->input('cellId'),
-            'medical_status' => $this->input('medicalStatus'),
+            'cell_id' => $this->input('cell_id') ?: $this->input('cellId'),
+            'medical_status' => $this->input('medicalStatus') ?: 'Not Assessed',
             'last_medical_check' => $this->input('lastMedicalCheck'),
             'medical_notes' => $this->input('medicalNotes'),
-            'initial_points' => $this->input('initialPoints'),
-            'current_points' => $this->input('currentPoints'),
+            'initial_points' => $this->input('initialPoints') ?: 0,
+            'current_points' => $this->input('currentPoints') ?: 0,
             'points_history' => $this->input('pointsHistory'),
             'allowed_visitors' => $this->input('allowedVisitors'),
             'recent_visits' => $this->input('recentVisits'),

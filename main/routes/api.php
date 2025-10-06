@@ -32,15 +32,17 @@ Route::prefix('inmates')->middleware(['web'])->group(function () {
     Route::patch('/{id}/points', [InmateController::class, 'updatePoints'])->name('api.inmates.update-points');
 });
 
-// Cells API routes
+// Cells API routes (order matters: static paths before dynamic /{cell})
 Route::prefix('cells')->middleware(['web'])->group(function () {
     Route::get('/', [CellController::class, 'index'])->name('api.cells.index');
     Route::post('/', [CellController::class, 'store'])->name('api.cells.store');
+
+    // Static/specific routes first
     Route::get('/available', [CellController::class, 'getAvailableCells'])->name('api.cells.available');
+
+    // Dynamic routes after
     Route::get('/{cell}', [CellController::class, 'show'])->name('api.cells.show');
     Route::patch('/{cell}', [CellController::class, 'update'])->name('api.cells.update');
-    Route::delete('/{cell}', [CellController::class, 'destroy'])->name('api.cells.destroy');
     Route::patch('/{cell}/occupancy', [CellController::class, 'updateOccupancy'])->name('api.cells.update-occupancy');
-    Route::patch('/{cell}/update-count', [CellController::class, 'updateCount'])->name('api.cells.update-count');
-    Route::patch('/update-all-occupancy', [CellController::class, 'updateAllOccupancy'])->name('api.cells.update-all-occupancy');
+    Route::delete('/{cell}', [CellController::class, 'destroy'])->name('api.cells.destroy');
 });

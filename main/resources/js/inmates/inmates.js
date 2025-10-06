@@ -3,7 +3,7 @@ import { createInmateStatusCounter } from './components/inmate-status-counter.js
 import { saveDraft, loadDraft, clearDraft, toDraftFromModalValue } from './components/inmate-form-draft.js';
 import InmateApiClient from './components/inmateApi.js';
 import { initializeInmateCells } from './components/inmate-cells.js';
-import CellCountManager from './components/cell-count-manager.js';
+import { createCellCounterManager } from './components/cell-counter-manager.js';
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
 // - Cell management and capacity tracking
@@ -28,49 +28,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize status counter component
   const statusCounter = createInmateStatusCounter();
-
-  // Initialize cell count manager
-  const cellCountManager = new CellCountManager();
-
-  // Setup cell count manager event listeners
-  cellCountManager.addListener((eventType, ...args) => {
-    console.log('Cell count event:', eventType, args);
-    
-    switch (eventType) {
-      case 'cell_count_increased':
-      case 'cell_count_decreased':
-      case 'cell_count_recalculated':
-        // Re-render cells when counts change
-        renderCells();
-        break;
-      case 'cell_at_capacity':
-        console.warn('Cell at capacity:', args[0]);
-        break;
-      case 'inmate_added':
-      case 'inmate_updated':
-      case 'inmate_removed':
-        // Update statistics when inmates change
-        updateStatistics();
-        break;
+  
+  // Initialize cell counter manager
+  const cellCounterManager = createCellCounterManager();
+  
+  // Set up cell counter manager callbacks
+  cellCounterManager.setCallbacks({
+    onCountUpdate: (cellId, newCount) => {
+      // Update cell display in real-time
+      cellCounterManager.updateCellDisplay(cellId, newCount);
+      
+      // Update cells array for consistency
+      const cell = cells.find(c => c.id === cellId);
+      if (cell) {
+        cell.currentCount = newCount;
+      }
+      
+      console.log(`Cell ${cellId} occupancy updated to ${newCount}`);
+    },
+    onCellFull: (cellId) => {
+      console.log(`Cell ${cellId} is now full`);
+      // Could trigger notifications or UI updates here
+    },
+    onCellTransfer: (fromCellId, toCellId, inmate) => {
+      console.log(`Inmate ${inmate.id} transferred from cell ${fromCellId} to cell ${toCellId}`);
     }
   });
 
   // Dynamic cells data - will be fetched from database
   let cells = [];
+  
+  // Generate cell options for gender-specific dropdown
+  function generateCellOptionsForGender(gender, currentCellId = null) {
+    if (!gender || !cells.length) {
+      return '<option value="">No cells available</option>';
+    }
+    
+    // Filter cells by gender and status
+    const availableCells = cells.filter(cell => {
+      const isCorrectGender = cell.type === gender;
+      const isActive = cell.status === 'Active';
+      const hasCapacity = cell.currentCount < cell.capacity;
+      
+      return isCorrectGender && isActive && hasCapacity;
+    });
+    
+    if (availableCells.length === 0) {
+      return `<option value="">No ${gender} cells available</option>`;
+    }
+    
+    return availableCells.map(cell => {
+      const occupancyPercentage = Math.round((cell.currentCount / cell.capacity) * 100);
+      const isSelected = currentCellId === cell.id;
+      const isFull = cell.currentCount >= cell.capacity;
+      
+      return `
+        <option value="${cell.id}" ${isSelected ? 'selected' : ''} ${isFull ? 'disabled' : ''}>
+          ${cell.name} (${cell.currentCount}/${cell.capacity} - ${occupancyPercentage}%) - ${cell.type}${isFull ? ' - FULL' : ''}
+        </option>
+      `;
+    }).join('');
+  }
 
   // Fetch cells from database
   async function fetchCellsFromDatabase() {
     try {
-      // First update all cell occupancy counts to ensure accurate data
-      const updateResponse = await fetch('/api/cells/update-all-occupancy', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-        }
-      });
-      
-      // Then fetch the updated cells data
+      // Fetch cells data
       const response = await fetch('/api/cells', {
         method: 'GET',
         headers: {
@@ -122,11 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function initializePage() {
     await fetchCellsFromDatabase();
     await renderCells();
-    await renderInmates();
+    await renderInmates(); // This will initialize cell count manager with loaded data
     await populateCellsFilterDropdown();
-    
-    // Initialize cell count manager with current data
-    cellCountManager.initialize(cells, inmates);
     
     // Initialize status counter component
     if (statusCounter.initialize()) {
@@ -314,10 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
       // Update global cells array
       cells = data.data || [];
       
-      // Update cell count manager with fresh data
-      if (window.cellCountManager) {
-        window.cellCountManager.refreshCellData(cells);
-      }
       
       console.log('Refreshed cell data:', cells.length, 'cells');
     } catch (error) {
@@ -662,19 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label class="block text-xs text-gray-300 mb-1">Cell Assignment *</label>
                 <select id="i-cell" class="w-full appearance-none rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm pr-8" required>
                   <option value="">Select Cell</option>
-                  ${(cells || []).map(cell => {
-                    const occupancyPercentage = Math.round((cell.currentCount / cell.capacity) * 100);
-                    const isSelected = inmate.cell_id === cell.id;
-                    const isFull = cell.currentCount >= cell.capacity;
-                    const isWrongGender = inmate.gender && cell.type !== inmate.gender;
-                    const isDisabled = isFull || isWrongGender;
-                    
-                    return `
-                      <option value="${cell.id}" ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}>
-                        ${cell.name} (${occupancyPercentage}%) - ${cell.type}${isFull ? ' - FULL' : ''}${isWrongGender ? ' - Wrong Gender' : ''}
-                      </option>
-                    `;
-                  }).join('')}
+                  ${generateCellOptionsForGender(inmate.gender || '', inmate.cell_id)}
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
                   <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -883,6 +887,21 @@ document.addEventListener('DOMContentLoaded', () => {
           };
           dobInput.addEventListener('change', updateAge);
           updateAge();
+        }
+        
+        // Add gender change listener to update cell options
+        const genderSelect = document.getElementById('i-gender');
+        const cellSelect = document.getElementById('i-cell');
+        
+        if (genderSelect && cellSelect) {
+          genderSelect.addEventListener('change', (e) => {
+            const selectedGender = e.target.value;
+            const currentCellId = cellSelect.value;
+            
+            // Update cell options based on gender
+            cellSelect.innerHTML = '<option value="">Select Cell</option>' + 
+              generateCellOptionsForGender(selectedGender, currentCellId);
+          });
         }
 
         // Initialize dynamic form elements
@@ -1720,16 +1739,36 @@ document.addEventListener('DOMContentLoaded', () => {
           if (response.success) {
             const updatedInmate = response.data;
             const newStatus = updatedInmate.status;
+            const oldCellId = inmate.cell_id;
+            const newCellId = updatedInmate.cell_id;
             
             // Update local data
             const oldInmate = { ...inmate };
             Object.assign(inmate, updatedInmate);
             
-            // Update cell count manager
-            cellCountManager.updateInmate(inmate, oldInmate);
+            // Handle cell transfer with counter manager
+            if (oldCellId !== newCellId || oldStatus !== newStatus) {
+              try {
+                // Sync occupancy for affected cells after inmate update
+                const cellsToSync = [];
+                if (oldCellId) cellsToSync.push(oldCellId);
+                if (newCellId && newCellId !== oldCellId) cellsToSync.push(newCellId);
+                
+                // Sync all affected cells
+                for (const cellId of cellsToSync) {
+                  await cellCounterManager.syncCellOccupancy(cellId);
+                }
+              } catch (error) {
+                console.error('Failed to sync cell counter:', error);
+                // Continue with inmate update even if counter update fails
+              }
+            }
             
             // Refresh cell data from backend to ensure accuracy
             await refreshCellData();
+
+            // Ensure cells grid reflects latest counts immediately
+            await renderCells();
             
             // Update statistics if status changed
             if (oldStatus !== newStatus && statusCounter) {
@@ -1882,16 +1921,36 @@ document.addEventListener('DOMContentLoaded', () => {
           if (response.success) {
             const updatedInmate = response.data;
             const newStatus = updatedInmate.status;
+            const oldCellId = inmate.cell_id;
+            const newCellId = updatedInmate.cell_id;
             
             // Update local data
             const oldInmate = { ...inmate };
             Object.assign(inmate, updatedInmate);
             
-            // Update cell count manager
-            cellCountManager.updateInmate(inmate, oldInmate);
+            // Handle cell transfer with counter manager
+            if (oldCellId !== newCellId || oldStatus !== newStatus) {
+              try {
+                // Sync occupancy for affected cells after inmate update
+                const cellsToSync = [];
+                if (oldCellId) cellsToSync.push(oldCellId);
+                if (newCellId && newCellId !== oldCellId) cellsToSync.push(newCellId);
+                
+                // Sync all affected cells
+                for (const cellId of cellsToSync) {
+                  await cellCounterManager.syncCellOccupancy(cellId);
+                }
+              } catch (error) {
+                console.error('Failed to sync cell counter:', error);
+                // Continue with inmate update even if counter update fails
+              }
+            }
             
             // Refresh cell data from backend to ensure accuracy
             await refreshCellData();
+
+            // Ensure cells grid reflects latest counts immediately
+            await renderCells();
             
             // Update statistics if status changed
             if (oldStatus !== newStatus && statusCounter) {
@@ -1991,10 +2050,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const inmateToDelete = inmates.find(inmate => inmate.id === id);
     inmates = inmates.filter(inmate => inmate.id !== id);
     
-    // Update cell count manager
-    if (inmateToDelete) {
-      cellCountManager.removeInmate(id);
-    }
+    // Refresh cell data from backend to ensure accuracy
+    await refreshCellData();
+
+    // Ensure cells grid reflects latest counts immediately
+    await renderCells();
     
     // Update statistics
     if (inmateToDelete && statusCounter) {
@@ -2739,8 +2799,6 @@ function formatAddress(i) {
           statusCounter.setStatistics(response.statistics);
         }
         
-        // Update cell count manager with loaded inmates
-        cellCountManager.initialize(cells, inmates);
         
         // Clear containers
         if (tableBody) tableBody.innerHTML = '';
@@ -2865,8 +2923,22 @@ function formatAddress(i) {
             const newInmate = response.data;
             inmates.push(newInmate);
             
-            // Update cell count manager
-            cellCountManager.addInmate(newInmate);
+            // Handle cell assignment with counter manager
+            if (newInmate.cell_id && newInmate.status === 'Active') {
+              try {
+                // Sync cell occupancy after inmate creation
+                await cellCounterManager.syncCellOccupancy(newInmate.cell_id);
+              } catch (error) {
+                console.error('Failed to sync cell counter:', error);
+                // Continue with inmate creation even if counter update fails
+              }
+            }
+            
+            // Refresh cell data from backend to ensure accuracy
+            await refreshCellData();
+
+            // Ensure cells grid reflects latest counts immediately
+            await renderCells();
             
             // Update statistics
             if (statusCounter) {
@@ -2913,6 +2985,12 @@ function formatAddress(i) {
 
   // Expose components for external use
   window.inmateStatusCounter = statusCounter;
-  window.cellCountManager = cellCountManager;
+  window.cellCounterManager = cellCounterManager;
+  
+  // Debug function
+  window.debugCellCounter = () => {
+    console.log('Cell Counter Manager Debug Info:', cellCounterManager.getDebugInfo());
+    console.log('Cells data:', cells);
+  };
 });
 

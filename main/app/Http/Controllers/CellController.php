@@ -363,11 +363,12 @@ class CellController extends Controller
     }
 
     /**
-     * Update cell occupancy count (called when inmates are assigned/removed)
+     * Update cell occupancy count (recalculate from database)
      */
-    public function updateOccupancy(Cell $cell): JsonResponse
+    public function updateOccupancy(Request $request, Cell $cell): JsonResponse
     {
         try {
+            // Always recalculate from actual inmate assignments in database
             $cell->updateCurrentCount();
 
             return response()->json([
@@ -379,7 +380,7 @@ class CellController extends Controller
                     'occupancyPercentage' => $cell->capacity > 0 ? ($cell->current_count / $cell->capacity) * 100 : 0,
                     'isAtCapacity' => $cell->current_count >= $cell->capacity,
                 ],
-                'message' => 'Cell occupancy updated successfully'
+                'message' => 'Cell occupancy recalculated successfully'
             ]);
 
         } catch (\Exception $e) {

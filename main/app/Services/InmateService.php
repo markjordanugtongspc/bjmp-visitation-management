@@ -71,6 +71,7 @@ class InmateService
 
             $inmate = Inmate::create($data);
 
+
             // Handle additional data if provided
             $this->handleAdditionalData($inmate, $request->validated());
 
@@ -79,6 +80,7 @@ class InmateService
             Log::info('Inmate created successfully', [
                 'inmate_id' => $inmate->id,
                 'name' => $inmate->full_name,
+                'cell_id' => $inmate->cell_id,
                 'created_by' => auth()->id()
             ]);
 
@@ -110,8 +112,6 @@ class InmateService
             // Update the inmate
             $inmate->update($data);
 
-            // Handle cell assignment changes and update cell counts
-            $this->handleCellAssignmentChange($inmate, $oldCellId, $newCellId);
 
             // Handle additional data if provided
             $this->handleAdditionalData($inmate, $request->validated());
@@ -145,18 +145,27 @@ class InmateService
     public function delete(int $id): bool
     {
         try {
+            DB::beginTransaction();
+
             $inmate = Inmate::findOrFail($id);
+            $cellId = $inmate->cell_id;
+
+
             $result = $inmate->delete();
+
+            DB::commit();
 
             Log::info('Inmate deleted successfully', [
                 'inmate_id' => $id,
                 'name' => $inmate->full_name,
+                'cell_id' => $cellId,
                 'deleted_by' => auth()->id()
             ]);
 
             return $result;
 
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Failed to delete inmate', [
                 'inmate_id' => $id,
                 'error' => $e->getMessage()
@@ -230,7 +239,7 @@ class InmateService
             'last_name' => $data['last_name'],
             'birthdate' => $data['birthdate'],
             'gender' => $data['gender'],
-            'civil_status' => $data['civil_status'] ?? null,
+            // 'civil_status' => $data['civil_status'] ?? null, // Column doesn't exist in database
             'address_line1' => $data['address_line1'],
             'address_line2' => $data['address_line2'] ?? null,
             'city' => $data['city'],
@@ -251,105 +260,6 @@ class InmateService
         ];
     }
 
-    /**
-     * Handle cell assignment changes and update cell counts accordingly.
-     */
-    private function handleCellAssignmentChange(Inmate $inmate, ?int $oldCellId, ?int $newCellId): void
-    {
-        Log::info('Handling cell assignment change', [
-            'inmate_id' => $inmate->id,
-            'inmate_name' => $inmate->full_name,
-            'inmate_gender' => $inmate->gender,
-            'inmate_status' => $inmate->status,
-            'old_cell_id' => $oldCellId,
-            'new_cell_id' => $newCellId
-        ]);
-
-        // Only update cell counts if there's a change in cell assignment
-        if ($oldCellId !== $newCellId) {
-            // Decrease count for old cell if inmate was assigned to one
-            if ($oldCellId) {
-                $oldCell = \App\Models\Cell::find($oldCellId);
-                if ($oldCell) {
-                    $oldCell->current_count = max(0, $oldCell->current_count - 1);
-                    $oldCell->save();
-                    
-                    Log::info('Decreased cell count', [
-                        'cell_id' => $oldCellId,
-                        'cell_name' => $oldCell->name,
-                        'cell_type' => $oldCell->type,
-                        'new_count' => $oldCell->current_count,
-                        'inmate_id' => $inmate->id,
-                        'inmate_gender' => $inmate->gender
-                    ]);
-                }
-            }
-
-            // Increase count for new cell if inmate is assigned to one
-            if ($newCellId) {
-                $newCell = \App\Models\Cell::find($newCellId);
-                if ($newCell) {
-                    // Check if cell has available space (only for Active inmates)
-                    if ($inmate->status === 'Active' && !$newCell->hasAvailableSpace()) {
-                        Log::warning('Attempted to assign inmate to full cell', [
-                            'cell_id' => $newCellId,
-                            'cell_name' => $newCell->name,
-                            'current_count' => $newCell->current_count,
-                            'capacity' => $newCell->capacity,
-                            'inmate_id' => $inmate->id
-                        ]);
-                    }
-                    
-                    // Only increment count for Active inmates
-                    if ($inmate->status === 'Active') {
-                        $newCell->current_count = min($newCell->capacity, $newCell->current_count + 1);
-                        $newCell->save();
-                        
-                        Log::info('Increased cell count', [
-                            'cell_id' => $newCellId,
-                            'cell_name' => $newCell->name,
-                            'cell_type' => $newCell->type,
-                            'new_count' => $newCell->current_count,
-                            'inmate_id' => $inmate->id,
-                            'inmate_gender' => $inmate->gender
-                        ]);
-                    }
-                }
-            }
-        }
-        
-        // Handle status changes that affect cell counts
-        if ($oldCellId && $inmate->status !== 'Active') {
-            // If inmate status changed from Active to something else, decrease old cell count
-            $oldCell = \App\Models\Cell::find($oldCellId);
-            if ($oldCell) {
-                $oldCell->current_count = max(0, $oldCell->current_count - 1);
-                $oldCell->save();
-                
-                Log::info('Decreased cell count due to status change', [
-                    'cell_id' => $oldCellId,
-                    'cell_name' => $oldCell->name,
-                    'new_count' => $oldCell->current_count,
-                    'inmate_id' => $inmate->id,
-                    'new_status' => $inmate->status
-                ]);
-            }
-        } elseif ($newCellId && $inmate->status === 'Active') {
-            // If inmate status is Active and assigned to a cell, ensure count is correct
-            $newCell = \App\Models\Cell::find($newCellId);
-            if ($newCell) {
-                // Recalculate to ensure accuracy
-                $newCell->updateCurrentCount();
-                
-                Log::info('Recalculated cell count', [
-                    'cell_id' => $newCellId,
-                    'cell_name' => $newCell->name,
-                    'new_count' => $newCell->current_count,
-                    'inmate_id' => $inmate->id
-                ]);
-            }
-        }
-    }
 
     /**
      * Handle additional data like points history, allowed visitors, etc.

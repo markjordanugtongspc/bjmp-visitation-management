@@ -97,6 +97,8 @@ class InmateApiClient {
      */
     async update(id, inmateData) {
         try {
+            console.log('Updating inmate with data:', inmateData); // Debug log
+            
             const response = await fetch(`${this.baseUrl}/${id}`, {
                 method: 'PATCH',
                 headers: {
@@ -109,10 +111,14 @@ class InmateApiClient {
 
             if (!response.ok) {
                 const errorData = await response.json();
+                console.error('API Error Response:', errorData);
+                console.error('Response Status:', response.status, response.statusText);
                 throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
             }
 
-            return await response.json();
+            const result = await response.json();
+            console.log('Update successful:', result); // Debug log
+            return result;
         } catch (error) {
             console.error(`Error updating inmate ${id}:`, error);
             throw error;
