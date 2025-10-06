@@ -56,6 +56,8 @@ Route::prefix('warden')->middleware(['auth', 'verified'])->group(function () {
     Route::post('/officers', [WardenController::class, 'storeOfficer'])->name('warden.officers.store');
     Route::get('/officers/list', [WardenController::class, 'listOfficers'])->name('warden.officers.list');
     Route::patch('/officers/{user:user_id}', [WardenController::class, 'updateOfficer'])->name('warden.officers.update');
+    // Super Vision static page
+    Route::view('/supervision', 'warden.supervision.supervision')->name('warden.supervision');
 });
 
 // Legacy routes (for backward compatibility)
