@@ -16,24 +16,24 @@ export default function initRoleBasedNavigation() {
 
     // Define role-based visibility rules
     const roleRules = {
-        // Admin (role_id: 0) - hide Schedules and Requests
+        // Admin (role_id: 0) - hide Schedules, Requests, and Supervision
         0: {
-            hide: ['schedules', 'requests'],
+            hide: ['schedules', 'requests', 'supervision'],
             show: []
         },
-        // Warden (role_id: 1) - hide Facial Recognition
+        // Warden (role_id: 1) - hide Facial Recognition, show Supervision
         1: {
             hide: ['facial-recognition'],
-            show: ['schedules', 'requests']
+            show: ['schedules', 'requests', 'supervision']
         },
-        // Officer (role_id: 2) - show all
+        // Officer (role_id: 2) - hide Supervision
         2: {
-            hide: [],
+            hide: ['supervision'],
             show: ['schedules', 'requests']
         },
-        // Staff (role_id: 3) - show all
+        // Staff (role_id: 3) - hide Supervision
         3: {
-            hide: [],
+            hide: ['supervision'],
             show: ['schedules', 'requests']
         }
     };
