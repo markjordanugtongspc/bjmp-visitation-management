@@ -209,7 +209,7 @@
 
                 <!-- Statistics Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" viewBox="0 0 512 512">
@@ -223,7 +223,7 @@
                         </div>
                     </div>
                     
-                    <div class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="currentColor">
@@ -237,7 +237,7 @@
                         </div>
                     </div>
                     
-                    <div class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600 dark:text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
@@ -251,7 +251,7 @@
                         </div>
                     </div>
                     
-                    <div class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600 dark:text-red-400" viewBox="0 0 48 48">
