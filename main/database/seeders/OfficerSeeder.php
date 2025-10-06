@@ -11,12 +11,12 @@ class OfficerSeeder extends Seeder
     public function run(): void
     {
         $officers = [
-            ['full_name' => 'Jail Warden', 'email' => 'warden@bjmp.gov.ph', 'title' => 'Warden', 'subtitle' => 'Jail Management'],
-            ['full_name' => 'Assistant Warden', 'email' => 'asst.warden@bjmp.gov.ph', 'title' => 'Assistant Warden', 'subtitle' => 'Operations'],
-            ['full_name' => 'Chief Custodial', 'email' => 'custodial@bjmp.gov.ph', 'title' => 'Chief Custodial', 'subtitle' => 'Security'],
-            ['full_name' => 'Chief ICT', 'email' => 'ict@bjmp.gov.ph', 'title' => 'Chief ICT', 'subtitle' => 'Information Systems'],
-            ['full_name' => 'Senior Jail Officer', 'email' => 'sjo@bjmp.gov.ph', 'title' => 'Unit Executive Senior Jail Officer', 'subtitle' => 'Administration'],
-            ['full_name' => 'Chief Nurse', 'email' => 'health@bjmp.gov.ph', 'title' => 'Chief Health Nurse', 'subtitle' => 'Medical Services'],
+            ['full_name' => 'Jail Warden', 'email' => 'warden@bjmp.gov.ph', 'title' => 'Warden', 'subtitle' => 'Jail Management', 'role_id' => 1],
+            ['full_name' => 'Assistant Warden', 'email' => 'asst.warden@bjmp.gov.ph', 'title' => 'Assistant Warden', 'subtitle' => 'Operations', 'role_id' => 1],
+            ['full_name' => 'Chief Custodial', 'email' => 'custodial@bjmp.gov.ph', 'title' => 'Chief Custodial', 'subtitle' => 'Security', 'role_id' => 2],
+            ['full_name' => 'Chief ICT', 'email' => 'ict@bjmp.gov.ph', 'title' => 'Chief ICT', 'subtitle' => 'Information Systems', 'role_id' => 2],
+            ['full_name' => 'Senior Jail Officer', 'email' => 'sjo@bjmp.gov.ph', 'title' => 'Unit Executive Senior Jail Officer', 'subtitle' => 'Administration', 'role_id' => 2],
+            ['full_name' => 'Chief Nurse', 'email' => 'health@bjmp.gov.ph', 'title' => 'Chief Health Nurse', 'subtitle' => 'Medical Services', 'role_id' => 3],
         ];
 
         foreach ($officers as $index => $o) {
@@ -39,7 +39,7 @@ class OfficerSeeder extends Seeder
                     'full_name' => $o['full_name'],
                     'title' => $o['title'],
                     'subtitle' => $o['subtitle'],
-                    'role_id' => null,
+                    'role_id' => $o['role_id'],
                     'is_active' => true,
                 ]);
             } else {
@@ -49,6 +49,7 @@ class OfficerSeeder extends Seeder
                     'full_name' => $o['full_name'],
                     'title' => $o['title'],
                     'subtitle' => $o['subtitle'],
+                    'role_id' => $o['role_id'],
                     'is_active' => true,
                 ])->save();
             }

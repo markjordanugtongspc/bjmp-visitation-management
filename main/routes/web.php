@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\WardenController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,41 +13,69 @@ Route::get('/', function () {
 Route::view('/visitation/request/visitor', 'visitation.request.visitor')
     ->name('visitation.request.visitor');
 
-Route::get('/dashboard', [AdminController::class, 'dashboard'])
+// Role-based dashboard routes
+Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+    ->name('admin.dashboard');
 
-// Officers page
+Route::get('/warden/dashboard', [WardenController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('warden.dashboard');
+
+// Legacy dashboard route (redirects based on role)
+Route::get('/dashboard', function () {
+    $user = auth()->user();
+    
+    switch ($user->role_id) {
+        case 0: // Admin
+            return redirect()->route('admin.dashboard');
+        case 1: // Warden
+            return redirect()->route('warden.dashboard');
+        case 2: // Officer
+            return redirect()->route('officer.dashboard');
+        case 3: // Staff
+            return redirect()->route('staff.dashboard');
+        default:
+            return redirect()->route('admin.dashboard');
+    }
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// Admin routes
+Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/officers', [AdminController::class, 'officers'])->name('admin.officers.index');
+    Route::get('/inmates', [AdminController::class, 'inmates'])->name('admin.inmates.index');
+    Route::post('/officers', [AdminController::class, 'storeOfficer'])->name('admin.officers.store');
+    Route::get('/officers/list', [AdminController::class, 'listOfficers'])->name('admin.officers.list');
+    Route::patch('/officers/{user:user_id}', [AdminController::class, 'updateOfficer'])->name('admin.officers.update');
+});
+
+// Warden routes
+Route::prefix('warden')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/officers', [WardenController::class, 'officers'])->name('warden.officers.index');
+    Route::get('/inmates', [WardenController::class, 'inmates'])->name('warden.inmates.index');
+    Route::post('/officers', [WardenController::class, 'storeOfficer'])->name('warden.officers.store');
+    Route::get('/officers/list', [WardenController::class, 'listOfficers'])->name('warden.officers.list');
+    Route::patch('/officers/{user:user_id}', [WardenController::class, 'updateOfficer'])->name('warden.officers.update');
+});
+
+// Legacy routes (for backward compatibility)
 Route::get('/officers', [AdminController::class, 'officers'])
     ->middleware(['auth', 'verified'])
     ->name('officers.index');
 
-// Inmates page
 Route::get('/inmates', [AdminController::class, 'inmates'])
     ->middleware(['auth', 'verified'])
     ->name('inmates.index');
 
-
-// Officers: create (auto-register in users)
 Route::post('/officers', [AdminController::class, 'storeOfficer'])
     ->middleware(['auth', 'verified'])
     ->name('officers.store');
 
-// Officers: list (for hydration/polling)
 Route::get('/officers/list', [AdminController::class, 'listOfficers'])
     ->middleware(['auth', 'verified'])
     ->name('officers.list');
 
-// Officers: update (bind by user_id)
 Route::patch('/officers/{user:user_id}', [AdminController::class, 'updateOfficer'])
-    ->middleware(['auth', 'verified'])
-    ->name('officers.update');
-
-Route::get('/officers/list', [AdminController::class, 'listOfficers'])
-    ->middleware(['auth', 'verified'])
-    ->name('officers.list');
-
-Route::patch('/officers/{user}', [AdminController::class, 'updateOfficer'])
     ->middleware(['auth', 'verified'])
     ->name('officers.update');
 

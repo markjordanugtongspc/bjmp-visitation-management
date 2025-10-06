@@ -12,20 +12,11 @@ use Illuminate\Support\Facades\Schema;
 class AdminController extends Controller
 {
     /**
-     * Display the admin dashboard based on user role.
+     * Display the admin dashboard.
      */
     public function dashboard()
     {
-        $user = Auth::user();
-        
-        // Check if user has admin role (role_id = 1)
-        if ($user->isAdmin()) {
-            return view('admin.dashboard');
-        }
-        
-        // For other roles, redirect to appropriate dashboard
-        // You can add more role checks here as needed
-        return view('admin.dashboard'); // Default to admin dashboard for now
+        return view('admin.dashboard');
     }
     
     /**

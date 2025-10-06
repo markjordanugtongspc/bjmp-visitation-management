@@ -1,4 +1,5 @@
 // Dashboard initialization
+import initRoleBasedNavigation from './components/role-based.js';
 
 // Sidebar toggle logic for dashboard
 document.addEventListener('DOMContentLoaded', () => {
@@ -50,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize dashboard inmate count
   initializeDashboardInmateCount();
+  
+  // Initialize role-based navigation
+  initRoleBasedNavigation();
 });
 
 /**
@@ -70,6 +74,7 @@ async function initializeDashboardInmateCount() {
     console.error('Error initializing dashboard inmate count:', error);
   }
 }
+
 
 /**
  * Fetch inmate statistics from API and update the counter

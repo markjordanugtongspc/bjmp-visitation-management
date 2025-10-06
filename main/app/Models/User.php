@@ -71,7 +71,37 @@ class User extends Authenticatable
      */
     public function isAdmin()
     {
+        return $this->role_id == 0;
+    }
+    
+    /**
+     * Check if the user is a warden.
+     *
+     * @return bool
+     */
+    public function isWarden()
+    {
         return $this->role_id == 1;
+    }
+    
+    /**
+     * Check if the user is an officer.
+     *
+     * @return bool
+     */
+    public function isOfficer()
+    {
+        return $this->role_id == 2;
+    }
+    
+    /**
+     * Check if the user is staff.
+     *
+     * @return bool
+     */
+    public function isStaff()
+    {
+        return $this->role_id == 3;
     }
     
     /**
@@ -82,7 +112,8 @@ class User extends Authenticatable
     public function getRoleName()
     {
         return match($this->role_id) {
-            1 => 'Admin',
+            0 => 'Admin',
+            1 => 'Warden',
             2 => 'Officer',
             3 => 'Staff',
             default => 'User'

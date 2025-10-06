@@ -19,7 +19,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a.75.75 0 011.06 0l8.69 8.69a.75.75 0 11-1.06 1.06l-.19-.19V18a2.25 2.25 0 01-2.25 2.25H15a.75.75 0 01-.75-.75v-4.5h-3V19.5a.75.75 0 01-.75.75H6.25A2.25 2.25 0 014 18v-4.69l-.19.19a.75.75 0 11-1.06-1.06l7.75-7.75Z"/></svg>
                     <span>Dashboard</span>
                 </a>
-                <a href="{{ route('admin.inmates.index') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('admin.inmates.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                <a href="{{ route('inmates.index') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('inmates.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <svg width="16px" height="16px" viewBox="0 0 17.00 17.00" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="si-glyph si-glyph-person-prison" fill="#ffffff" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>771</title> <defs> </defs> <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g transform="translate(1.000000, 0.000000)" fill="#ffffff"> <path d="M12.6973076,16.022 L3.37869242,16.022 C1.53624385,16.022 0.0379999999,14.5191098 0.0379999999,12.6724147 L0.0379999999,3.37058005 C0.0379999999,1.5238849 1.53624385,0.022 3.37869242,0.022 L12.6973076,0.022 C14.5397561,0.022 16.038,1.5238849 16.038,3.37058005 L16.038,12.6724147 C16.038,14.5181045 14.5397561,16.022 12.6973076,16.022 L12.6973076,16.022 Z M3.10672887,1 C1.9450099,1 1,1.947963 1,3.11438255 L1,12.8836405 C1,14.0510485 1.9450099,15 3.10672887,15 L12.8922816,15 C14.0549901,15 15,14.0510485 15,12.8836405 L15,3.11438255 C15,1.947963 14.0549901,1 12.8922816,1 L3.10672887,1 L3.10672887,1 Z" class="si-glyph-fill"> </path> <path d="M3,1 L3,14.691 L4.03955078,14.691 L4.03955078,0.999999985 L3,1 Z" class="si-glyph-fill"> </path> <path d="M6,1 L6,14.691 L7.0189209,14.691 L7.0189209,0.999999985 L6,1 Z" class="si-glyph-fill"> </path> <path d="M9,1 L9,14.691 L10.0375977,14.691 L10.0375977,0.999999985 L9,1 Z" class="si-glyph-fill"> </path> <path d="M12,1 L12,14.691 L12.918457,14.691 L12.918457,1 L12,1 Z" class="si-glyph-fill"> </path> <g transform="translate(1.000000, 3.000000)"> <path d="M10.576,8.048 C10.177,8.635 9.681,9.507 9.105,10.546 C8.473,11.692 7.746,10.289 6.951,10.289 C6.135,10.289 5.371,11.64 4.711,10.465 C4.143,9.454 3.65,8.639 3.262,8.076 C1.252,8.076 0.216,9.376 -0.316,10.947 C-0.85,12.52 14.862,12.513 14.375,10.934 C13.89,9.354 12.838,8.048 10.576,8.048 L10.576,8.048 Z" class="si-glyph-fill"> </path> <path d="M9.977,3.154 C9.977,4.815 8.654,7.992 7.022,7.992 C5.388,7.992 4.066,4.815 4.066,3.154 C4.066,1.491 5.388,0.144 7.022,0.144 C8.653,0.145 9.977,1.491 9.977,3.154 L9.977,3.154 Z" class="si-glyph-fill"> </path> </g> </g> </g> </g></svg>
                     <span>Inmates</span>
                 </a>
@@ -27,17 +27,17 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5M4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5S5.5 6.57 5.5 8.5S7.07 12 9 12m0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7m7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44M15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35c.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35" stroke-width="0.3" stroke="currentColor"/></svg>
                     <span>Visitors</span>
                 </a>
-
-                <div class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Visitation</div>
                 <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" data-nav-item="schedules">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M17 7h6v16H7v-4m16-8h-6M13 0v3M1 7h16M1 3h16v16H1zm4-3v3m-1 8h2m2 0h6M4 15h2m2 0h6"/></svg>
                     <span>Schedules</span>
                 </a>
+
+                <div class="px-3 pt-4 pb-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Visitation</div>
                 <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" data-nav-item="requests">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M2 4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h20a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1zm7 6a1 1 0 1 0-2 0a1 1 0 0 0 2 0m2 0a3 3 0 1 1-6 0a3 3 0 0 1 6 0m-5.473 7.025l-1.414-1.414A5.5 5.5 0 0 1 8.003 14c1.518 0 2.894.617 3.888 1.61l-1.414 1.415A3.5 3.5 0 0 0 8.002 16c-.967 0-1.84.39-2.475 1.025M13 15V9h2v6zm4 0V9h2v6z" stroke-width="0.3" stroke="currentColor"/></svg>
                     <span>Requests</span>
                 </a>
-                <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                <a href="#" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" data-nav-item="facial-recognition">
                     <svg width="16px" height="16px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.9998 10.5004C15.9998 11.3288 15.5521 12.0004 14.9998 12.0004C14.4475 12.0004 13.9998 11.3288 13.9998 10.5004C13.9998 9.67196 14.4475 9.00039 14.9998 9.00039C15.5521 9.00039 15.9998 9.67196 15.9998 10.5004Z" fill="#FFFFFF"/><path d="M9.99982 10.5004C9.99982 11.3288 9.5521 12.0004 8.99982 12.0004C8.44753 12.0004 7.99982 11.3288 7.99982 10.5004C7.99982 9.67196 8.44753 9.00039 8.99982 9.00039C9.5521 9.00039 9.99982 9.67196 9.99982 10.5004Z" fill="#FFFFFF"/><path fill-rule="evenodd" clip-rule="evenodd" d="M13.2648 2.05116C13.3472 1.64522 13.7431 1.38294 14.149 1.46533C18.3625 2.32056 21.6797 5.63763 22.535 9.85114C22.6173 10.2571 22.3551 10.6529 21.9491 10.7353C21.5432 10.8177 21.1473 10.5555 21.0649 10.1495C20.3295 6.52642 17.4738 3.67075 13.8506 2.93535C13.4447 2.85296 13.1824 2.45709 13.2648 2.05116ZM10.735 2.05121C10.8174 2.45714 10.5551 2.85301 10.1492 2.93541C6.52602 3.6708 3.67032 6.52647 2.93486 10.1496C2.85246 10.5555 2.45659 10.8178 2.05065 10.7354C1.64472 10.653 1.38244 10.2571 1.46484 9.85119C2.32014 5.63769 5.63726 2.32061 9.85079 1.46538C10.2567 1.38299 10.6526 1.64527 10.735 2.05121ZM2.05081 13.2654C2.45675 13.183 2.85262 13.4453 2.93502 13.8512C3.67048 17.4743 6.52618 20.33 10.1493 21.0654C10.5553 21.1478 10.8175 21.5436 10.7351 21.9496C10.6528 22.3555 10.2569 22.6178 9.85095 22.5354C5.63742 21.6802 2.3203 18.3631 1.465 14.1496C1.3826 13.7437 1.64488 13.3478 2.05081 13.2654ZM21.9491 13.2654C22.3551 13.3478 22.6173 13.7437 22.535 14.1496C21.6797 18.3631 18.3625 21.6802 14.149 22.5354C13.7431 22.6178 13.3472 22.3555 13.2648 21.9496C13.1824 21.5436 13.4447 21.1478 13.8506 21.0654C17.4738 20.33 20.3295 17.4743 21.0649 13.8512C21.1473 13.4453 21.5432 13.183 21.9491 13.2654ZM8.39729 15.5538C8.64395 15.221 9.11366 15.1512 9.44643 15.3979C10.1748 15.9377 11.0539 16.2504 11.9998 16.2504C12.9457 16.2504 13.8249 15.9377 14.5532 15.3979C14.886 15.1512 15.3557 15.221 15.6023 15.5538C15.849 15.8865 15.7792 16.3563 15.4464 16.6029C14.474 17.3237 13.2848 17.7504 11.9998 17.7504C10.7148 17.7504 9.52562 17.3237 8.55321 16.6029C8.22044 16.3563 8.15063 15.8865 8.39729 15.5538Z" fill="#FFFFFF"/></svg>
                     <span>Facial Recognition</span>
                 </a>
@@ -48,10 +48,11 @@
                     <span>Reports</span>
                 </a>
                 <a href="{{ route('profile.edit') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>
                     <span>Profile</span>
                 </a>
-                <a href="{{ route('admin.officers.index') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('admin.officers.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                <a href="{{ route('officers.index') }}"
+                    class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('officers.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48"><g fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" stroke-width="0.5" stroke="currentColor"><path d="M13.5 10.097C13.5 7.774 24 6 24 6s10.5 1.774 10.5 4.097c0 3.097-1.91 4.403-1.91 4.403H15.41s-1.91-1.306-1.91-4.403m12.5-.53s-1.467-.534-2-1.067c-.533.533-2 1.067-2 1.067s.4 2.933 2 2.933s2-2.933 2-2.933m5.814 8.713c1.39-1.085 1.174-2.28 1.174-2.28H15.012s-.217 1.195 1.174 2.28a8 8 0 1 0 15.629 0M24 20c2.721 0 4.624-.314 5.952-.766q.047.376.048.766a6 6 0 1 1-11.952-.766c1.329.452 3.23.766 5.952.766"/><path d="m16.879 28l6.477 5.457a1 1 0 0 0 1.288 0L31.121 28S42 31.393 42 35.467V42H6v-6.533C6 31.393 16.879 28 16.879 28m-4.154 9.207a1 1 0 0 1-.725-.961V35h7v1.246a1 1 0 0 1-.725.961l-2.5.715a1 1 0 0 1-.55 0zm20.94-4.082a.17.17 0 0 0-.33 0l-.471 1.52a.174.174 0 0 1-.165.126h-1.526c-.167 0-.237.225-.101.328l1.234.94c.06.046.086.128.063.202l-.471 1.52c-.052.168.13.307.266.204l1.234-.94a.166.166 0 0 1 .204 0l1.234.94c.136.103.318-.036.267-.203l-.472-1.52a.19.19 0 0 1 .063-.203l1.234-.94c.136-.103.066-.328-.101-.328H34.3a.174.174 0 0 1-.165-.125z"/></g></svg>
                     <span>Officers</span>
                 </a>
@@ -62,7 +63,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25A9.75 9.75 0 1021.75 12 9.76 9.76 0 0012 2.25zm0 3a1.5 1.5 0 11-1.5 1.5A1.5 1.5 0 0112 5.25zM9 10.5h6v8.25H9z"/></svg>
                         </div>
                         <div class="text-xs text-gray-600 dark:text-gray-300">
-                            Keep records updated and verified.
+                            Facial recognition replaces QR scanning.
                         </div>
                     </div>
                 </div>
@@ -100,8 +101,6 @@
 
                     <!-- Actions -->
                     <div class="flex items-center gap-2 ml-auto">
-                        <!-- <a href="#" class="hidden sm:inline-flex items-center gap-1 h-9 px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium">Go Pro</a> -->
-
                         <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
                             <span class="sr-only">Announcements</span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a7.5 7.5 0 00-7.5 7.5V12l-1.5 1.5V15h18v-1.5L19.5 12V9.75a7.5 7.5 0 00-7.5-7.5zM8.25 18a3.75 3.75 0 007.5 0h-7.5z"/></svg>
@@ -111,7 +110,7 @@
                         <div class="relative">
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->name ?? 'User' }}"
-                          data-user-role="{{ Auth::user()->role_id ?? 0 }}"
+                          data-user-role="{{ Auth::user()->role_id ?? 1 }}"
                           class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                           aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
                           <span
@@ -144,7 +143,7 @@
                                 
                                 <hr class="border-t border-gray-200 dark:border-gray-700">
                                 
-                                <button id="edit-profile-btn" class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-2">
+                                <button id="edit-profile-btn-template" class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                                     </svg>
@@ -183,290 +182,214 @@
                 </div>
             </header>
 
+            <!-- Main Content -->
             <div class="p-4 sm:p-6">
-                <!-- Analytics Overview -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                    <!-- Line Chart -->
-                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 lg:col-span-2">
-                        <div class="flex items-center justify-between">
-                            <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Weekly Visitor Traffic</div>
-                            <span class="text-[11px] text-gray-500 dark:text-gray-400">Last 7 days</span>
+                <!-- Header Section -->
+                <div class="mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Inmates Management</h1>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage inmates, cells, and assignments</p>
                         </div>
-                        <div class="mt-3">
-                            <svg viewBox="0 0 600 220" class="w-full h-48">
-                                <defs>
-                                    <linearGradient id="lineFill" x1="0" x2="0" y1="0" y2="1">
-                                        <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.25" />
-                                        <stop offset="100%" stop-color="#3B82F6" stop-opacity="0" />
-                                    </linearGradient>
-                                </defs>
-                                <g fill="none" stroke-width="2">
-                                    <path d="M40 170 L100 150 L160 120 L220 140 L280 100 L340 110 L400 90 L460 95 L520 70" stroke="#3B82F6" />
-                                    <path d="M40 170 L100 150 L160 120 L220 140 L280 100 L340 110 L400 90 L460 95 L520 70 L520 200 L40 200 Z" fill="url(#lineFill)" stroke="none" />
-                                </g>
-                                <g stroke="#e5e7eb" class="dark:stroke-gray-800">
-                                    <line x1="40" y1="200" x2="560" y2="200" />
-                                </g>
-                                <g fill="#6b7280" class="dark:fill-gray-400" font-size="10">
-                                    <text x="40" y="210">Mon</text>
-                                    <text x="120" y="210">Tue</text>
-                                    <text x="200" y="210">Wed</text>
-                                    <text x="280" y="210">Thu</text>
-                                    <text x="360" y="210">Fri</text>
-                                    <text x="440" y="210">Sat</text>
-                                    <text x="520" y="210">Sun</text>
-                                </g>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button data-add-inmate class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 5v14m-7-7h14"/>
+                                </svg>
+                                Add Inmate
+                            </button>
+                            <button class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 3v18h18M9 9l6 6m0-6l-6 6"/>
+                                </svg>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 p-4">
+                        <div class="flex items-center">
+                            <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" viewBox="0 0 512 512">
+	                            <path fill="currentColor" d="M185 25v14h142V25zm0 32v14h142V57zm2.512 32c-1.626 7.3-2.512 15-2.512 23c0 48.966 32.654 87 71 87s71-38.034 71-87c0-8-.886-15.7-2.512-23zm21.027 118.72c-22.123 6.853-39.915 18.596-54.614 33.583l-.422.44c30.324 4.354 58.944 6.987 86.484 7.907l-31.45-41.93zm94.92 0l-31.667 42.223c29.804-.46 58.58-3.033 87.186-7.697c-.304-.314-.6-.633-.906-.943c-14.7-14.987-32.49-26.73-54.613-33.584zm-67.437 6.645L256 241.002l19.977-26.637A76.8 76.8 0 0 1 256 217a76.8 76.8 0 0 1-19.977-2.635zm-106.914 60.05c-3.84 6.633-7.324 13.557-10.493 20.685l28.81 7.203c110.47 15.786 106.675 15.786 217.147 0l28.81-7.203c-3.15-7.085-6.61-13.97-10.423-20.565c-79.61 15.326-159.822 15.182-253.85-.12zm-22.905 54.69a326 326 0 0 0-1.533 5.303a363 363 0 0 0-4.926 19.975L135 363.195v-26.89l-28.795-7.2zm299.59 0l-28.795 7.2v26.37l34.857-10.048a360 360 0 0 0-4.53-18.22a326 326 0 0 0-1.532-5.302M153 339.46v27.95c73.738 14.2 132.264 14.196 206-.004V339.46c-96.875 13.752-109.125 13.752-206 0m265.188 48.806L377 400.14v27.055l44.227-11.056a529 529 0 0 0-3.04-27.874zM93.59 389.95a532 532 0 0 0-2.817 26.19L135 427.194v-26.89zM153 404.04v27.173c88.597 14.452 132.463 14.508 206 .205v-27.38c-72.118 13.164-133.882 13.164-206 0zm-64.152 48.726c-.356 14.784-.125 26.056.027 34.234H135v-22.695l-46.152-11.54zm334.304 0L377 464.306V487h46.125c.152-8.178.383-19.45.027-34.234M153 467.696V487h206v-18.94c-71.098 13.194-121.477 13.04-206-.365z" stroke-width="13" stroke="currentColor" />
                             </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Inmates</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="total-inmates">0</p>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Donut -->
-                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
-                        <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Request Status</div>
-                        <div class="mt-3 flex items-center justify-center">
-                            <svg viewBox="0 0 120 120" class="h-40 w-40 -rotate-90">
-                                <circle cx="60" cy="60" r="48" stroke="#e5e7eb" class="dark:stroke-gray-800" stroke-width="16" fill="none" />
-                                <circle cx="60" cy="60" r="48" stroke="#22c55e" stroke-width="16" fill="none" stroke-dasharray="302" stroke-dashoffset="160" />
-                                <circle cx="60" cy="60" r="48" stroke="#f59e0b" stroke-width="16" fill="none" stroke-dasharray="302" stroke-dashoffset="250" />
-                                <circle cx="60" cy="60" r="48" stroke="#ef4444" stroke-width="16" fill="none" stroke-dasharray="302" stroke-dashoffset="285" />
+                    
+                    <div class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 p-4">
+                        <div class="flex items-center">
+                            <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="currentColor">
+	                                <path fill="#00ff4b" fill-rule="evenodd" d="M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18m-.232-5.36l5-6l-1.536-1.28l-4.3 5.159l-2.225-2.226l-1.414 1.414l3 3l.774.774z" clip-rule="evenodd" stroke-width="0.3" stroke="#00ff4b" />
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="active-inmates">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 p-4">
+                        <div class="flex items-center">
+                            <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600 dark:text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Released</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="released-inmates">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 p-4">
+                        <div class="flex items-center">
+                            <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600 dark:text-red-400" viewBox="0 0 48 48">
+	                           <path fill="currentColor" fill-rule="evenodd" d="M16.807 4.295c-.483 1.12-1.141 2.777-1.565 4.428c-3.619.2-6.246.51-8.084.803c-2.861.456-4.8 2.77-5.076 5.527C1.805 17.82 1.5 22.1 1.5 27.5c0 5.401.305 9.68.582 12.447c.275 2.756 2.215 5.07 5.076 5.527c3.08.492 8.374 1.026 16.842 1.026s13.761-.534 16.842-1.026c2.861-.456 4.8-2.77 5.076-5.527c.277-2.768.582-7.046.582-12.447s-.305-9.68-.582-12.447c-.275-2.756-2.215-5.07-5.076-5.527c-1.838-.294-4.465-.602-8.083-.803c-.424-1.651-1.082-3.309-1.565-4.428c-.658-1.524-2.025-2.759-3.832-3.043A22 22 0 0 0 24 1c-1.358 0-2.494.116-3.361.252c-1.807.284-3.174 1.52-3.832 3.043M24 5c-1.13 0-2.058.096-2.74.204c-.288.045-.598.253-.78.677a32 32 0 0 0-1.023 2.674q2.1-.054 4.543-.055q2.443.001 4.544.055a32 32 0 0 0-1.022-2.674c-.183-.424-.493-.632-.782-.677A18 18 0 0 0 24 5m-2.3 32.36c-.94-.127-1.545-.933-1.58-1.882c-.033-.905-.07-2.225-.094-4.003a176 176 0 0 1-4.003-.094c-.949-.035-1.755-.64-1.882-1.58A17 17 0 0 1 14 27.5c0-.958.061-1.719.14-2.301c.127-.94.933-1.545 1.882-1.58c.905-.033 2.225-.07 4.003-.094c.024-1.778.061-3.098.094-4.003c.035-.949.64-1.755 1.58-1.882c.582-.079 1.343-.14 2.301-.14s1.719.061 2.301.14c.94.127 1.545.933 1.58 1.882c.033.905.07 2.225.094 4.003c1.778.024 3.098.061 4.003.094c.949.035 1.755.64 1.882 1.58c.079.582.14 1.343.14 2.301s-.061 1.719-.14 2.301c-.127.94-.933 1.545-1.882 1.58c-.905.033-2.225.07-4.003.094a176 176 0 0 1-.094 4.003c-.035.949-.64 1.755-1.58 1.882c-.582.079-1.343.14-2.301.14s-1.719-.061-2.301-.14Z" clip-rule="evenodd" stroke-width="0.5" stroke="currentColor" />
                             </svg>
-                        </div>
-                        <div class="mt-2 grid grid-cols-3 gap-2 text-[11px] text-gray-600 dark:text-gray-300">
-                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-green-500"></span>Approved</div>
-                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-amber-500"></span>Pending</div>
-                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-red-500"></span>Rejected</div>
-                        </div>
-                    </div>
-                </div>
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
-                        <div class="flex items-center justify-between">
-                            <div class="text-sm text-gray-600 dark:text-gray-300">Total Inmates</div>
-                            <span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Live</span>
-                        </div>
-                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50" id="total-inmates">0</div>
-                    </div>
-                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
-                        <div class="text-sm text-gray-600 dark:text-gray-300">Approved Visits</div>
-                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">0</div>
-                    </div>
-                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
-                        <div class="text-sm text-gray-600 dark:text-gray-300">Pending Requests</div>
-                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">0</div>
-                    </div>
-                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
-                        <div class="text-sm text-gray-600 dark:text-gray-300">Today's Visits</div>
-                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">0</div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <a href="{{ url('/visitation/request/visitor') }}" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
-                        <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a.75.75 0 01.75.75V12h6.75a.75.75 0 010 1.5H12.75V20a.75.75 0 01-1.5 0v-6.5H4.5a.75.75 0 010-1.5h6.75V5.25A.75.75 0 0112 4.5z"/></svg>
                             </div>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">New Visitation Request</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400">Create manual or automatic</div>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="#" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
-                        <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a9.75 9.75 0 019.75 9.75h-1.5A8.25 8.25 0 0012 3.75V2.25zM3 12A9 9 0 0012 21v-1.5A7.5 7.5 0 014.5 12H3z"/></svg>
-                            </div>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Check-in Visitor</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400">Record arrival</div>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="#" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
-                        <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M6.75 5.25A2.25 2.25 0 019 3h6a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0115 21H9a2.25 2.25 0 01-2.25-2.25V5.25zM9 6h6v12H9V6z"/></svg>
-                            </div>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Register Inmate</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400">Add new record</div>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="#" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
-                        <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a7.5 7.5 0 100 15 7.5 7.5 0 000-15zm0 3a4.5 4.5 0 013.89 2.25H8.11A4.5 4.5 0 0112 7.5z"/></svg>
-                            </div>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Run Face Scan</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400">Verify identity</div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Main Panels -->
-                <div class="mt-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
-                    <!-- Recent Requests -->
-                    <div class="xl:col-span-2 rounded-xl bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800">
-                        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                            <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Recent Visitation Requests</div>
-                            <a href="#" class="text-xs text-blue-500 hover:underline">View all</a>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-600 dark:text-gray-300">
-                                    <tr>
-                                        <th class="text-left font-medium px-4 py-2">Visitor</th>
-                                        <th class="text-left font-medium px-4 py-2">Inmate</th>
-                                        <th class="text-left font-medium px-4 py-2">Date</th>
-                                        <th class="text-left font-medium px-4 py-2">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200">
-                                    <tr>
-                                        <td class="px-4 py-2">Juan Dela Cruz</td>
-                                        <td class="px-4 py-2">R. Santos</td>
-                                        <td class="px-4 py-2">2025-09-02 10:00</td>
-                                        <td class="px-4 py-2"><span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Pending</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2">Maria I.</td>
-                                        <td class="px-4 py-2">J. Dizon</td>
-                                        <td class="px-4 py-2">2025-09-02 13:30</td>
-                                        <td class="px-4 py-2"><span class="inline-flex items-center rounded-full bg-green-500/10 text-green-500 px-2 py-0.5 text-[11px]">Approved</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2">A. Lopez</td>
-                                        <td class="px-4 py-2">K. Reyes</td>
-                                        <td class="px-4 py-2">2025-09-03 09:00</td>
-                                        <td class="px-4 py-2"><span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-2 py-0.5 text-[11px]">Rejected</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Upcoming Schedules -->
-                    <div class="rounded-xl bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800">
-                        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 text-sm font-medium text-gray-900 dark:text-gray-50">Upcoming Schedules</div>
-                        <div class="p-4 space-y-3 text-sm text-gray-700 dark:text-gray-200">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium">Wed, 3 PM</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Group visitation - Hall A</div>
-                                </div>
-                                <span class="inline-flex items-center rounded-full bg-amber-500/10 text-amber-500 px-2 py-0.5 text-[11px]">Capacity 70%</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium">Fri, 10 AM</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Family visit - Hall B</div>
-                                </div>
-                                <span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Open</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium">Sat, 1 PM</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Legal counsel - Room 2</div>
-                                </div>
-                                <span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-2 py-0.5 text-[11px]">Full</span>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Medical</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="medical-inmates">0</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bar Chart + Progress -->
-                <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <!-- Bar Chart -->
-                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 lg:col-span-2">
-                        <div class="flex items-center justify-between">
-                            <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Monthly Visits</div>
-                            <span class="text-[11px] text-gray-500 dark:text-gray-400">2025</span>
-                        </div>
-                        <div class="mt-3">
-                            <svg viewBox="0 0 600 220" class="w-full h-48">
-                                <g fill="#3B82F6">
-                                    <rect x="40" y="120" width="28" height="80" rx="4"/>
-                                    <rect x="90" y="100" width="28" height="100" rx="4"/>
-                                    <rect x="140" y="140" width="28" height="60" rx="4"/>
-                                    <rect x="190" y="90" width="28" height="110" rx="4"/>
-                                    <rect x="240" y="130" width="28" height="70" rx="4"/>
-                                    <rect x="290" y="70" width="28" height="130" rx="4"/>
-                                    <rect x="340" y="110" width="28" height="90" rx="4"/>
-                                    <rect x="390" y="95" width="28" height="105" rx="4"/>
-                                    <rect x="440" y="150" width="28" height="50" rx="4"/>
-                                    <rect x="490" y="125" width="28" height="75" rx="4"/>
-                                </g>
-                                <g fill="#6b7280" class="dark:fill-gray-400" font-size="10">
-                                    <text x="40" y="210">Jan</text>
-                                    <text x="90" y="210">Feb</text>
-                                    <text x="140" y="210">Mar</text>
-                                    <text x="190" y="210">Apr</text>
-                                    <text x="240" y="210">May</text>
-                                    <text x="290" y="210">Jun</text>
-                                    <text x="340" y="210">Jul</text>
-                                    <text x="390" y="210">Aug</text>
-                                    <text x="440" y="210">Sep</text>
-                                    <text x="490" y="210">Oct</text>
-                                </g>
-                            </svg>
-                        </div>
+                <!-- Cells Overview -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Cell Occupancy</h2>
+                        <button id="view-all-cells-btn" class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer">
+                            View All Cells
+                        </button>
                     </div>
+                    <div id="cells-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Cells will be dynamically populated here -->
+                    </div>
+                </div>
 
-                    <!-- Progress Cards -->
-                    <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
-                        <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Facility Capacity</div>
-                        <div class="mt-3 space-y-3">
-                            <div>
-                                <div class="flex justify-between text-xs text-gray-600 dark:text-gray-300"><span>Hall A</span><span>70%</span></div>
-                                <div class="h-2 rounded bg-gray-100 dark:bg-gray-800 mt-1">
-                                    <div class="h-2 rounded bg-blue-500" style="width:70%"></div>
-                                </div>
+                <!-- Search and Filters -->
+                <div class="mb-6">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M10.5 3.75a6.75 6.75 0 105.196 11.163l3.646 3.646a.75.75 0 101.06-1.06l-3.646-3.646A6.75 6.75 0 0010.5 3.75zM6 10.5a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/>
+                                </svg>
+                                <input id="inmates-search" type="text" placeholder="Search inmates by name, crime, or cell..." 
+                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                            <div>
-                                <div class="flex justify-between text-xs text-gray-600 dark:text-gray-300"><span>Hall B</span><span>45%</span></div>
-                                <div class="h-2 rounded bg-gray-100 dark:bg-gray-800 mt-1">
-                                    <div class="h-2 rounded bg-amber-500" style="width:45%"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between text-xs text-gray-600 dark:text-gray-300"><span>Room 2</span><span>90%</span></div>
-                                <div class="h-2 rounded bg-gray-100 dark:bg-gray-800 mt-1">
-                                    <div class="h-2 rounded bg-red-500" style="width:90%"></div>
-                                </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="inmates-status-filter" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Released">Released</option>
+                                <option value="Transferred">Transferred</option>
+                                <option value="Medical">Medical</option>
+                            </select>
+                            <div class="relative">
+                                <select id="inmates-cell-filter" class="appearance-none pr-8 pl-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Cells</option>
+                                </select>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none h-4 w-4 absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7 10l5 5 5-5z"/>
+                                </svg>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Announcements / Info -->
-                <div class="mt-4 rounded-xl bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800">
-                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                        <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Announcements</div>
-                        <button class="text-xs text-blue-500 hover:underline">Mark all as read</button>
+                <!-- Desktop Table View -->
+                <div class="hidden sm:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Inmate</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Crime & Sentence</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cell & Admission</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inmates-table-body" class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Empty state by default -->
+                                <tr>
+                                    <td colspan="5" class="px-4 py-12 text-center">
+                                        <div class="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
+                                            <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="9" cy="7" r="4"/>
+                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                                                </svg>
+                                            </div>
+                                            <div class="text-center px-4 sm:px-0">
+                                                <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100">No Inmates Added Yet</h3>
+                                                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">There are no inmates in the system yet. Use the "Add Inmate" button above to get started.</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="p-4 space-y-3 text-sm text-gray-700 dark:text-gray-200">
-                        <div class="flex gap-3">
-                            <div class="h-6 w-6 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a9.75 9.75 0 019.75 9.75H18l3.75 3.75L18 19.5v-3h-6v-3H5.25A9.75 9.75 0 0112 2.25z"/></svg>
+                </div>
+
+                <!-- Mobile Cards View -->
+                <div class="sm:hidden space-y-4" id="inmates-cards-mobile">
+                    <!-- Empty state by default for mobile -->
+                    <div class="text-center py-8 sm:py-12">
+                        <div class="flex flex-col items-center justify-center space-y-4 sm:space-y-6 px-4 sm:px-0">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
                             </div>
-                            <div>
-                                Updated visitation hours effective next week. Please check schedules.
+                            <div class="text-center">
+                                <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100">No Inmates Added Yet</h3>
+                                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">There are no inmates in the system yet. Use the "Add Inmate" button above to get started.</p>
                             </div>
                         </div>
-                        <div class="flex gap-3">
-                            <div class="h-6 w-6 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5zM12 7.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V8.25A.75.75 0 0112 7.5zm0 9a1.125 1.125 0 111.125-1.125A1.125 1.125 0 0112 16.5z"/></svg>
-                            </div>
-                            <div>
-                                Bring a valid ID for verification. Face scan will be required at entry.
-                            </div>
-                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="mt-6 flex items-center justify-between">
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">97</span> results
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                            Previous
+                        </button>
+                        <button class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 cursor-pointer">
+                            1
+                        </button>
+                        <button class="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            2
+                        </button>
+                        <button class="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            3
+                        </button>
+                        <button class="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            Next
+                        </button>
                     </div>
                 </div>
             </div>
@@ -475,4 +398,5 @@
 
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/profile/edit-profile-modal.js')
+    @vite('resources/js/inmates/inmates.js')
 </x-app-layout>
