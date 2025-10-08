@@ -173,11 +173,15 @@ export function initializeInmateCells() {
 async function openCellsManagementModal() {
   const isMobile = () => window.innerWidth < 640; // sm breakpoint in Tailwind
   const width = isMobile() ? '95vw' : '80rem'; // Wider modal for better content display
+  // Scope by current page gender
+  const genderRoot = document.querySelector('[data-current-gender]');
+  const genderValue = (genderRoot?.getAttribute('data-current-gender') || '').toLowerCase();
+  const pageGender = genderValue === 'female' ? 'Female' : 'Male';
 
   // Load cells data from API
   let cells = [];
   try {
-    const response = await fetchCells();
+    const response = await fetchCells('', pageGender, '');
     if (response.success) {
       cells = response.data;
       // Cache the data for offline use
@@ -1231,8 +1235,8 @@ function getCellById(cellId) {
 /**
  * Refresh cells data and update the UI
  */
-function refreshCellsData() {
-  return fetchCells()
+function refreshCellsData(typeFilter = '') {
+  return fetchCells('', typeFilter, '')
     .then(response => {
       if (response.success) {
         // Update local cache

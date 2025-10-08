@@ -4,6 +4,7 @@ import { saveDraft, loadDraft, clearDraft, toDraftFromModalValue } from './compo
 import InmateApiClient from './components/inmateApi.js';
 import { initializeInmateCells } from './components/inmate-cells.js';
 import { createCellCounterManager } from './components/cell-counter-manager.js';
+// Female-specific entrypoint is loaded separately on the female page
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
 // - Cell management and capacity tracking
@@ -11,11 +12,47 @@ import { createCellCounterManager } from './components/cell-counter-manager.js';
 // - Real-time updates for both desktop and mobile views
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Determine current page gender from Blade root
+  const genderRoot = document.querySelector('[data-current-gender]');
+  const genderValue = (genderRoot?.getAttribute('data-current-gender') || '').toLowerCase();
+  const pageGender = genderValue === 'female' ? 'Female' : 'Male';
   // Get containers for desktop and mobile views
   const tableBody = document.querySelector('#inmates-table-body');
   const mobileCardsContainer = document.querySelector('#inmates-cards-mobile');
   const addButtons = document.querySelectorAll('[data-add-inmate]');
   const cellsContainer = document.querySelector('#cells-container');
+  // Gender toggle switch (mirror of female entrypoint logic)
+  const genderWrapper = document.querySelector('[data-gender-toggle]');
+  const genderToggle = /** @type {HTMLInputElement|null} */(document.querySelector('[data-gender-toggle-input]'));
+  const genderLabel = /** @type {HTMLSpanElement|null} */(document.querySelector('[data-gender-toggle-label]'));
+  const routeContainer = document.querySelector('[data-route-admin-inmates-male]');
+  const maleUrl = routeContainer?.getAttribute('data-route-admin-inmates-male') || '/admin/inmates';
+  const femaleUrl = routeContainer?.getAttribute('data-route-admin-inmates-female') || '/admin/inmates/female';
+  const currentGenderAttr = (routeContainer?.getAttribute('data-current-gender') || '').toLowerCase();
+
+  if (genderWrapper && genderToggle && genderLabel) {
+    if (currentGenderAttr === 'male') {
+      genderLabel.textContent = 'Switch to Female';
+      genderToggle.checked = false;
+    } else if (currentGenderAttr === 'female') {
+      genderLabel.textContent = 'Switch to Male';
+      genderToggle.checked = true;
+    } else {
+      genderLabel.textContent = 'Switch to Female';
+      genderToggle.checked = false;
+    }
+
+    genderToggle.addEventListener('change', () => {
+      // Immediate label feedback
+      genderLabel.textContent = (currentGenderAttr === 'male') ? 'Switch to Female' : 'Switch to Male';
+      // Navigate to opposite route
+      const target = (currentGenderAttr === 'male') ? femaleUrl : maleUrl;
+      const targetPath = new URL(target, window.location.origin).pathname;
+      if (window.location.pathname !== targetPath) {
+        window.location.assign(target);
+      }
+    });
+  }
   
   // Detect if we're on mobile
   const isMobile = () => window.innerWidth < 640; // sm breakpoint in Tailwind
@@ -94,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchCellsFromDatabase() {
     try {
       // Fetch cells data
-      const response = await fetch('/api/cells', {
+      const response = await fetch(`/api/cells?type=${encodeURIComponent(pageGender)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -181,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (query) params.append('search', query);
       if (status) params.append('status', status);
       if (cellId) params.append('cell_id', cellId);
+      params.append('gender', pageGender);
       params.append('per_page', '50');
 
       const url = `/api/inmates?${params.toString()}`;
@@ -289,14 +327,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Fetch one page of cells with limit/offset and small cache
-  const cellsPageCache = new Map(); // key: offset -> array of cells
+  const cellsPageCache = new Map(); // key: gender:offset:limit -> array of cells
   async function fetchCellsPage(offset = 0, limit = 4) {
-    const cacheKey = `${offset}:${limit}`;
+    const cacheKey = `${pageGender}:${offset}:${limit}`;
     if (cellsPageCache.has(cacheKey)) {
       return cellsPageCache.get(cacheKey);
     }
 
-    const url = `/api/cells?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`;
+    const url = `/api/cells?type=${encodeURIComponent(pageGender)}&limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -319,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Refresh cell data from backend
   async function refreshCellData() {
     try {
-      const response = await fetch('/api/cells', {
+      const response = await fetch(`/api/cells?type=${encodeURIComponent(pageGender)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -2781,8 +2819,8 @@ function formatAddress(i) {
         mobileCardsContainer.innerHTML = '<div class="text-center py-8 text-gray-500">Loading inmates...</div>';
       }
 
-      // Fetch inmates from backend
-      const response = await inmateApi.getAll();
+      // Fetch inmates from backend scoped to page gender
+      const response = await inmateApi.getAll({ gender: pageGender }, 1, 50);
       
       if (response.success) {
         inmates = response.data.data || [];

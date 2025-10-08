@@ -61,6 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function initializeDashboardInmateCount() {
   try {
+    // Check if inmate count elements exist (only on inmates pages)
+    const totalInmatesElement = document.getElementById('total-inmates');
+    if (!totalInmatesElement) {
+      console.log('Inmate count elements not found - skipping inmate count initialization');
+      return;
+    }
+    
     console.log('Initializing dashboard inmate count...');
     
     // Fetch initial inmate count
@@ -81,6 +88,13 @@ async function initializeDashboardInmateCount() {
  */
 async function fetchAndUpdateInmateCount() {
   try {
+    // Check if inmate count elements exist (only on inmates pages)
+    const totalInmatesElement = document.getElementById('total-inmates');
+    if (!totalInmatesElement) {
+      console.log('Inmate count elements not found - skipping inmate count fetch');
+      return;
+    }
+    
     console.log('Fetching inmate statistics...');
     
     const response = await fetch('/api/inmates/statistics', {
@@ -99,14 +113,9 @@ async function fetchAndUpdateInmateCount() {
       
       if (data.success && data.data) {
         // Update the total inmates count on dashboard
-        const totalInmatesElement = document.getElementById('total-inmates');
-        if (totalInmatesElement) {
-          const count = data.data.total || 0;
-          totalInmatesElement.textContent = count;
-          console.log('Dashboard inmate count updated to:', count);
-        } else {
-          console.error('Element with id "total-inmates" not found');
-        }
+        const count = data.data.total || 0;
+        totalInmatesElement.textContent = count;
+        console.log('Dashboard inmate count updated to:', count);
       } else {
         console.error('Invalid API response structure:', data);
       }

@@ -44,6 +44,8 @@ Route::get('/dashboard', function () {
 Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/officers', [AdminController::class, 'officers'])->name('admin.officers.index');
     Route::get('/inmates', [AdminController::class, 'inmates'])->name('admin.inmates.index');
+    // Female inmates static view
+    Route::view('/inmates/female', 'admin.inmates.female.inmates-female')->name('admin.inmates.female');
     Route::post('/officers', [AdminController::class, 'storeOfficer'])->name('admin.officers.store');
     Route::get('/officers/list', [AdminController::class, 'listOfficers'])->name('admin.officers.list');
     Route::patch('/officers/{user:user_id}', [AdminController::class, 'updateOfficer'])->name('admin.officers.update');

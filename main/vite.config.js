@@ -13,7 +13,8 @@ export default defineConfig({
                 'resources/js/dashboard/home.js',
                 'resources/js/officers/officers.js',
                 'resources/js/profile/edit-profile-modal.js',
-                'resources/js/inmates/inmates.js'
+                'resources/js/inmates/inmates.js',
+                'resources/js/inmates/components/inmates-female.js'
             ],
             refresh: true,
         }),

@@ -290,6 +290,9 @@ function renderSupervisionCarousel({ total, limit, offset, initialSupervision },
     const p = parseInt(btn.getAttribute('data-page')) || 1;
     goToPage(p);
   });
+
+  // Attach modal interactions to the dynamically created cards
+  attachModalInteractions();
 }
 
 // Render supervision in a responsive grid (no carousel)
@@ -300,6 +303,9 @@ function renderSupervisionGrid(supervision, container) {
     const supervisionCard = createSupervisionCard(item, index);
     container.innerHTML += supervisionCard;
   });
+  
+  // Attach modal interactions to the dynamically created cards
+  attachModalInteractions();
 }
 
 // Create individual supervision card
@@ -377,6 +383,136 @@ function renderEmptyState(container) {
       </div>
     </div>
   `;
+}
+
+// Attach modal interactions to dynamically created cards
+function attachModalInteractions() {
+  if (typeof window === 'undefined' || !window.Swal) {
+    console.warn('SweetAlert2 not available for modal interactions');
+    return;
+  }
+
+  // Shared SweetAlert2 color palette (aligned with supervision-modal.js)
+  const PALETTE = {
+    primary: '#3B82F6',
+    danger: '#EF4444',
+    darkBg: '#111827',
+  };
+
+  function isDarkMode() {
+    return document.documentElement.classList.contains('dark')
+      || window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  function themedConfirm(options = {}) {
+    const base = {
+      showCancelButton: true,
+      confirmButtonColor: options.variant === 'danger' ? PALETTE.danger : PALETTE.primary,
+      cancelButtonColor: PALETTE.darkBg,
+    };
+    if (isDarkMode()) {
+      base.background = PALETTE.darkBg;
+      base.color = '#E5E7EB'; // gray-200 for text on dark
+    }
+    return window.Swal.fire({
+      ...base,
+      ...options,
+    });
+  }
+
+  function themedToast(options = {}) {
+    const mixin = window.Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 1600,
+    });
+    return mixin.fire(options);
+  }
+
+  // Download confirmation for supervision manuals
+  document.querySelectorAll('[data-action="download"]').forEach((btn) => {
+    // Remove existing listeners to prevent duplicates
+    btn.removeEventListener('click', handleDownloadClick);
+    btn.addEventListener('click', handleDownloadClick);
+  });
+
+  function handleDownloadClick(e) {
+    e.preventDefault();
+    const card = e.target.closest('article');
+    const title = card?.querySelector('h3')?.textContent || 'Manual';
+    
+    themedConfirm({
+      title: 'Start download?',
+      text: `You are about to download "${title}" as PDF.`,
+      icon: 'question',
+      confirmButtonText: 'Download',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const opts = {
+          title: 'Downloading...',
+          timer: 1200,
+          timerProgressBar: true,
+          didOpen: () => { window.Swal.showLoading(); },
+        };
+        if (isDarkMode()) {
+          opts.background = PALETTE.darkBg;
+          opts.color = '#E5E7EB';
+        }
+        window.Swal.fire(opts).then(() => {
+          themedToast({
+            icon: 'success',
+            title: 'Download started!',
+            background: isDarkMode() ? PALETTE.darkBg : '#fff',
+            color: isDarkMode() ? '#E5E7EB' : '#111827',
+            iconColor: PALETTE.primary,
+          });
+        });
+      }
+    });
+  }
+
+  // View button functionality
+  document.querySelectorAll('button:not([data-action="download"])').forEach((btn) => {
+    const text = btn.textContent.trim();
+    if (text === 'View') {
+      // Remove existing listeners to prevent duplicates
+      btn.removeEventListener('click', handleViewClick);
+      btn.addEventListener('click', handleViewClick);
+    }
+  });
+
+  function handleViewClick(e) {
+    e.preventDefault();
+    const card = e.target.closest('article');
+    const title = card?.querySelector('h3')?.textContent || 'Manual';
+    const description = card?.querySelector('p')?.textContent || 'No description available';
+    
+    themedConfirm({
+      title: title,
+      text: description,
+      icon: 'info',
+      confirmButtonText: 'OK',
+      showCancelButton: false,
+    });
+  }
+
+  // Toast when opening create manual (if button exists)
+  const createBtn = document.querySelector('[data-modal-target="createManualModal"]');
+  if (createBtn) {
+    createBtn.removeEventListener('click', handleCreateManualClick);
+    createBtn.addEventListener('click', handleCreateManualClick);
+  }
+
+  function handleCreateManualClick() {
+    themedToast({
+      icon: 'info',
+      title: 'Open the form to create a manual',
+      background: isDarkMode() ? PALETTE.darkBg : '#fff',
+      color: isDarkMode() ? '#E5E7EB' : '#111827',
+      iconColor: PALETTE.primary,
+    });
+  }
 }
 
 // Refresh supervision data
