@@ -622,16 +622,16 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs text-gray-300 mb-1">Gender *</label>
-                <select id="i-gender" class="w-full appearance-none rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm pr-8">
-                  <option value="">Select Gender</option>
-                  <option value="Male" ${inmate.gender === 'Male' ? 'selected' : ''}>Male</option>
-                  <option value="Female" ${inmate.gender === 'Female' ? 'selected' : ''}>Female</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                  <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path>
+                <div class="w-full rounded-md bg-gray-700/60 border border-gray-600 text-gray-300 px-3 py-2 text-sm flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ${pageGender === 'Male' ? 'text-blue-400' : 'text-pink-400'}" viewBox="0 0 24 24" fill="currentColor">
+                    ${pageGender === 'Male' ? 
+                      '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>' :
+                      '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>'
+                    }
                   </svg>
+                  <span class="font-medium">${pageGender}</span>
                 </div>
+                <input type="hidden" id="i-gender" value="${pageGender}">
               </div>
               <div>
                 <label class="block text-xs text-gray-300 mb-1">Admission Date *</label>
@@ -927,20 +927,8 @@ document.addEventListener('DOMContentLoaded', () => {
           updateAge();
         }
         
-        // Add gender change listener to update cell options
-        const genderSelect = document.getElementById('i-gender');
-        const cellSelect = document.getElementById('i-cell');
-        
-        if (genderSelect && cellSelect) {
-          genderSelect.addEventListener('change', (e) => {
-            const selectedGender = e.target.value;
-            const currentCellId = cellSelect.value;
-            
-            // Update cell options based on gender
-            cellSelect.innerHTML = '<option value="">Select Cell</option>' + 
-              generateCellOptionsForGender(selectedGender, currentCellId);
-          });
-        }
+        // Gender is now fixed based on current page, no need for change listener
+        // Cell options are already generated with the correct gender
 
         // Initialize dynamic form elements
         initializePointsHistory();

@@ -28,14 +28,6 @@ const SORT_OPTIONS = {
 };
 
 const FILTER_CATEGORIES = {
-  type: {
-    label: 'Type',
-    options: [
-      { value: '', label: 'All Types' },
-      { value: 'Male', label: 'Male' },
-      { value: 'Female', label: 'Female' }
-    ]
-  },
   status: {
     label: 'Status',
     options: [
