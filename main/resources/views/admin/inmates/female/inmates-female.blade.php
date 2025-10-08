@@ -182,53 +182,60 @@
                 <!-- Header Section -->
                 <div class="mb-6">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                Inmates Management
-                                <span class="inline-flex items-center gap-1 align-middle text-xs font-medium px-2 py-0.5 bg-pink-100 text-pink-800 dark:bg-pink-800 dark:text-pink-100 rounded-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-pink-600 dark:text-pink-400" viewBox="0 0 24 24" aria-hidden="true">
-                                        <g fill="none" fill-rule="evenodd">
-                                          <path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
-                                          <path fill="currentColor" d="M7 9.5a7.5 7.5 0 1 1 2.942 5.957l-1.788 1.787L9.58 18.67a1 1 0 1 1-1.414 1.414L6.74 18.659l-2.12 2.12a1 1 0 0 1-1.414-1.415l2.12-2.12l-1.403-1.403a1 1 0 1 1 1.414-1.414L6.74 15.83l1.79-1.79A7.47 7.47 0 0 1 7 9.5M14.5 4a5.5 5.5 0 1 0 0 11a5.5 5.5 0 0 0 0-11" />
-                                        </g>
-                                    </svg>
-                                    <span>Female</span>
-                                </span>
-                            </h1>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage female inmates, cells, and assignments</p>
-                        </div>
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <div class="inline-flex items-center cursor-pointer" data-gender-toggle>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" data-gender-toggle-input checked />
-                                    <div class="inline-block align-middle relative w-11 h-6 
-                                        bg-sky-500 
-                                        peer-focus:outline-none 
-                                        peer-focus:ring-4 
-                                        peer-focus:ring-pink-300 
-                                        dark:peer-focus:ring-pink-800 
-                                        dark:bg-sky-700 
-                                        rounded-full 
-                                        peer-checked:bg-pink-700 
-                                        dark:peer-checked:bg-pink-700
-                                        peer-checked:after:translate-x-full 
-                                        rtl:peer-checked:after:-translate-x-full 
-                                        peer-checked:after:border-white 
-                                        after:content-[''] 
-                                        after:absolute 
-                                        after:top-[2px] 
-                                        after:start-[2px] 
-                                        after:bg-white 
-                                        after:border-gray-300 
-                                        after:border 
-                                        after:rounded-full 
-                                        after:h-5 
-                                        after:w-5 
-                                        after:transition-all 
-                                        dark:border-gray-600"></div>
-                                    <span class="ms-3 text-sm font-medium text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-md align-middle pointer-events-none" data-gender-toggle-label>Switch to Female</span>
-                                </label>
+                        <div class="flex-1">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                <div class="flex-1">
+                                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                        Inmates Management
+                                        <span class="inline-flex items-center gap-1 align-middle text-xs font-medium px-2 py-0.5 bg-pink-100 text-pink-800 dark:bg-pink-800 dark:text-pink-100 rounded-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-pink-600 dark:text-pink-400" viewBox="0 0 24 24" aria-hidden="true">
+                                                <g fill="none" fill-rule="evenodd">
+                                                  <path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
+                                                  <path fill="currentColor" d="M7 9.5a7.5 7.5 0 1 1 2.942 5.957l-1.788 1.787L9.58 18.67a1 1 0 1 1-1.414 1.414L6.74 18.659l-2.12 2.12a1 1 0 0 1-1.414-1.415l2.12-2.12l-1.403-1.403a1 1 0 1 1 1.414-1.414L6.74 15.83l1.79-1.79A7.47 7.47 0 0 1 7 9.5M14.5 4a5.5 5.5 0 1 0 0 11a5.5 5.5 0 0 0 0-11" />
+                                                </g>
+                                            </svg>
+                                            <span>Female</span>
+                                        </span>
+                                    </h1>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage female inmates, cells, and assignments</p>
+                                </div>
                             </div>
+                        </div>
+                                <!-- Mobile: Toggle above title, Desktop: Toggle inline with title -->
+                                <div class="flex justify-start mb-3 sm:mb-0 sm:mr-4">
+                                    <div class="inline-flex items-center cursor-pointer" data-gender-toggle>
+                                        <label class="inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" data-gender-toggle-input checked />
+                                            <div class="inline-block align-middle relative w-11 h-6 
+                                                bg-sky-500 
+                                                peer-focus:outline-none 
+                                                peer-focus:ring-4 
+                                                peer-focus:ring-pink-300 
+                                                dark:peer-focus:ring-pink-800 
+                                                dark:bg-sky-700 
+                                                rounded-full 
+                                                peer-checked:bg-pink-700 
+                                                dark:peer-checked:bg-pink-700
+                                                peer-checked:after:translate-x-full 
+                                                rtl:peer-checked:after:-translate-x-full 
+                                                peer-checked:after:border-white 
+                                                after:content-[''] 
+                                                after:absolute 
+                                                after:top-[2px] 
+                                                after:start-[2px] 
+                                                after:bg-white 
+                                                after:border-gray-300 
+                                                after:border 
+                                                after:rounded-full 
+                                                after:h-5 
+                                                after:w-5 
+                                                after:transition-all 
+                                                dark:border-gray-600"></div>
+                                            <span class="ms-3 text-sm font-medium text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-md align-middle pointer-events-none" data-gender-toggle-label>Switch to Female</span>
+                                        </label>
+                                    </div>
+                                </div>
+                        <div class="flex flex-col sm:flex-row gap-2">
                             <button data-add-inmate class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 5v14m-7-7h14"/>

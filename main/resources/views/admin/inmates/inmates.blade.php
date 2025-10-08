@@ -182,50 +182,57 @@
                 <!-- Header Section -->
                 <div class="mb-6">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                Inmates Management
-                                <span class="inline-flex items-center gap-1 align-middle text-xs font-medium px-2 py-0.5 bg-sky-100 text-sky-800 dark:bg-sky-800 dark:text-sky-100 rounded-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" viewBox="0 0 512 512" aria-hidden="true">
-                                        <path fill="currentColor" d="M292.563 65.656v40h85.156l-81.658 82.656l-12.937 13.125a136.4 136.4 0 0 0-29.406-16.75a136.3 136.3 0 0 0-52.064-10.343c-17.835 0-35.553 3.52-52.03 10.344a136.2 136.2 0 0 0-44.126 29.468a136.2 136.2 0 0 0-29.47 44.125c-6.825 16.48-10.373 34.228-10.374 52.064a136.1 136.1 0 0 0 10.344 52.03a136.2 136.2 0 0 0 29.5 44.126a136.2 136.2 0 0 0 44.125 29.47c16.478 6.824 34.195 10.374 52.03 10.374c17.837 0 35.586-3.55 52.064-10.375a136.2 136.2 0 0 0 44.124-29.47a136.2 136.2 0 0 0 29.47-44.125a136.1 136.1 0 0 0 10.342-52.03a136.3 136.3 0 0 0-10.344-52.064a136.3 136.3 0 0 0-16.03-28.436l13.218-13.406l81.844-82.875v85.875h40V65.656zm-90.907 148.688a96.6 96.6 0 0 1 36.75 7.312c11.58 4.797 22.263 11.95 31.125 20.813c8.863 8.86 16.017 19.545 20.814 31.124a96.6 96.6 0 0 1 7.312 36.75c0 12.533-2.517 25.14-7.312 36.72c-4.796 11.577-11.92 22.292-20.78 31.155c-8.864 8.862-19.578 16.014-31.158 20.81a96.6 96.6 0 0 1-36.75 7.314c-12.533 0-25.14-2.516-36.72-7.313a96.6 96.6 0 0 1-31.155-20.81a96.6 96.6 0 0 1-20.81-31.158c-4.798-11.58-7.314-24.185-7.314-36.718a96.6 96.6 0 0 1 7.313-36.75l.093-.22c4.796-11.494 11.91-22.13 20.718-30.937c8.808-8.805 19.444-15.892 30.94-20.687l.218-.094c11.58-4.795 24.185-7.313 36.718-7.312z" />
-                                    </svg>
-                                    <span>Male</span>
-                                </span>
-                            </h1>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage male inmates, cells, and assignments</p>
+                        <div class="flex-1">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                <div class="flex-1">
+                                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                        Inmates Management
+                                        <span class="inline-flex items-center gap-1 align-middle text-xs font-medium px-2 py-0.5 bg-sky-100 text-sky-800 dark:bg-sky-800 dark:text-sky-100 rounded-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" viewBox="0 0 512 512" aria-hidden="true">
+                                                <path fill="currentColor" d="M292.563 65.656v40h85.156l-81.658 82.656l-12.937 13.125a136.4 136.4 0 0 0-29.406-16.75a136.3 136.3 0 0 0-52.064-10.343c-17.835 0-35.553 3.52-52.03 10.344a136.2 136.2 0 0 0-44.126 29.468a136.2 136.2 0 0 0-29.47 44.125c-6.825 16.48-10.373 34.228-10.374 52.064a136.1 136.1 0 0 0 10.344 52.03a136.2 136.2 0 0 0 29.5 44.126a136.2 136.2 0 0 0 44.125 29.47c16.478 6.824 34.195 10.374 52.03 10.374c17.837 0 35.586-3.55 52.064-10.375a136.2 136.2 0 0 0 44.124-29.47a136.2 136.2 0 0 0 29.47-44.125a136.1 136.1 0 0 0 10.342-52.03a136.3 136.3 0 0 0-10.344-52.064a136.3 136.3 0 0 0-16.03-28.436l13.218-13.406l81.844-82.875v85.875h40V65.656zm-90.907 148.688a96.6 96.6 0 0 1 36.75 7.312c11.58 4.797 22.263 11.95 31.125 20.813c8.863 8.86 16.017 19.545 20.814 31.124a96.6 96.6 0 0 1 7.312 36.75c0 12.533-2.517 25.14-7.312 36.72c-4.796 11.577-11.92 22.292-20.78 31.155c-8.864 8.862-19.578 16.014-31.158 20.81a96.6 96.6 0 0 1-36.75 7.314c-12.533 0-25.14-2.516-36.72-7.313a96.6 96.6 0 0 1-31.155-20.81a96.6 96.6 0 0 1-20.81-31.158c-4.798-11.58-7.314-24.185-7.314-36.718a96.6 96.6 0 0 1 7.313-36.75l.093-.22c4.796-11.494 11.91-22.13 20.718-30.937c8.808-8.805 19.444-15.892 30.94-20.687l.218-.094c11.58-4.795 24.185-7.313 36.718-7.312z" />
+                                            </svg>
+                                            <span>Male</span>
+                                        </span>
+                                    </h1>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage male inmates, cells, and assignments</p>
+                                </div>
+                            </div>
+                        </div>
+                         <!-- Mobile: Toggle above title, Desktop: Toggle inline with title -->
+                         <div class="flex justify-start mb-3 sm:mb-0 sm:mr-4">
+                                    <div class="inline-flex items-center cursor-pointer" data-gender-toggle>
+                                        <label class="inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" data-gender-toggle-input />
+                                            <div class="inline-block align-middle relative w-11 h-6 
+                                                bg-sky-500 
+                                                peer-focus:outline-none 
+                                                peer-focus:ring-4 
+                                                peer-focus:ring-pink-300 
+                                                dark:peer-focus:ring-pink-800 
+                                                dark:bg-sky-700 
+                                                rounded-full 
+                                                peer-checked:bg-pink-700 
+                                                dark:peer-checked:bg-pink-700
+                                                peer-checked:after:translate-x-full 
+                                                rtl:peer-checked:after:-translate-x-full 
+                                                peer-checked:after:border-white 
+                                                after:content-[''] 
+                                                after:absolute 
+                                                after:top-[2px] 
+                                                after:start-[2px] 
+                                                after:bg-white 
+                                                after:border-gray-300 
+                                                after:border 
+                                                after:rounded-full 
+                                                after:h-5 
+                                                after:w-5 
+                                                after:transition-all 
+                                              dark:border-gray-600"></div>
+                                     <span class="ms-3 text-sm font-medium text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-md align-middle pointer-events-none" data-gender-toggle-label>Switch to Female</span>
+                                </label>
+                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row gap-2">
-                            <div class="inline-flex items-center cursor-pointer" data-gender-toggle>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" data-gender-toggle-input />
-                                    <div class="inline-block align-middle relative w-11 h-6 
-                                        bg-sky-500 
-                                        peer-focus:outline-none 
-                                        peer-focus:ring-4 
-                                        peer-focus:ring-pink-300 
-                                        dark:peer-focus:ring-pink-800 
-                                        dark:bg-sky-700 
-                                        rounded-full 
-                                        peer-checked:bg-pink-700 
-                                        dark:peer-checked:bg-pink-700
-                                        peer-checked:after:translate-x-full 
-                                        rtl:peer-checked:after:-translate-x-full 
-                                        peer-checked:after:border-white 
-                                        after:content-[''] 
-                                        after:absolute 
-                                        after:top-[2px] 
-                                        after:start-[2px] 
-                                        after:bg-white 
-                                        after:border-gray-300 
-                                        after:border 
-                                        after:rounded-full 
-                                        after:h-5 
-                                        after:w-5 
-                                        after:transition-all 
-                                        dark:border-gray-600"></div>
-                                    <span class="ms-3 text-sm font-medium text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-md align-middle pointer-events-none" data-gender-toggle-label>Switch to Female</span>
-                                </label>
-                            </div>
                             <button data-add-inmate class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 5v14m-7-7h14"/>
