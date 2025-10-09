@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Inmate;
+use App\Models\Cell;
 use App\Http\Requests\StoreInmateRequest;
 use App\Http\Requests\UpdateInmateRequest;
 use Illuminate\Database\Eloquent\Collection;
@@ -75,6 +76,11 @@ class InmateService
             // Handle additional data if provided
             $this->handleAdditionalData($inmate, $request->validated());
 
+            // Ensure cell occupancy is recalculated if inmate assigned to a cell
+            if (!empty($inmate->cell_id)) {
+                Cell::find($inmate->cell_id)?->updateCurrentCount();
+            }
+
             DB::commit();
 
             Log::info('Inmate created successfully', [
@@ -106,8 +112,9 @@ class InmateService
 
             $inmate = Inmate::findOrFail($id);
             $oldCellId = $inmate->cell_id;
+            $oldStatus = $inmate->status;
             $data = $this->prepareInmateData($request->validated());
-            $newCellId = $data['cell_id'];
+            $newCellId = $data['cell_id'] ?? null;
 
             // Update the inmate
             $inmate->update($data);
@@ -115,6 +122,23 @@ class InmateService
 
             // Handle additional data if provided
             $this->handleAdditionalData($inmate, $request->validated());
+
+            // Recalculate occupancy for affected cells when cell assignment or status changes
+            $newStatus = $inmate->status;
+            $cellChanged = (int)($oldCellId) !== (int)($newCellId);
+            $statusAffectsCount = ($oldStatus === 'Active') !== ($newStatus === 'Active');
+
+            if ($cellChanged || $statusAffectsCount) {
+                // Update old cell count (if any)
+                if ($oldCellId) {
+                    Cell::find($oldCellId)?->updateCurrentCount();
+                }
+
+                // Update new cell count (if any)
+                if ($newCellId) {
+                    Cell::find($newCellId)?->updateCurrentCount();
+                }
+            }
 
             DB::commit();
 
@@ -152,6 +176,11 @@ class InmateService
 
 
             $result = $inmate->delete();
+
+            // After deletion, recalculate the occupancy for the previous cell
+            if ($cellId) {
+                Cell::find($cellId)?->updateCurrentCount();
+            }
 
             DB::commit();
 

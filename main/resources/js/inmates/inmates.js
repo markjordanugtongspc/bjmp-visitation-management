@@ -82,6 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       console.log(`Cell ${cellId} occupancy updated to ${newCount}`);
+      
+      // Update status counter with cell data if needed
+      if (statusCounter && statusCounter.updateWithCellData) {
+        const cellSummary = cellCounterManager.getCellOccupancySummary();
+        statusCounter.updateWithCellData(cellSummary);
+      }
     },
     onCellFull: (cellId) => {
       console.log(`Cell ${cellId} is now full`);
@@ -622,16 +628,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs text-gray-300 mb-1">Gender *</label>
-                <div class="w-full rounded-md bg-gray-700/60 border border-gray-600 text-gray-300 px-3 py-2 text-sm flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ${pageGender === 'Male' ? 'text-blue-400' : 'text-pink-400'}" viewBox="0 0 24 24" fill="currentColor">
-                    ${pageGender === 'Male' ? 
-                      '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>' :
-                      '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>'
-                    }
-                  </svg>
-                  <span class="font-medium">${pageGender}</span>
-                </div>
-                <input type="hidden" id="i-gender" value="${pageGender}">
+                <select id="i-gender" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option value="">Select Gender</option>
+                  <option value="Male" ${inmate.gender === 'Male' ? 'selected' : ''}>Male</option>
+                  <option value="Female" ${inmate.gender === 'Female' ? 'selected' : ''}>Female</option>
+                </select>
               </div>
               <div>
                 <label class="block text-xs text-gray-300 mb-1">Admission Date *</label>
@@ -2056,19 +2057,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /**
+   * Update cell counts using the cell counter manager
+   * This function ensures that cell counts are properly updated in both frontend and backend
+   */
   async function updateCellCounts() {
-    // Reset all cell counts
-    cells.forEach(cell => cell.currentCount = 0);
+    // Use cell counter manager to update counts properly
+    // This will update both frontend and backend via the updateBackendCellCounts method
+    await cellCounterManager.calculateActualOccupancy();
     
-    // Count inmates per cell
-    inmates.forEach(inmate => {
-      if (inmate.status === 'Active') {
-        const cell = cells.find(c => c.name === inmate.cellNumber);
-        if (cell) cell.currentCount++;
-      }
+    // Update local cells array with counts from cell counter manager
+    // to ensure consistency across the application
+    cells.forEach(cell => {
+      cell.currentCount = cellCounterManager.getCellCount(cell.id);
     });
     
-    // Re-render cells
+    // Re-render cells to update the UI
     await renderCells();
   }
 

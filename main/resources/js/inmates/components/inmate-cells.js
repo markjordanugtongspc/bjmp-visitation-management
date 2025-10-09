@@ -290,7 +290,7 @@ async function openCellsManagementModal() {
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Current Occupancy</p>
-              <p class="text-sm sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-gray-100" id="current-occupancy">${cells.reduce((sum, cell) => sum + cell.currentCount, 0)}</p>
+              <p class="text-sm sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-gray-100" id="current-occupancy">${cells.reduce((sum, cell) => sum + (cell.currentCount || 0), 0)}</p>
             </div>
           </div>
         </div>
@@ -391,6 +391,11 @@ async function openCellsManagementModal() {
       
       // Attach event listeners to modal elements
       attachCellsModalEventListeners(cells);
+    },
+    didClose: () => {
+      // Reload the entire page when modal is closed
+      console.log('Cell management modal closed, reloading page...');
+      window.location.reload();
     }
   });
 }
@@ -420,7 +425,7 @@ function generateCellsMobileCards(cells) {
   }
 
   return cells.map(cell => {
-    const occupancyRate = (cell.currentCount / cell.capacity) * 100;
+    const occupancyRate = ((cell.currentCount || 0) / cell.capacity) * 100;
     const isFull = occupancyRate >= 90;
     const isNearFull = occupancyRate >= 75;
     
@@ -466,7 +471,7 @@ function generateCellsMobileCards(cells) {
           <div class="space-y-2">
             <div class="flex justify-between items-center">
               <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Occupancy</span>
-              <span class="text-sm font-medium ${occupancyClass}">${cell.currentCount}/${cell.capacity}</span>
+              <span class="text-sm font-medium ${occupancyClass}">${cell.currentCount || 0}/${cell.capacity}</span>
             </div>
             <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div class="h-2 rounded-full transition-all duration-300 ${
@@ -533,7 +538,7 @@ function generateCellsTableRows(cells) {
   }
 
   return cells.map(cell => {
-    const occupancyRate = (cell.currentCount / cell.capacity) * 100;
+    const occupancyRate = ((cell.currentCount || 0) / cell.capacity) * 100;
     const isFull = occupancyRate >= 90;
     const isNearFull = occupancyRate >= 75;
     
@@ -561,7 +566,7 @@ function generateCellsTableRows(cells) {
             <div class="flex-1">
               <div class="flex justify-between text-sm">
                 <span class="text-gray-600 dark:text-gray-400">Occupancy</span>
-                <span class="font-medium ${occupancyClass}">${cell.currentCount}/${cell.capacity}</span>
+                <span class="font-medium ${occupancyClass}">${cell.currentCount || 0}/${cell.capacity}</span>
               </div>
               <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
                 <div class="h-2 rounded-full transition-all duration-300 ${
@@ -631,6 +636,7 @@ function attachCellsModalEventListeners(cells) {
   if (mobileCloseBtn) {
     mobileCloseBtn.addEventListener('click', () => {
       window.Swal.close();
+      // Page reload will be handled by the didClose callback
     });
   }
 
@@ -819,12 +825,34 @@ function attachCellActionListeners(cells) {
           if (result.isConfirmed) {
             const response = await deleteCell(cell.id);
             if (response.success) {
-              showSuccessMessage('Cell deleted successfully');
-              // Update search manager with new data
-              if (cellsSearchManager) {
-                const currentData = cellsSearchManager.currentData.filter(c => c.id !== cell.id);
-                cellsSearchManager.setData(currentData);
-              }
+              // Show success message
+              await showSuccessMessage('Cell deleted successfully');
+              
+              // Close the current modal
+              window.Swal.close();
+              
+              // Wait a moment for the success message to show, then reopen the main modal
+              setTimeout(async () => {
+                try {
+                  // Get current page gender for filtering
+                  const genderRoot = document.querySelector('[data-current-gender]');
+                  const genderValue = (genderRoot?.getAttribute('data-current-gender') || '').toLowerCase();
+                  const pageGender = genderValue === 'female' ? 'Female' : 'Male';
+                  
+                  // Fetch fresh data from API
+                  const refreshResponse = await fetchCells('', pageGender, '');
+                  if (refreshResponse.success) {
+                    // Open the main cells management modal with fresh data
+                    await openCellsManagementModal();
+                  } else {
+                    showErrorMessage('Failed to reload cells data');
+                  }
+                } catch (error) {
+                  console.error('Error reloading cells:', error);
+                  showErrorMessage('Failed to reload cells data');
+                }
+              }, 1500); // Wait for success message to display
+              
               console.log('Cell deleted:', cell);
             } else {
               showErrorMessage(response.message);
@@ -848,6 +876,11 @@ function openAddEditCellModal(cell = null) {
   const title = isEdit ? 'Edit Cell' : 'Add New Cell';
   const isMobile = () => window.innerWidth < 640;
   const width = isMobile() ? '95%' : '42rem';
+  
+  // Get current page gender for cell type
+  const genderRoot = document.querySelector('[data-current-gender]');
+  const genderValue = (genderRoot?.getAttribute('data-current-gender') || '').toLowerCase();
+  const pageGender = genderValue === 'female' ? 'Female' : 'Male';
   
   // Load draft if not editing
   const draft = isEdit ? cell : loadCellDraft();
@@ -882,16 +915,11 @@ function openAddEditCellModal(cell = null) {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1.5 sm:mb-2">Cell Type *</label>
-          <div class="w-full rounded-md bg-gray-700/60 border border-gray-600 text-gray-300 px-3 py-2 text-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ${pageGender === 'Male' ? 'text-blue-400' : 'text-pink-400'}" viewBox="0 0 24 24" fill="currentColor">
-              ${pageGender === 'Male' ? 
-                '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>' :
-                '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>'
-              }
-            </svg>
-            <span class="font-medium">${pageGender}</span>
-          </div>
-          <input type="hidden" id="cell-type" value="${pageGender}">
+          <select id="cell-type" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">Select Type</option>
+            <option value="Male" ${draft?.type === 'Male' ? 'selected' : ''}>Male</option>
+            <option value="Female" ${draft?.type === 'Female' ? 'selected' : ''}>Female</option>
+          </select>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1.5 sm:mb-2">Location *</label>
@@ -941,11 +969,29 @@ function openAddEditCellModal(cell = null) {
 
       // Auto-save draft on input changes (only for new cells)
       if (!isEdit) {
-        const inputs = ['cell-name', 'cell-capacity', 'cell-type', 'cell-location', 'cell-status'];
+        const inputs = ['cell-name', 'cell-capacity', 'cell-location'];
+        const selects = ['cell-type', 'cell-status'];
+        
         inputs.forEach(inputId => {
           const input = document.getElementById(inputId);
           if (input) {
             input.addEventListener('input', () => {
+              const draftData = {
+                name: document.getElementById('cell-name')?.value || '',
+                capacity: document.getElementById('cell-capacity')?.value || '',
+                type: document.getElementById('cell-type')?.value || '',
+                location: document.getElementById('cell-location')?.value || '',
+                status: document.getElementById('cell-status')?.value || ''
+              };
+              saveCellDraft(draftData);
+            });
+          }
+        });
+        
+        selects.forEach(selectId => {
+          const select = document.getElementById(selectId);
+          if (select) {
+            select.addEventListener('change', () => {
               const draftData = {
                 name: document.getElementById('cell-name')?.value || '',
                 capacity: document.getElementById('cell-capacity')?.value || '',
@@ -974,6 +1020,11 @@ function openAddEditCellModal(cell = null) {
         return false;
       }
 
+      if (!['Male', 'Female'].includes(data.type)) {
+        window.Swal.showValidationMessage('Please select a valid cell type');
+        return false;
+      }
+
       if (data.capacity < 1 || data.capacity > 50) {
         window.Swal.showValidationMessage('Capacity must be between 1 and 50');
         return false;
@@ -992,24 +1043,39 @@ function openAddEditCellModal(cell = null) {
         }
 
         if (response.success) {
-          showSuccessMessage(response.message);
+          // Show success message
+          await showSuccessMessage(response.message);
+          
           // Clear draft on successful save
           if (!isEdit) {
             clearCellDraft();
           }
-          // Update search manager with new data
-          if (cellsSearchManager) {
-            const currentData = [...cellsSearchManager.currentData];
-            if (isEdit) {
-              const index = currentData.findIndex(c => c.id === cell.id);
-              if (index !== -1) {
-                currentData[index] = response.data;
+          
+          // Close the add/edit modal
+          window.Swal.close();
+          
+          // Wait a moment for the success message to show, then reopen the main modal
+          setTimeout(async () => {
+            try {
+              // Get current page gender for filtering
+              const genderRoot = document.querySelector('[data-current-gender]');
+              const genderValue = (genderRoot?.getAttribute('data-current-gender') || '').toLowerCase();
+              const pageGender = genderValue === 'female' ? 'Female' : 'Male';
+              
+              // Fetch fresh data from API
+              const refreshResponse = await fetchCells('', pageGender, '');
+              if (refreshResponse.success) {
+                // Open the main cells management modal with fresh data
+                await openCellsManagementModal();
+              } else {
+                showErrorMessage('Failed to reload cells data');
               }
-            } else {
-              currentData.push(response.data);
+            } catch (error) {
+              console.error('Error reloading cells:', error);
+              showErrorMessage('Failed to reload cells data');
             }
-            cellsSearchManager.setData(currentData);
-          }
+          }, 1500); // Wait for success message to display
+          
           console.log(isEdit ? 'Cell updated:' : 'Cell added:', response.data);
         } else {
           showErrorMessage(response.message);

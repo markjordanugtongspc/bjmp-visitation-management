@@ -64,6 +64,44 @@ class InmateStatusCounter {
   }
 
   /**
+   * Load statistics from backend API and update the display
+   */
+  async loadFromAPI() {
+    try {
+      const response = await fetch('/api/inmates/statistics', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        const stats = result.data;
+        this.setStatistics({
+          total: stats.total ?? 0,
+          active: stats.active ?? 0,
+          released: stats.released ?? 0,
+          medical: stats.medical ?? 0,
+          transferred: stats.transferred ?? 0
+        });
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Failed to load inmate statistics:', error);
+      return false;
+    }
+  }
+
+  /**
    * Update statistics from inmate data
    * @param {Array} inmates - Array of inmate objects
    */
@@ -101,6 +139,18 @@ class InmateStatusCounter {
     });
 
     this.updateDisplay();
+  }
+
+  /**
+   * Update statistics with cell occupancy data
+   * @param {Object} cellOccupancySummary - Summary from cell counter manager
+   */
+  updateWithCellData(cellOccupancySummary) {
+    // Update cell-related statistics if needed
+    if (cellOccupancySummary && cellOccupancySummary.cells) {
+      // You can add cell-specific statistics here if needed
+      console.log('Cell occupancy summary:', cellOccupancySummary);
+    }
   }
 
   /**
@@ -270,6 +320,28 @@ export function createInmateStatusCounter() {
 }
 
 /**
+ * Initialize and populate statistics from API if target elements exist
+ * @returns {Promise<InmateStatusCounter|null>} The instance if initialized
+ */
+export async function initializeInmateStatusCounterFromAPI() {
+  const counter = new InmateStatusCounter();
+  if (!counter.isReady()) return null;
+  await counter.loadFromAPI();
+  return counter;
+}
+
+/**
  * Default export
  */
 export default InmateStatusCounter;
+
+// Optional: auto-initialize on DOM ready if elements are present
+document.addEventListener('DOMContentLoaded', () => {
+  const hasTargets = document.getElementById('total-inmates')
+    || document.getElementById('active-inmates')
+    || document.getElementById('released-inmates')
+    || document.getElementById('medical-inmates');
+  if (hasTargets) {
+    initializeInmateStatusCounterFromAPI();
+  }
+});
