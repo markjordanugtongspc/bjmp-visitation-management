@@ -40,7 +40,6 @@ class CellCounterManager {
     this.callbacks = {
       onCountUpdate: null,
       onCellFull: null,
-      onCellTransfer: null,
       onLoadingStateChange: null,
     };
     this.endpoints = {
@@ -100,7 +99,14 @@ class CellCounterManager {
     try {
       const cellsData = await this._fetch(this.endpoints.cells);
       this.cells = cellsData;
-      this.cells.forEach(cell => this.cellCounts.set(cell.id, cell.currentCount || 0));
+      
+      // Use cell.currentCount from backend if available
+      this.cells.forEach(cell => {
+        if (cell.currentCount !== undefined) {
+          this.cellCounts.set(cell.id, cell.currentCount);
+        }
+      });
+      
       await this.calculateActualOccupancy();
     } catch (error) {
       console.error('Failed to initialize cell counts:', error);
@@ -119,9 +125,6 @@ class CellCounterManager {
       const inmatesData = await this._fetch(this.endpoints.inmates);
       const inmates = Array.isArray(inmatesData) ? inmatesData : inmatesData.data || [];
 
-      // Reset all counts to 0
-      this.cells.forEach(cell => this.cellCounts.set(cell.id, 0));
-
       // Count inmates per cell ID
       const cellCountMap = new Map();
       inmates.forEach(inmate => {
@@ -134,6 +137,13 @@ class CellCounterManager {
       // Update frontend counts
       cellCountMap.forEach((count, cellId) => {
         this.cellCounts.set(cellId, count);
+      });
+      
+      // Set cells not found in count map to 0
+      this.cells.forEach(cell => {
+        if (!cellCountMap.has(cell.id)) {
+          this.cellCounts.set(cell.id, 0);
+        }
       });
       
       // Update backend current_count for all cells
@@ -155,32 +165,60 @@ class CellCounterManager {
    */
   async updateBackendCellCounts(cellCountMap) {
     try {
-      // Update each cell's current_count in the backend
-      const updatePromises = [];
+      // Prepare a single batch request with all cells data
+      const batchUpdateData = {};
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
       
       // Process cells with inmates
       for (const [cellId, count] of cellCountMap) {
         const cell = this.getCellById(cellId);
         if (cell) {
-          console.log(`Updating cell ${cellId} with count: ${count}`);
-          updatePromises.push(
-            fetch(`/api/cells/${cellId}/occupancy`, {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-              },
-              body: JSON.stringify({ force_count: count }) // Send the count to force update
-            })
-          );
+          batchUpdateData[cellId] = count;
+          console.log(`Preparing cell ${cellId} with count: ${count}`);
         }
       }
       
-      // Also update cells that have 0 inmates (not in the map)
+      // Also include cells that have 0 inmates (not in the map)
       this.cells.forEach(cell => {
         if (!cellCountMap.has(cell.id)) {
-          console.log(`Updating cell ${cell.id} with count: 0`);
+          batchUpdateData[cell.id] = 0;
+          console.log(`Preparing cell ${cell.id} with count: 0`);
+        }
+      });
+      
+      // Make a single batch request to update all cells
+      console.log(`Sending batch update for ${Object.keys(batchUpdateData).length} cells`);
+      
+      const response = await fetch('/api/cells/batch-update-occupancy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({ cell_counts: batchUpdateData })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error in batch update of cell occupancy:', errorData);
+        throw new Error('Failed to batch update cell occupancy');
+      }
+      
+      const result = await response.json();
+      console.log('Backend cell counts updated successfully:', result);
+      
+    } catch (error) {
+      console.error('Failed to update backend cell counts:', error);
+      
+      // Fallback to individual updates if batch update fails
+      try {
+        const updatePromises = [];
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        
+        // Process all cells individually as fallback
+        this.cells.forEach(cell => {
+          const count = this.cellCounts.get(cell.id) || 0;
+          console.log(`Fallback: Updating cell ${cell.id} with count: ${count}`);
           updatePromises.push(
             fetch(`/api/cells/${cell.id}/occupancy`, {
               method: 'PATCH',
@@ -188,26 +226,16 @@ class CellCounterManager {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': csrfToken
               },
-              body: JSON.stringify({ force_count: 0 }) // Force count to 0
+              body: JSON.stringify({ force_count: count })
             })
           );
-        }
-      });
-      
-      const results = await Promise.all(updatePromises);
-      
-      // Check responses
-      for (const response of results) {
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Error updating cell occupancy:', errorData);
-        }
+        });
+        
+        await Promise.all(updatePromises);
+        console.log('Fallback cell count updates completed');
+      } catch (fallbackError) {
+        console.error('Fallback update also failed:', fallbackError);
       }
-      
-      console.log('Backend cell counts updated successfully');
-      
-    } catch (error) {
-      console.error('Failed to update backend cell counts:', error);
     }
   }
 
@@ -331,48 +359,7 @@ class CellCounterManager {
   }
 
 
-  /**
-   * Transfer inmate between cells
-   * @param {number} fromCellId - Source cell ID
-   * @param {number} toCellId - Destination cell ID
-   * @param {Inmate} inmate - Inmate object
-   * @returns {Promise<boolean>} Success status
-   */
-  async transferInmateBetweenCells(fromCellId, toCellId, inmate) {
-    if (fromCellId === toCellId) return true;
-
-    if (toCellId && !this.canAssignToCell(toCellId, inmate.gender)) {
-      throw new Error('Cannot transfer inmate to destination cell');
-    }
-
-
-    // Optimistic update
-    const fromCount = this.cellCounts.get(fromCellId) || 0;
-    const toCount = this.cellCounts.get(toCellId) || 0;
-
-    if (fromCellId) this.cellCounts.set(fromCellId, fromCount - 1);
-    if (toCellId) this.cellCounts.set(toCellId, toCount + 1);
-
-    this._notifyCountUpdate(fromCellId);
-    this._notifyCountUpdate(toCellId);
-
-
-    try {
-      await this.syncCellOccupancy();
-      if (this.callbacks.onCellTransfer) {
-        this.callbacks.onCellTransfer(fromCellId, toCellId, inmate);
-      }
-      return true;
-    } catch (error) {
-      // Rollback optimistic update
-      if (fromCellId) this.cellCounts.set(fromCellId, fromCount);
-      if (toCellId) this.cellCounts.set(toCellId, toCount);
-      this._notifyCountUpdate(fromCellId);
-      this._notifyCountUpdate(toCellId);
-      console.error('Transfer failed:', error);
-      throw error;
-    }
-  }
+  // Transfer functionality removed as per requirements - only ADD and REMOVE needed
 
   /**
    * Check if inmate can be assigned to cell

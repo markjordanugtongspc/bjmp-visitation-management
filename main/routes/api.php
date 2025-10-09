@@ -39,6 +39,7 @@ Route::prefix('cells')->middleware(['web'])->group(function () {
 
     // Static/specific routes first
     Route::get('/available', [CellController::class, 'getAvailableCells'])->name('api.cells.available');
+    Route::post('/batch-update-occupancy', [CellController::class, 'batchUpdateOccupancy'])->name('api.cells.batch-update-occupancy');
 
     // Dynamic routes after
     Route::get('/{cell}', [CellController::class, 'show'])->name('api.cells.show');

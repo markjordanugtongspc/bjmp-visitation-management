@@ -475,4 +475,48 @@ class CellController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Batch update cell occupancy counts
+     */
+    public function batchUpdateOccupancy(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'cell_counts' => 'required|array',
+                'cell_counts.*' => 'numeric|min:0'
+            ]);
+
+            $cellCounts = $request->input('cell_counts');
+            $updatedCells = [];
+
+            foreach ($cellCounts as $cellId => $count) {
+                $cell = Cell::find($cellId);
+                if ($cell) {
+                    $cell->current_count = $count;
+                    $cell->save();
+                    $updatedCells[] = [
+                        'id' => $cell->id,
+                        'name' => $cell->name,
+                        'currentCount' => $cell->current_count
+                    ];
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'updated_cells' => $updatedCells,
+                    'count' => count($updatedCells)
+                ],
+                'message' => 'Batch cell occupancy update completed successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to batch update cell occupancy: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
