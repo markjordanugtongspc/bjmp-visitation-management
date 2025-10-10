@@ -105,6 +105,18 @@ export function initializeInmateCells() {
   } else {
     console.warn('View All Cells button not found. Make sure the button has id="view-all-cells-btn"');
   }
+
+  // If a previous refresh requested reopening the modal, do it now
+  try {
+    const shouldReopen = sessionStorage.getItem('reopenCellsModal') === '1';
+    if (shouldReopen) {
+      sessionStorage.removeItem('reopenCellsModal');
+      // Use setTimeout to avoid blocking the page load
+      setTimeout(() => {
+        openCellsManagementModal();
+      }, 100);
+    }
+  } catch (_) {}
 }
 
 /**
@@ -334,9 +346,7 @@ async function openCellsManagementModal() {
       attachCellsModalEventListeners(cells);
     },
     didClose: () => {
-      // Reload the entire page when modal is closed
-      console.log('Cell management modal closed, reloading page...');
-      window.location.reload();
+      console.log('Cell management modal closed normally');
     }
   });
 }
@@ -596,7 +606,6 @@ function attachCellsModalEventListeners(cells) {
       try {
         const response = await refreshCellsData();
         if (response.success) {
-          showSuccessMessage('Cells data refreshed successfully');
           // Update search manager with new data
           if (cellsSearchManager) {
             cellsSearchManager.setData(response.data);
@@ -605,6 +614,18 @@ function attachCellsModalEventListeners(cells) {
           if (cellCounterManager) {
             await cellCounterManager.syncCellOccupancy();
           }
+          
+          // Close the cells modal
+          window.Swal.close();
+          
+          // Show success message
+          showSuccessMessage('Cells data refreshed successfully').then(() => {
+            // Set flag to reopen cells modal after page reload
+            try { sessionStorage.setItem('reopenCellsModal', '1'); } catch (_) {}
+            // Reload page
+            window.location.reload();
+          });
+          
           console.log('Refreshed cells:', response.data);
         } else {
           showErrorMessage(response.message);
@@ -790,33 +811,16 @@ function attachCellActionListeners(cells) {
           if (result.isConfirmed) {
             const response = await deleteCell(cell.id);
             if (response.success) {
-              // Show success message
-              await showSuccessMessage('Cell deleted successfully');
-              
-              // Close the current modal
+              // Close the cells modal
               window.Swal.close();
               
-              // Wait a moment for the success message to show, then reopen the main modal
-              setTimeout(async () => {
-                try {
-                  // Get current page gender for filtering
-                  const genderRoot = document.querySelector('[data-current-gender]');
-                  const genderValue = (genderRoot?.getAttribute('data-current-gender') || '').toLowerCase();
-                  const pageGender = genderValue === 'female' ? 'Female' : 'Male';
-                  
-                  // Fetch fresh data from API
-                  const refreshResponse = await fetchCells('', pageGender, '');
-                  if (refreshResponse.success) {
-                    // Open the main cells management modal with fresh data
-                    await openCellsManagementModal();
-                  } else {
-                    showErrorMessage('Failed to reload cells data');
-                  }
-                } catch (error) {
-                  console.error('Error reloading cells:', error);
-                  showErrorMessage('Failed to reload cells data');
-                }
-              }, 1500); // Wait for success message to display
+              // Show success message
+              showSuccessMessage('Cell deleted successfully').then(() => {
+                // Set flag to reopen cells modal after page reload
+                try { sessionStorage.setItem('reopenCellsModal', '1'); } catch (_) {}
+                // Reload page
+                window.location.reload();
+              });
               
               console.log('Cell deleted:', cell);
             } else {
@@ -1008,38 +1012,21 @@ function openAddEditCellModal(cell = null) {
         }
 
         if (response.success) {
-          // Show success message
-          await showSuccessMessage(response.message);
+          // Close the add/edit modal
+          window.Swal.close();
           
           // Clear draft on successful save
           if (!isEdit) {
             clearCellDraft();
           }
-          
-          // Close the add/edit modal
-          window.Swal.close();
-          
-          // Wait a moment for the success message to show, then reopen the main modal
-          setTimeout(async () => {
-            try {
-              // Get current page gender for filtering
-              const genderRoot = document.querySelector('[data-current-gender]');
-              const genderValue = (genderRoot?.getAttribute('data-current-gender') || '').toLowerCase();
-              const pageGender = genderValue === 'female' ? 'Female' : 'Male';
-              
-              // Fetch fresh data from API
-              const refreshResponse = await fetchCells('', pageGender, '');
-              if (refreshResponse.success) {
-                // Open the main cells management modal with fresh data
-                await openCellsManagementModal();
-              } else {
-                showErrorMessage('Failed to reload cells data');
-              }
-            } catch (error) {
-              console.error('Error reloading cells:', error);
-              showErrorMessage('Failed to reload cells data');
-            }
-          }, 1500); // Wait for success message to display
+
+          // Show success message
+          showSuccessMessage(response.message).then(() => {
+            // Set flag to reopen cells modal after page reload
+            try { sessionStorage.setItem('reopenCellsModal', '1'); } catch (_) {}
+            // Reload page
+            window.location.reload();
+          });
           
           console.log(isEdit ? 'Cell updated:' : 'Cell added:', response.data);
         } else {
@@ -1078,14 +1065,15 @@ function openAddEditCellModal(cell = null) {
  * TODO: Integrate with main notification system
  */
 function showSuccessMessage(message) {
-  window.Swal.fire({
+  return window.Swal.fire({
     icon: 'success',
-    title: message,
+    title: 'Success',
+    text: message,
     timer: 1500,
+    timerProgressBar: true,
     showConfirmButton: false,
     background: '#111827',
-    color: '#F9FAFB',
-    width: window.innerWidth < 640 ? '90%' : '32rem',
+    color: '#F9FAFB'
   });
 }
 
@@ -1094,14 +1082,13 @@ function showSuccessMessage(message) {
  * TODO: Integrate with main notification system
  */
 function showErrorMessage(message) {
-  window.Swal.fire({
+  return window.Swal.fire({
     icon: 'error',
     title: 'Error',
     text: message,
-    confirmButtonText: 'OK',
+    confirmButtonColor: '#EF4444',
     background: '#111827',
-    color: '#F9FAFB',
-    width: window.innerWidth < 640 ? '90%' : '32rem',
+    color: '#F9FAFB'
   });
 }
 

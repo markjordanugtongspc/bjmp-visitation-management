@@ -103,31 +103,31 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Generate cell options for gender-specific dropdown
   function generateCellOptionsForGender(gender, currentCellId = null) {
-    if (!gender || !cells.length) {
+    const effectiveGender = gender || pageGender;
+    if (!effectiveGender || !cells.length) {
       return '<option value="">No cells available</option>';
     }
-    
-    // Filter cells by gender and status
-    const availableCells = cells.filter(cell => {
-      const isCorrectGender = cell.type === gender;
-      const isActive = cell.status === 'Active';
-      const hasCapacity = cell.currentCount < cell.capacity;
-      
-      return isCorrectGender && isActive && hasCapacity;
-    });
-    
-    if (availableCells.length === 0) {
-      return `<option value="">No ${gender} cells available</option>`;
+    // Show ALL cells for the effective gender; disable options that are not selectable (inactive or full)
+    const genderCells = cells.filter(cell => cell.type === effectiveGender);
+
+    if (genderCells.length === 0) {
+      return `<option value="">No ${effectiveGender} cells available</option>`;
     }
-    
-    return availableCells.map(cell => {
-      const occupancyPercentage = Math.round((cell.currentCount / cell.capacity) * 100);
+
+    return genderCells.map(cell => {
+      const count = cell.currentCount ?? 0;
+      const occupancyPercentage = cell.capacity ? Math.round((count / cell.capacity) * 100) : 0;
       const isSelected = currentCellId === cell.id;
-      const isFull = cell.currentCount >= cell.capacity;
-      
+      const isFull = count >= cell.capacity;
+      const isActive = cell.status === 'Active';
+      const isDisabled = (!isActive || isFull) && !isSelected; // allow selecting current even if disabled
+      // Lightweight badge using emojis to indicate status; keep plain <option> content
+      const statusBadge = cell.status === 'Active' ? '🟢' : (cell.status === 'Maintenance' ? '🟡' : '🔴');
+      const stateSuffix = isFull ? ' - FULL' : (!isActive ? (cell.status === 'Maintenance' ? ' - MAINTENANCE' : ' - INACTIVE') : '');
+
       return `
-        <option value="${cell.id}" ${isSelected ? 'selected' : ''} ${isFull ? 'disabled' : ''}>
-          ${cell.name} (${cell.currentCount}/${cell.capacity} - ${occupancyPercentage}%) - ${cell.type}${isFull ? ' - FULL' : ''}
+        <option value="${cell.id}" ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}>
+          ${statusBadge} ${cell.name} (${count}/${cell.capacity} - ${occupancyPercentage}%) - ${cell.type}${stateSuffix}
         </option>
       `;
     }).join('');
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeInmateCells();
     
     // Update statistics after everything is loaded
-    updateStatistics();
+    await updateStatistics();
 
     // Wire search and filters
     wireInmateSearchAndFilters();
@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           // Update statistics after render
-          updateStatistics();
+          await updateStatistics();
         }
       } catch (e) {
         console.error('Inmate search failed:', e);
@@ -928,8 +928,24 @@ document.addEventListener('DOMContentLoaded', () => {
           updateAge();
         }
         
-        // Gender is now fixed based on current page, no need for change listener
-        // Cell options are already generated with the correct gender
+        // Gender defaults to current page; rebuild cell options for effective gender
+        const genderSelect = /** @type {HTMLSelectElement|null} */(document.getElementById('i-gender'));
+        const cellSelect = /** @type {HTMLSelectElement|null} */(document.getElementById('i-cell'));
+        if (genderSelect && !genderSelect.value) {
+          genderSelect.value = pageGender;
+        }
+        if (cellSelect) {
+          const selectedGender = genderSelect ? genderSelect.value : pageGender;
+          cellSelect.innerHTML = '<option value="">Select Cell</option>' + generateCellOptionsForGender(selectedGender, inmate.cell_id);
+        }
+
+        // If user changes gender in the form, refresh cell options accordingly
+        if (genderSelect && cellSelect) {
+          genderSelect.addEventListener('change', () => {
+            const g = genderSelect.value || pageGender;
+            cellSelect.innerHTML = '<option value="">Select Cell</option>' + generateCellOptionsForGender(g, inmate.cell_id);
+          });
+        }
 
         // Initialize dynamic form elements
         initializePointsHistory();
@@ -971,10 +987,27 @@ document.addEventListener('DOMContentLoaded', () => {
           recentVisits: collectVisitRecords()
         };
 
-        // Validate required fields
-        if (!data.firstName || !data.lastName || !data.gender || !data.crime || !data.sentence || !data.status || !data.admissionDate || !data.cell_id) {
-          window.Swal.showValidationMessage('Please fill in all required fields including cell assignment.');
-          return false;
+        // Validate required fields: strict for edit, permissive for add
+        if (isEditing) {
+          if (!data.firstName || !data.lastName || !data.gender || !data.crime || !data.sentence || !data.status || !data.admissionDate || !data.cell_id) {
+            window.Swal.showValidationMessage('Please fill in all required fields including cell assignment.');
+            return false;
+          }
+        } else {
+          // For Add: allow as long as at least 2 key fields are filled; cell assignment optional
+          const filledKeys = [
+            data.firstName,
+            data.lastName,
+            data.gender,
+            data.crime,
+            data.sentence,
+            data.status,
+            data.admissionDate
+          ].filter(v => typeof v === 'string' ? v.trim() !== '' : !!v);
+          if (filledKeys.length < 2) {
+            window.Swal.showValidationMessage('Please fill at least 2 fields to add an inmate.');
+            return false;
+          }
         }
 
         return data;
@@ -1669,7 +1702,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function renderOrUpdateViews(inmate) {
     updateDesktopRow(inmate);
     updateMobileCard(inmate);
-    updateStatistics();
+    await updateStatistics();
   }
 
   // Handle desktop table row updates
@@ -2124,10 +2157,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Update statistics display
-  function updateStatistics() {
-    // Update status counter with current inmates data
+  async function updateStatistics() {
+    // Update status counter with backend API statistics (includes ALL inmates, not just page-specific)
     if (statusCounter && statusCounter.isReady()) {
-      statusCounter.updateFromInmates(inmates);
+      // Try to load from API first (shows total of all inmates)
+      const apiLoaded = await statusCounter.loadFromAPI();
+      
+      // Fallback to local count if API fails (shouldn't happen in normal operation)
+      if (!apiLoaded) {
+        console.warn('Failed to load statistics from API, using local count as fallback');
+        statusCounter.updateFromInmates(inmates);
+      }
     }
   }
 
