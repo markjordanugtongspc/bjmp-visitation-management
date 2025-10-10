@@ -32,7 +32,8 @@ class CellCounterManager {
    */
   constructor({
     cellsEndpoint = '/api/cells',
-    inmatesEndpoint = '/api/inmates?status=Active&per_page=1000'
+    // Count ALL inmates with a cell assignment; backend should filter by per_page only
+    inmatesEndpoint = '/api/inmates?per_page=1000'
   } = {}) {
     this.cells = [];
     /** @type {Map<number, number>} */

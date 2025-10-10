@@ -234,35 +234,36 @@
                 <!-- Upload Guidelines Section -->
                 <div class="mt-2 sm:mt-8 flex flex-col gap-8">
                     <div class="w-full flex flex-col lg:flex-row gap-6">
-                        <!-- Upload Form -->
+                        <!-- Upload Info Card -->
                         <div class="flex-1 bg-white dark:bg-gray-900 rounded-xl shadow p-5 flex flex-col min-h-[420px]">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Upload New Guideline</h3>
-                            <form class="space-y-4 flex-1 flex flex-col justify-between" enctype="multipart/form-data">
-                                <div class="flex flex-col gap-3">
-                                    <div>
-                                        <label for="guideline-title" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Title</label>
-                                        <input id="guideline-title" name="title" type="text" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="e.g. Cell Inspection SOP">
-                                    </div>
-                                    <div>
-                                        <label for="guideline-summary" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Summary</label>
-                                        <textarea id="guideline-summary" name="summary" rows="2" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Brief summary..."></textarea>
-                                    </div>
-                                    <div>
-                                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Upload file</label>
-                                        <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file" accept="application/pdf">
-                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">PDF only (MAX. 10MB).</p>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Supervision Guidelines</h3>
+                            <div class="flex-1 flex flex-col justify-between">
+                                <div class="space-y-4">
+                                    <p class="text-gray-600 dark:text-gray-300">
+                                        Upload and manage supervision guidelines and manuals for your facility. These documents help standardize operations and ensure consistent procedures.
+                                    </p>
+                                    
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
+                                        <h4 class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Benefits of Standardized Manuals</h4>
+                                        <ul class="list-disc pl-5 text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                                            <li>Ensures consistent operations across shifts</li>
+                                            <li>Simplifies training for new officers</li>
+                                            <li>Provides clear guidance during emergencies</li>
+                                            <li>Helps maintain compliance with regulations</li>
+                                        </ul>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-3 mt-4">
-                                    <button type="submit"
+                                
+                                <div class="mt-6">
+                                    <button type="button" data-modal-target="createManualModal" data-modal-toggle="createManualModal" 
                                         class="w-full cursor-pointer inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-base font-semibold shadow-md transition-all duration-150 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                         <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
                                         </svg>
-                                        Upload
+                                        Create New Manual
                                     </button>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                         <!-- Modern Card Preview (Responsive, No Empty Space, Modernized, Buttons Spaced) -->
                         <div class="flex-1 flex items-stretch justify-center">
@@ -345,8 +346,110 @@
                     </div>
                 </div>
 
+    <!-- Create Manual Modal -->
+    <div id="createManualModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full" style="backdrop-filter: blur(4px);">
+        <div class="relative w-full max-w-2xl max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
+                <!-- Modal header -->
+                <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-700">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Create New Manual
+                    </h3>
+                    <button type="button" class="cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-700 dark:hover:text-white" data-modal-hide="createManualModal" id="closeManualModalBtn">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                </div>
+                <!-- Modal body -->
+                <div class="p-6 space-y-6">
+                    <form id="supervision-form" class="space-y-4" enctype="multipart/form-data">
+                        <div>
+                            <label for="guideline-title" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Title</label>
+                            <input id="guideline-title" name="title" type="text" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="e.g. Cell Inspection SOP">
+                        </div>
+                        <div>
+                            <label for="guideline-category" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Category</label>
+                            <select id="guideline-category" name="category" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <option value="" disabled selected>Select a category</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="guideline-summary" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Summary</label>
+                            <textarea id="guideline-summary" name="summary" rows="3" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Brief summary (minimum 50 characters)..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200" for="file_input">Upload file</label>
+                            <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">PDF, DOC, or DOCX only (MAX. 10MB).</p>
+                        </div>
+                    </form>
+                </div>
+                <!-- Modal footer -->
+                <div class="flex items-center justify-end p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-700">
+                    <button data-modal-hide="createManualModal" type="button" id="cancelManualModalBtn" class="cursor-pointer text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700">Cancel</button>
+                    <button type="submit" form="supervision-form" class="cursor-pointer text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Upload Manual</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add refresh button -->
+    <button type="button" data-action="refresh-supervision" class="fixed bottom-6 right-6 z-10 inline-flex items-center justify-center p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+            <path d="M16 21h5v-5"></path>
+        </svg>
+        <span class="sr-only">Refresh</span>
+    </button>
+
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/profile/edit-profile-modal.js')
     @vite('resources/js/modules/flowbite.js')
     @vite('resources/js/supervision/supervision.js')
+    
+    <script>
+        // Fallback script for modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create manual button
+            const createManualBtn = document.querySelector('[data-modal-target="createManualModal"]');
+            const modal = document.getElementById('createManualModal');
+            const closeBtn = document.getElementById('closeManualModalBtn');
+            const cancelBtn = document.getElementById('cancelManualModalBtn');
+            
+            if (createManualBtn && modal) {
+                createManualBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    modal.classList.remove('hidden');
+                });
+            }
+            
+            if (closeBtn && modal) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    modal.classList.add('hidden');
+                });
+            }
+            
+            if (cancelBtn && modal) {
+                cancelBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    modal.classList.add('hidden');
+                });
+            }
+            
+            // Close when clicking outside
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
 </x-app-layout>

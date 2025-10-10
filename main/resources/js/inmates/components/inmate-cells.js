@@ -9,6 +9,7 @@
 // ========================================
 
 import { SearchSortFilterManager } from './search-sort-filter.js';
+import { createCellCounterManager } from './cell-counter-manager.js';
 
 // ========================================
 // CLIENT-SIDE STORAGE AND DRAFT FUNCTIONS
@@ -19,6 +20,7 @@ const CELLS_DRAFT_KEY = 'bjmp.cells.formDraft';
 
 // Global search manager instance
 let cellsSearchManager = null;
+let cellCounterManager = null;
 
 /**
  * Safe JSON parsing with fallback
@@ -86,68 +88,7 @@ function toDraftFromCellModalValue(value) {
   return { ...value };
 }
 
-/**
- * Create sample cells data for testing
- */
-function createSampleCellsData() {
-  return [
-    {
-      id: 1,
-      name: 'Cell 1',
-      type: 'Male',
-      location: 'Block A',
-      status: 'Active',
-      capacity: 20,
-      currentCount: 15,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: 2,
-      name: 'Cell 2',
-      type: 'Male',
-      location: 'Block A',
-      status: 'Active',
-      capacity: 20,
-      currentCount: 18,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: 3,
-      name: 'Cell 3',
-      type: 'Female',
-      location: 'Block B',
-      status: 'Active',
-      capacity: 15,
-      currentCount: 12,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: 4,
-      name: 'Cell 4',
-      type: 'Female',
-      location: 'Block B',
-      status: 'Maintenance',
-      capacity: 15,
-      currentCount: 0,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: 5,
-      name: 'Cell 5',
-      type: 'Male',
-      location: 'Block C',
-      status: 'Inactive',
-      capacity: 25,
-      currentCount: 0,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z'
-    }
-  ];
-}
+// Sample data function removed – all data comes from the backend
 
 // - Cell capacity and occupancy tracking
 
@@ -471,12 +412,12 @@ function generateCellsMobileCards(cells) {
           <div class="space-y-2">
             <div class="flex justify-between items-center">
               <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Occupancy</span>
-              <span class="text-sm font-medium ${occupancyClass}">${cell.currentCount || 0}/${cell.capacity}</span>
+              <span class="text-sm font-medium ${occupancyClass}"><span data-cell-count="${cell.id}">${cell.currentCount || 0}</span>/${cell.capacity}</span>
             </div>
             <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div class="h-2 rounded-full transition-all duration-300 ${
                 isFull ? 'bg-red-500' : isNearFull ? 'bg-yellow-500' : 'bg-green-500'
-              }" style="width: ${occupancyRate}%"></div>
+              }" data-cell-bar="${cell.id}" style="width: ${occupancyRate}%"></div>
             </div>
             <div class="text-xs text-gray-500 dark:text-gray-400">
               ${Math.round(occupancyRate)}% occupied
@@ -566,12 +507,12 @@ function generateCellsTableRows(cells) {
             <div class="flex-1">
               <div class="flex justify-between text-sm">
                 <span class="text-gray-600 dark:text-gray-400">Occupancy</span>
-                <span class="font-medium ${occupancyClass}">${cell.currentCount || 0}/${cell.capacity}</span>
+                <span class="font-medium ${occupancyClass}"><span data-cell-count="${cell.id}">${cell.currentCount || 0}</span>/${cell.capacity}</span>
               </div>
               <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
                 <div class="h-2 rounded-full transition-all duration-300 ${
                   isFull ? 'bg-red-500' : isNearFull ? 'bg-yellow-500' : 'bg-green-500'
-                }" style="width: ${occupancyRate}%"></div>
+                }" data-cell-bar="${cell.id}" style="width: ${occupancyRate}%"></div>
               </div>
               <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 ${Math.round(occupancyRate)}% occupied
@@ -660,6 +601,10 @@ function attachCellsModalEventListeners(cells) {
           if (cellsSearchManager) {
             cellsSearchManager.setData(response.data);
           }
+          // Re-sync occupancy with backend and update UI
+          if (cellCounterManager) {
+            await cellCounterManager.syncCellOccupancy();
+          }
           console.log('Refreshed cells:', response.data);
         } else {
           showErrorMessage(response.message);
@@ -676,6 +621,18 @@ function attachCellsModalEventListeners(cells) {
 
   // Initial attachment of edit/delete button listeners
   attachCellActionListeners(cells);
+
+  // Initialize Cell Counter Manager for live occupancy updates
+  if (!cellCounterManager) {
+    cellCounterManager = createCellCounterManager();
+    cellCounterManager.setCallbacks({
+      onCountUpdate: (cellId, newCount) => {
+        cellCounterManager.updateCellDisplay(cellId, newCount);
+      },
+    });
+    // Kick off sync to recalc from DB and update UI elements
+    cellCounterManager.syncCellOccupancy();
+  }
 }
 
 /**
@@ -750,6 +707,14 @@ function updateCellsDisplay(filteredCells) {
     attachCellActionListeners(cells);
   }
 
+  // Re-apply live occupancy numbers/bars from manager after re-render
+  if (cellCounterManager && Array.isArray(cells)) {
+    cells.forEach(c => {
+      const liveCount = cellCounterManager.getCellCount(c.id);
+      cellCounterManager.updateCellDisplay(c.id, liveCount);
+    });
+  }
+
   // Update statistics
   updateCellsStatistics(cells);
 
@@ -784,7 +749,7 @@ function updateCellsStatistics(cells) {
   if (totalCellsEl) totalCellsEl.textContent = cells.length;
   if (activeCellsEl) activeCellsEl.textContent = cells.filter(c => c.status === 'Active').length;
   if (totalCapacityEl) totalCapacityEl.textContent = cells.reduce((sum, cell) => sum + cell.capacity, 0);
-  if (currentOccupancyEl) currentOccupancyEl.textContent = cells.reduce((sum, cell) => sum + cell.currentCount, 0);
+  if (currentOccupancyEl) currentOccupancyEl.textContent = cells.reduce((sum, cell) => sum + (cell.currentCount || 0), 0);
 }
 
 /**

@@ -292,8 +292,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Count inmates by cell
     inmates.forEach(inmate => {
-      // Only count active inmates
-      if (inmate.status === 'Active' && inmate.cell_id) {
+      // Count any inmate with a cell assignment
+      if (inmate.cell_id) {
         const cell = cells.find(c => c.id === inmate.cell_id);
         if (cell) {
           cell.currentCount++;

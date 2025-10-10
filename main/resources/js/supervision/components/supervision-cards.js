@@ -137,7 +137,7 @@ const staticSupervisionData = [
   }
 ];
 
-// Fetch supervision data page (using static data for testing)
+// Fetch supervision data page (using localStorage and static data for testing)
 async function fetchSupervisionPage(offset = 0, limit = 3) {
   const cacheKey = `${offset}:${limit}`;
   if (supervisionPageCache.has(cacheKey)) {
@@ -146,9 +146,25 @@ async function fetchSupervisionPage(offset = 0, limit = 3) {
 
   // Simulate API delay for realistic testing
   await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // PLACEHOLDER: In a real implementation, this would be an API call
+  // For now, we'll merge localStorage items with static data
+  
+  // Get items from localStorage if available
+  let allSupervisionData = [...staticSupervisionData];
+  try {
+    const localItems = JSON.parse(localStorage.getItem('supervisionItems') || '[]');
+    if (localItems && Array.isArray(localItems) && localItems.length > 0) {
+      // Merge with static data (localStorage items first)
+      allSupervisionData = [...localItems, ...staticSupervisionData];
+      console.log('Loaded supervision items from localStorage:', localItems.length);
+    }
+  } catch (error) {
+    console.error('Error loading supervision items from localStorage:', error);
+  }
 
-  const total = staticSupervisionData.length;
-  const supervision = staticSupervisionData.slice(offset, offset + limit);
+  const total = allSupervisionData.length;
+  const supervision = allSupervisionData.slice(offset, offset + limit);
 
   const payload = {
     supervision,
@@ -523,6 +539,27 @@ export async function refreshSupervisionData() {
     
     // Re-render supervision cards
     await renderSupervisionCards();
+    
+    // Show toast notification if SweetAlert2 is available
+    if (typeof window !== 'undefined' && window.Swal) {
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      
+      const Toast = window.Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        background: isDarkMode ? '#111827' : '#ffffff',
+        color: isDarkMode ? '#f3f4f6' : '#1f2937'
+      });
+      
+      Toast.fire({
+        icon: 'success',
+        title: 'Supervision data refreshed',
+        iconColor: '#3B82F6'
+      });
+    }
     
     console.log('Supervision data refreshed');
   } catch (error) {
