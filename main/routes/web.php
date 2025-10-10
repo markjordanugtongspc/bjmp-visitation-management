@@ -53,6 +53,8 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
 
 // Warden routes
 Route::prefix('warden')->middleware(['auth', 'verified'])->group(function () {
+    // Female inmates static view for Warden
+    Route::view('/inmates/female', 'warden.inmates.female.inmates-female')->name('warden.inmates.female');
     Route::get('/officers', [WardenController::class, 'officers'])->name('warden.officers.index');
     Route::get('/inmates', [WardenController::class, 'inmates'])->name('warden.inmates.index');
     Route::post('/officers', [WardenController::class, 'storeOfficer'])->name('warden.officers.store');

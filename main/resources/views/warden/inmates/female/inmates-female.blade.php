@@ -50,12 +50,11 @@
                     <span>Reports</span>
                 </a>
                 <a href="{{ route('profile.edit') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>
                     <span>Profile</span>
                 </a>
-                <a href="{{ route('officers.index') }}"
-                    class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('officers.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48"><g fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" stroke-width="0.5" stroke="currentColor"><path d="M13.5 10.097C13.5 7.774 24 6 24 6s10.5 1.774 10.5 4.097c0 3.097-1.91 4.403-1.91 4.403H15.41s-1.91-1.306-1.91-4.403m12.5-.53s-1.467-.534-2-1.067c-.533.533-2 1.067-2 1.067s.4 2.933 2 2.933s2-2.933 2-2.933m5.814 8.713c1.39-1.085 1.174-2.28 1.174-2.28H15.012s-.217 1.195 1.174 2.28a8 8 0 1 0 15.629 0M24 20c2.721 0 4.624-.314 5.952-.766q.047.376.048.766a6 6 0 1 1-11.952-.766c1.329.452 3.23.766 5.952.766"/><path d="m16.879 28l6.477 5.457a1 1 0 0 0 1.288 0L31.121 28S42 31.393 42 35.467V42H6v-6.533C6 31.393 16.879 28 16.879 28m-4.154 9.207a1 1 0 0 1-.725-.961V35h7v1.246a1 1 0 0 1-.725.961l-2.5.715a1 1 0 0 1-.55 0zm20.94-4.082a.17.17 0 0 0-.33 0l-.471 1.52a.174.174 0 0 1-.165.126h-1.526c-.167 0-.237.225-.101.328l1.234.94c.06.046.086.128.063.202l-.471 1.52c-.052.168.13.307.266.204l1.234-.94a.166.166 0 0 1 .204 0l1.234.94c.136.103.318-.036.267-.203l-.472-1.52a.19.19 0 0 1 .063-.203l1.234-.94c.136-.103.066-.328-.101-.328H34.3a.174.174 0 0 1-.165-.125z"/></g></svg>
+                <a href="{{ route('officers.index') }}" class="group flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('officers.*') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48"><g fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" stroke-width="0.5" stroke="currentColor"><path d="M13.5 10.097C13.5 7.774 24 6 24 6s10.5 1.774 10.5 4.097c0 3.097-1.91 4.403-1.91 4.403H15.41s-1.91-1.306-1.91-4.403m12.5-.53s-1.467-.534-2-1.067c-.533.533-2 1.067-2 1.067s.4 2.933 2 2.933s2-2.933 2-2.933m5.814 8.713c1.39-1.085 1.174-2.28 1.174-2.28H15.012s-.217 1.195 1.174 2.28a8 8 0 1 0 15.629 0M24 20c2.721 0 4.624-.314 5.952-.766q.047.376.048.766a6 6 0 1 1-11.952-.766c1.329.452 3.23.766 5.952.766"/><path d="m16.879 28l6.477 5.457a1 1 0 0 0 1.288 0L31.121 28S42 31.393 42 35.467V42H6v-6.533C6 31.393 16.879 28 16.879 28m-4.154 9.207a1 1 0 0 1-.725-.961V35h7v1.246a1 1 0 0 1-.725.961l-2.5.715a1 1 0 0 1-.55 0zm20.94-4.082a.17.17 0 0 0-.33 0l-.471 1.52a.174.174 0 0 1-.165.126h-1.526c-.167 0-.237.225-.101.328l1.234.94c.06.046.086.128.063.202l-.471 1.52c-.052.168.13.307.266.204l1.234-.94a.166.166 0 0 1 .204 0l1.234.94c.136.103.318-.036.267-.203l-.472-1.52a.19.19 0  0 1 .063-.203l1.234-.94c.136-.103.066-.328-.101-.328H34.3a.174.174 0  0 1-.165-.125z"/></g></svg>
                     <span>Officers</span>
                 </a>
 
@@ -73,7 +72,7 @@
         </aside>
 
         <!-- Main content -->
-        <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950" data-route-admin-inmates-male="{{ route('warden.inmates.index') }}" data-route-admin-inmates-female="{{ route('warden.inmates.female') }}" data-current-gender="male">
+        <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950" data-route-admin-inmates-male="{{ route('warden.inmates.index') }}" data-route-admin-inmates-female="{{ url('/warden/inmates/female') }}" data-current-gender="female">
             <!-- Hope UI–style Header -->
             <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
                 <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">
@@ -154,7 +153,7 @@
                                 
                                 <a href="{{ route('profile.edit') }}" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 gap-2" aria-label="{{ __('Account Settings') }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                      <path fill="currentColor" d="M14.654 21.846q-.529 0-.9-.37t-.37-.899v-5.923q0-.529.37-.9t.9-.37h5.923q.529 0 .899.37t.37.9v5.923q0 .529-.37.899t-.899.37zM11 17.386V21h-.098q-.348 0-.576-.229t-.29-.571l-.263-2.092q-.479-.145-1.036-.454q-.556-.31-.947-.664l-1.915.824q-.317.14-.644.03t-.504-.415L3.648 15.57q-.177-.305-.104-.638t.348-.546l1.672-1.25q-.045-.272-.073-.559q-.03-.288-.03-.559q0-.252.03-.53q.028-.278.073-.626l-1.672-1.25q-.275-.213-.338-.555t.113-.648l1.06-1.8q.177-.287.504-.406t.644.021l1.896.804q.448-.373.97-.673q.52-.3 1.013-.464l.283-2.092q.061-.342.318-.571T10.96 3h2.08q.349 0 .605.229q.257.229.319.571l.263 2.112q.575.202 1.016.463t.909.654l1.992-.804q.318-.14.645-.021t.503.406l1.06 1.819q.177.306.104.641q-.073.336-.348.544l-1.216.911q-.176.135-.362.133t-.346-.173t-.148-.38t.183-.347l1.225-.908l-.994-1.7l-2.552 1.07q-.454-.499-1.193-.935q-.74-.435-1.4-.577L13 4h-1.994l-.312 2.689q-.756.161-1.39.52q-.633.358-1.26.985L5.55 7.15l-.994 1.7l2.169 1.62q-.125.336-.175.73t-.05.82q0 .38.05.755t.156.73l-2.15 1.645l.994 1.7l2.475-1.05q.6.606 1.363.999t1.612.588m.973-7.887q-1.046 0-1.773.724T9.473 12q0 .467.16.89t.479.777q.16.183.366.206q.207.023.384-.136q.177-.154.181-.355t-.154-.347q-.208-.2-.312-.47T10.473 12q0-.625.438-1.063t1.062-.437q.289 0 .565.116q.276.117.476.324q.146.148.338.134q.192-.015.346-.191q.154-.177.134-.381t-.198-.364q-.311-.3-.753-.469t-.908-.169m5.643 8.962q-.625 0-1.197.191q-.571.191-1.057.56q-.287.22-.44.445t-.153.456q0 .136.106.242t.242.105h5.097q.105 0 .177-.095q.07-.097.07-.252q0-.231-.152-.456q-.153-.225-.44-.444q-.486-.37-1.057-.561t-1.196-.191m0-.846q.528 0 .899-.37q.37-.371.37-.9t-.37-.899t-.9-.37q-.528 0-.899.37q-.37.37-.37.9q0 .528.37.898t.9.37" />
+                                      <path fill="currentColor" d="M14.654 21.846q-.529 0-.9-.37t-.37-.899v-5.923q0-.529.37-.9t.9-.37h5.923q.529 0 .899.37t.37.9v5.923q0 .529-.37.899t-.899.37zM11 17.386V21h-.098q-.348 0-.576-.229t-.29-.571l-.263-2.092q-.479-.145-1.036-.454q-.556-.31-.947-.664l-1.915.824q-.317.14-.644.03t-.504-.415L3.648 15.57q-.177-.305-.104-.638t.348-.546l1.672-1.25q-.045-.272-.073-.559q-.03-.288-.03-.559q 0-.252.03-.53q.028-.278.073-.626l-1.672-1.25q-.275-.213-.338-.555t.113-.648l1.06-1.8q.177-.287.504-.406t.644.021l1.896.804q.448-.373.97-.673q.52-.3 1.013-.464l.283-2.092q.061-.342.318-.571T10.96 3h2.08q.349 0 .605.229q.257.229.319.571l.263 2.112q.575.202 1.016.463t.909.654l1.992-.804q.318-.14.645-.021t.503.406l1.06 1.819q.177.306.104.641q-.073.336-.348.544l-1.216.911q-.176.135-.362.133t-.346-.173t-.148-.38t.183-.347l1.225-.908l-.994-1.7l-2.552 1.07q-.454-.499-1.193-.935q-.74-.435-1.4-.577L13 4h-1.994l-.312 2.689q-.756.161-1.39.52q-.633.358-1.26.985L5.55 7.15l-.994 1.7l2.169 1.62q-.125.336-.175.73t-.05.82q0 .38.05.755t.156.73l-2.15 1.645l.994 1.7l2.475-1.05q.6.606 1.363.999t1.612.588m.973-7.887q-1.046 0-1.773.724T9.473 12q0 .467.16.89t.479.777q.16.183.366.206q.207.023.384-.136q.177-.154.181-.355t-.154-.347q-.208-.2-.312-.47T10.473 12q0-.625.438-1.063t1.062-.437q.289 0 .565.116q.276.117.476.324q.146.148.338.134q.192-.015.346-.191q.154-.177.134-.381t-.198-.364q-.311-.3-.753-.469t-.908-.169m5.643 8.962q-.625 0-1.197.191q-.571.191-1.057.56q-.287.22-.44.445t-.153.456q0 .136.106.242t.242.105h5.097q.105 0 .177-.095q.07-.097.07-.252q0-.231-.152-.456q-.153-.225-.44-.444q-.486-.37-1.057-.561t-1.196-.191m0-.846q.528 0 .899-.37q.37-.371.37-.9t-.37-.899t-.9-.37q-.528 0-.899.37q-.37.37-.37.9q 0 .528.37.898t.9.37" />
                                     </svg>
                                         <span>{{ __('Account Settings') }}</span>
                                 </a>
@@ -164,16 +163,16 @@
                                     <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 cursor-pointer">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
 	                                        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-	                                        	<path stroke-dasharray="36" stroke-dashoffset="36" d="M12 4h-7c-0.55 0 -1 0.45 -1 1v14c0 0.55 0.45 1 1 1h7">
-	                                        		<animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="36;0" />
-	                                        	</path>
-	                                        	<path stroke-dasharray="14" stroke-dashoffset="14" d="M9 12h11.5">
-	                                        		<animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="14;0" />
-	                                        	</path>
-	                                        	<path stroke-dasharray="6" stroke-dashoffset="6" d="M20.5 12l-3.5 -3.5M20.5 12l-3.5 3.5">
-	                                        		<animate fill="freeze" attributeName="stroke-dashoffset" begin="0.8s" dur="0.2s" values="6;0" />
-	                                        	</path>
-	                                        </g>
+ 	                                         	<path stroke-dasharray="36" stroke-dashoffset="36" d="M12 4h-7c-0.55 0 -1 0.45 -1 1v14c 0 0.55 0.45 1 1 1h7">
+ 	                                         		<animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="36;0" />
+ 	                                         	</path>
+ 	                                         	<path stroke-dasharray="14" stroke-dashoffset="14" d="M9 12h11.5">
+ 	                                         		<animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="14;0" />
+ 	                                         	</path>
+ 	                                         	<path stroke-dasharray="6" stroke-dashoffset="6" d="M20.5 12l-3.5 -3.5M20.5 12l-3.5 3.5">
+ 	                                         		<animate fill="freeze" attributeName="stroke-dashoffset" begin="0.8s" dur="0.2s" values="6;0" />
+ 	                                         	</path>
+ 	                                         	</g>
                                         </svg>
                                         {{ __('Log Out') }}
                                     </button>
@@ -194,22 +193,25 @@
                                 <div class="flex-1">
                                     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                         Inmates Management
-                                        <span class="inline-flex items-center gap-1 align-middle text-xs font-medium px-2 py-0.5 bg-sky-100 text-sky-800 dark:bg-sky-800 dark:text-sky-100 rounded-md">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" viewBox="0 0 512 512" aria-hidden="true">
-                                                <path fill="currentColor" d="M292.563 65.656v40h85.156l-81.658 82.656l-12.937 13.125a136.4 136.4 0 0 0-29.406-16.75a136.3 136.3 0 0 0-52.064-10.343c-17.835 0-35.553 3.52-52.03 10.344a136.2 136.2 0 0 0-44.126 29.468a136.2 136.2 0 0 0-29.47 44.125c-6.825 16.48-10.373 34.228-10.374 52.064a136.1 136.1 0 0 0 10.344 52.03a136.2 136.2 0 0 0 29.5 44.126a136.2 136.2 0  0 0 44.125 29.47c16.478 6.824 34.195 10.374 52.03 10.374c17.837 0 35.586-3.55 52.064-10.375a136.2 136.2 0 0 0 44.124-29.47a136.2 136.2 0 0 0 29.47-44.125a136.1 136.1 0 0 0 10.342-52.03a136.3 136.3 0 0 0-10.344-52.064a136.3 136.3 0 0 0-16.03-28.436l13.218-13.406l81.844-82.875v85.875h40V65.656zm-90.907 148.688a96.6 96.6 0 0 1 36.75 7.312c11.58 4.797 22.263 11.95 31.125 20.813c8.863 8.86 16.017 19.545 20.814 31.124a96.6 96.6 0 0 1 7.312 36.75c0 12.533-2.517 25.14-7.312 36.72c-4.796 11.577-11.92 22.292-20.78 31.155c-8.864 8.862-19.578 16.014-31.158 20.81a96.6 96.6 0 0 1-36.75 7.314c-12.533 0-25.14-2.516-36.72-7.313a96.6 96.6 0 0 1-31.155-20.81a96.6 96.6 0 0 1-20.81-31.158c-4.798-11.58-7.314-24.185-7.314-36.718a96.6 96.6 0 0 1 7.313-36.75l.093-.22c4.796-11.494 11.91-22.13 20.718-30.937c8.808-8.805 19.444-15.892 30.94-20.687l.218-.094c11.58-4.795 24.185-7.313 36.718-7.312z" />
+                                        <span class="inline-flex items-center gap-1 align-middle text-xs font-medium px-2 py-0.5 bg-pink-100 text-pink-800 dark:bg-pink-800 dark:text-pink-100 rounded-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-pink-600 dark:text-pink-400" viewBox="0 0 24 24" aria-hidden="true">
+                                                <g fill="none" fill-rule="evenodd">
+                                                  <path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
+                                                  <path fill="currentColor" d="M7 9.5a7.5 7.5 0 1 1 2.942 5.957l-1.788 1.787L9.58 18.67a 1 1 0 1 1-1.414 1.414L6.74 18.659l-2.12 2.12a1 1 0 0 1-1.414-1.415l2.12-2.12l-1.403-1.403a1 1 0 1 1 1.414-1.414L6.74 15.83l1.79-1.79A7.47 7.47 0 0 1 7 9.5M14.5 4a5.5 5.5 0 1 0 0 11a5.5 5.5 0 0 0 0-11" />
+                                                </g>
                                             </svg>
-                                            <span>Male</span>
+                                            <span>Female</span>
                                         </span>
                                     </h1>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage male inmates, cells, and assignments</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage female inmates, cells, and assignments</p>
                                 </div>
                             </div>
                         </div>
-                         <!-- Mobile: Toggle above title, Desktop: Toggle inline with title -->
-                         <div class="flex justify-start mb-3 sm:mb-0 sm:mr-4">
+                                <!-- Mobile: Toggle above title, Desktop: Toggle inline with title -->
+                                <div class="flex justify-start mb-3 sm:mb-0 sm:mr-4">
                                     <div class="inline-flex items-center cursor-pointer" data-gender-toggle>
                                         <label class="inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" data-gender-toggle-input />
+                                            <input type="checkbox" class="sr-only peer" data-gender-toggle-input checked />
                                             <div class="inline-block align-middle relative w-11 h-6 
                                                 bg-sky-500 
                                                 peer-focus:outline-none 
@@ -234,11 +236,11 @@
                                                 after:h-5 
                                                 after:w-5 
                                                 after:transition-all 
-                                              dark:border-gray-600"></div>
-                                     <span class="ms-3 text-sm font-medium text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-md align-middle pointer-events-none" data-gender-toggle-label>Switch to Female</span>
-                                </label>
-                             </div>
-                        </div>
+                                                dark:border-gray-600"></div>
+                                            <span class="ms-3 text-sm font-medium text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-md align-middle pointer-events-none" data-gender-toggle-label>Switch to Female</span>
+                                        </label>
+                                    </div>
+                                </div>
                         <div class="flex flex-col sm:flex-row gap-2">
                             <button data-add-inmate class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -262,7 +264,7 @@
                         <div class="flex items-center">
                             <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" viewBox="0 0 512 512">
-	                            <path fill="currentColor" d="M185 25v14h142V25zm0 32v14h142V57zm2.512 32c-1.626 7.3-2.512 15-2.512 23c0 48.966 32.654 87 71 87s71-38.034 71-87c0-8-.886-15.7-2.512-23zm21.027 118.72c-22.123 6.853-39.915 18.596-54.614 33.583l-.422.44c30.324 4.354 58.944 6.987 86.484 7.907l-31.45-41.93zm94.92 0l-31.667 42.223c29.804-.46 58.58-3.033 87.186-7.697c-.304-.314-.6-.633-.906-.943c-14.7-14.987-32.49-26.73-54.613-33.584zm-67.437 6.645L256 241.002l19.977-26.637A76.8 76.8 0 0 1 256 217a76.8 76.8 0 0 1-19.977-2.635zm-106.914 60.05c-3.84 6.633-7.324 13.557-10.493 20.685l28.81 7.203c110.47 15.786 106.675 15.786 217.147 0l28.81-7.203c-3.15-7.085-6.61-13.97-10.423-20.565c-79.61 15.326-159.822 15.182-253.85-.12zm-22.905 54.69a326 326 0 0 0-1.533 5.303a363 363 0 0 0-4.926 19.975L135 363.195v-26.89l-28.795-7.2zm299.59 0l-28.795 7.2v26.37l34.857-10.048a360 360 0 0 0-4.53-18.22a326 326 0 0 0-1.532-5.302M153 339.46v27.95c73.738 14.2 132.264 14.196 206-.004V339.46c-96.875 13.752-109.125 13.752-206 0m265.188 48.806L377 400.14v27.055l44.227-11.056a529 529 0 0 0-3.04-27.874zM93.59 389.95a532 532 0 0 0-2.817 26.19L135 427.194v-26.89zM153 404.04v27.173c88.597 14.452 132.463 14.508 206 .205v-27.38c-72.118 13.164-133.882 13.164-206 0zm-64.152 48.726c-.356 14.784-.125 26.056.027 34.234H135v-22.695l-46.152-11.54zm334.304 0L377 464.306V487h46.125c.152-8.178.383-19.45.027-34.234M153 467.696V487h206v-18.94c-71.098 13.194-121.477 13.04-206-.365z" stroke-width="13" stroke="currentColor" />
+	                            <path fill="currentColor" d="M185 25v14h142V25zm0 32v14h142V57zm2.512 32c-1.626 7.3-2.512 15-2.512 23c0 48.966 32.654 87 71 87s71-38.034 71-87c0-8-.886-15.7-2.512-23zm21.027 118.72c-22.123 6.853-39.915 18.596-54.614 33.583l-.422.44c30.324 4.354 58.944 6.987 86.484 7.907l-31.45-41.93zm94.92 0l-31.667 42.223c29.804-.46 58.58-3.033 87.186-7.697c-.304-.314-.6-.633-.906-.943c-14.7-14.987-32.49-26.73-54.613-33.584zm-67.437 6.645L256 241.002l19.977-26.637A76.8 76.8 0 0 1 256 217a76.8 76.8 0 0 1-19.977-2.635zm-106.914 60.05c-3.84 6.633-7.324 13.557-10.493 20.685l28.81 7.203c110.47 15.786 106.675 15.786 217.147 0l28.81-7.203c-3.15-7.085-6.61-13.97-10.423-20.565c-79.61 15.326-159.822 15.182-253.85-.12zm-22.905 54.69a326 326 0 0 0-1.533 5.303a363 363 0 0 0-4.926 19.975L135 363.195v-26.89l-28.795-7.2zm299.59 0l-28.795 7.2v26.37l34.857-10.048a360 360 0 0 0-4.53-18.22a326 326 0  0 0-1.532-5.302M153 339.46v27.95c73.738 14.2 132.264 14.196 206-.004V339.46c-96.875 13.752-109.125 13.752-206 0m265.188 48.806L377 400.14v27.055l44.227-11.056a529 529 0 0 0-3.04-27.874zM93.59 389.95a532 532 0 0 0-2.817 26.19L135 427.194v-26.89zM153 404.04v27.173c88.597 14.452 132.463 14.508 206 .205v-27.38c-72.118 13.164-133.882 13.164-206 0zm-64.152 48.726c-.356 14.784-.125 26.056.027 34.234H135v-22.695l-46.152-11.54zm334.304 0L377 464.306V487h46.125c.152-8.178.383-19.45.027-34.234M153 467.696V487h206v-18.94c-71.098 13.194-121.477 13.04-206-.365z" stroke-width="13" stroke="currentColor" />
                             </svg>
                             </div>
                             <div class="ml-4">
@@ -404,7 +406,7 @@
                         <div class="flex flex-col items-center justify-center space-y-4 sm:space-y-6 px-4 sm:px-0">
                             <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0  0 0-4 4v2"/>
                                     <circle cx="9" cy="7" r="4"/>
                                     <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                                 </svg>
@@ -446,5 +448,7 @@
 
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/profile/edit-profile-modal.js')
-    @vite('resources/js/inmates/inmates.js')
+    @vite('resources/js/inmates/components/inmates-female.js')
 </x-app-layout>
+
+
