@@ -5,6 +5,8 @@ import initSupervisionModalInteractions from './components/supervision-modal.js'
 import { initializeSupervisionCards, refreshSupervisionData } from './components/supervision-cards.js';
 import { initSupervisionForm } from './components/supervision-form.js';
 import { initFlowbiteComponents } from './components/flowbite-init.js';
+import { initFilePreview } from './components/file-preview.js';
+import { initFileUploader } from './components/file-uploader.js';
 
 function ready(fn) {
   if (document.readyState === 'loading') {
@@ -91,8 +93,22 @@ ready(() => {
   // Initialize supervision form with validation and file upload
   initSupervisionForm();
   
+  // Initialize file preview functionality
+  initFilePreview();
+  
+  // Initialize advanced file uploader
+  initFileUploader();
+  
   // Add direct click handlers for the modal buttons
   setupModalHandlers();
+
+  // If user opens Create Manual, show the info modal via helper
+  const createManualBtn = document.querySelector('[data-modal-target="createManualModal"]');
+  if (createManualBtn && window.SupervisionModal && typeof window.SupervisionModal.showGuidelinesInfo === 'function') {
+    createManualBtn.addEventListener('click', () => {
+      setTimeout(() => window.SupervisionModal.showGuidelinesInfo(), 80);
+    });
+  }
 });
 
 

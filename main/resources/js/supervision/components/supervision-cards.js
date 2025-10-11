@@ -21,123 +21,10 @@ async function initializeSupervisionCardsPage() {
   }
 }
 
-// Static supervision data for testing
-const staticSupervisionData = [
-  {
-    id: 1,
-    name: 'Cell Inspection SOP',
-    type: 'Operations',
-    category: 'Operations',
-    description: 'Step-by-step procedures for daily cell inspections and documentation.',
-    updatedDate: 'Sep 26, 2025',
-    pages: 12,
-    icon: 'blue',
-    iconSvg: 'M6 4a2 2 0 00-2 2v12.5a.5.5 0 00.777.416L8 17l3.223 1.916a.5.5 0 00.554 0L15 17l3.223 1.916A.5.5 0 0019 18.5V6a2 2 0 00-2-2z',
-    status: 'active',
-    priority: 'High',
-    progress: 100
-  },
-  {
-    id: 2,
-    name: 'Admission & Intake Checklist',
-    type: 'Intake',
-    category: 'Intake',
-    description: 'Standardized checklist for new inmate intake and initial processing.',
-    updatedDate: 'Sep 10, 2025',
-    pages: 8,
-    icon: 'emerald',
-    iconSvg: 'M8.75 2.75A2.75 2.75 0 006 5.5v13a2.75 2.75 0 002.75 2.75h8.5A2.75 2.75 0 0020 18.5v-13A2.75 2.75 0 0017.25 2.75zM9.5 6h7v1.5h-7zM9.5 9h7v1.5h-7zM9.5 12h7v1.5h-7z',
-    status: 'active',
-    priority: 'Medium',
-    progress: 95
-  },
-  {
-    id: 3,
-    name: 'Emergency Drill Playbook',
-    type: 'Safety',
-    category: 'Safety',
-    description: 'Guidelines for fire, earthquake, and lockdown drills within facilities.',
-    updatedDate: 'Aug 30, 2025',
-    pages: 20,
-    icon: 'amber',
-    iconSvg: 'M12 2a7 7 0 017 7v2a7 7 0 01-14 0V9a7 7 0 017-7z M11 14h2v6h-2z',
-    status: 'active',
-    priority: 'High',
-    progress: 85
-  },
-  {
-    id: 4,
-    name: 'Medication Administration Guide',
-    type: 'Medical',
-    category: 'Medical',
-    description: 'Safe handling and distribution of inmate medications and record-keeping.',
-    updatedDate: 'Sep 01, 2025',
-    pages: 16,
-    icon: 'rose',
-    iconSvg: 'M3 7a4 4 0 014-4h10a4 4 0 014 4v2H3z M21 10H3v7a4 4 0 004 4h10a4 4 0 004-4z',
-    status: 'active',
-    priority: 'High',
-    progress: 90
-  },
-  {
-    id: 5,
-    name: 'Visitor Management Handbook',
-    type: 'Visitation',
-    category: 'Visitation',
-    description: 'Protocols for visitor scheduling, identity verification, and conduct.',
-    updatedDate: 'Sep 20, 2025',
-    pages: 22,
-    icon: 'indigo',
-    iconSvg: 'M7 7h10v2H7zM7 11h10v2H7zM7 15h10v2H7z',
-    status: 'active',
-    priority: 'Medium',
-    progress: 75
-  },
-  {
-    id: 6,
-    name: 'Officer Onboarding Guide',
-    type: 'Training',
-    category: 'Training',
-    description: 'Core competencies, code of conduct, and shadowing plan for new staff.',
-    updatedDate: 'Aug 18, 2025',
-    pages: 18,
-    icon: 'fuchsia',
-    iconSvg: 'M12 2a7 7 0 00-7 7v2a7 7 0 0014 0V9a7 7 0 00-7-7zm0 12a3 3 0 113-3 3 3 0 01-3 3z',
-    status: 'active',
-    priority: 'Medium',
-    progress: 80
-  },
-  {
-    id: 7,
-    name: 'Incident Reporting Manual',
-    type: 'Discipline',
-    category: 'Discipline',
-    description: 'How to document, escalate, and file disciplinary incidents accurately.',
-    updatedDate: 'Sep 03, 2025',
-    pages: 10,
-    icon: 'teal',
-    iconSvg: 'M5 3a2 2 0 00-2 2v9.764A3.236 3.236 0 006.236 18H18a3 3 0 003-3V5a2 2 0 00-2-2z M7 21a1 1 0 01-1-1v-2h12v2a1 1 0 01-1 1z',
-    status: 'active',
-    priority: 'High',
-    progress: 88
-  },
-  {
-    id: 8,
-    name: 'Critical Incident Response',
-    type: 'Emergency',
-    category: 'Emergency',
-    description: 'Immediate actions and chain-of-command for critical emergencies.',
-    updatedDate: 'Jul 25, 2025',
-    pages: 26,
-    icon: 'red',
-    iconSvg: 'M12 2a9 9 0 00-9 9v4a3 3 0 003 3h1v2a1 1 0 001.555.832L12 19h6a3 3 0 003-3v-4a9 9 0 00-9-9z',
-    status: 'active',
-    priority: 'Critical',
-    progress: 92
-  }
-];
+// Empty array for supervision data - will be populated from localStorage
+const staticSupervisionData = [];
 
-// Fetch supervision data page (using localStorage and static data for testing)
+// Fetch supervision data page (using localStorage only)
 async function fetchSupervisionPage(offset = 0, limit = 3) {
   const cacheKey = `${offset}:${limit}`;
   if (supervisionPageCache.has(cacheKey)) {
@@ -147,17 +34,15 @@ async function fetchSupervisionPage(offset = 0, limit = 3) {
   // Simulate API delay for realistic testing
   await new Promise(resolve => setTimeout(resolve, 100));
   
-  // PLACEHOLDER: In a real implementation, this would be an API call
-  // For now, we'll merge localStorage items with static data
-  
-  // Get items from localStorage if available
-  let allSupervisionData = [...staticSupervisionData];
+  // Get items from localStorage only
+  let allSupervisionData = [];
   try {
     const localItems = JSON.parse(localStorage.getItem('supervisionItems') || '[]');
     if (localItems && Array.isArray(localItems) && localItems.length > 0) {
-      // Merge with static data (localStorage items first)
-      allSupervisionData = [...localItems, ...staticSupervisionData];
+      allSupervisionData = [...localItems];
       console.log('Loaded supervision items from localStorage:', localItems.length);
+    } else {
+      console.log('No supervision items found in localStorage');
     }
   } catch (error) {
     console.error('Error loading supervision items from localStorage:', error);
@@ -341,7 +226,7 @@ function createSupervisionCard(item, index) {
   const iconClass = iconColors[item.icon] || iconColors.blue;
 
   return `
-    <article class="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 hover:shadow-sm transition cursor-pointer">
+    <article data-item-id="${item.id}" class="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 hover:shadow-sm transition cursor-pointer">
       <div class="flex items-start gap-3">
         <div class="h-10 w-10 rounded-lg ${iconClass} flex items-center justify-center ring-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -364,7 +249,7 @@ function createSupervisionCard(item, index) {
         <span>${item.pages} pages</span>
       </div>
       <div class="mt-4 flex items-center gap-2">
-        <button class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+        <button data-action="view" class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 5c-7.633 0-10 7-10 7s2.367 7 10 7 10-7 10-7-2.367-7-10-7zm0 12a5 5 0 115-5 5 5 0 01-5 5zm0-8a3 3 0 103 3 3 3 0 00-3-3z"/>
           </svg>
@@ -488,29 +373,34 @@ function attachModalInteractions() {
     });
   }
 
-  // View button functionality
-  document.querySelectorAll('button:not([data-action="download"])').forEach((btn) => {
-    const text = btn.textContent.trim();
-    if (text === 'View') {
-      // Remove existing listeners to prevent duplicates
-      btn.removeEventListener('click', handleViewClick);
-      btn.addEventListener('click', handleViewClick);
-    }
+  // View button functionality - only for preview, no download
+  document.querySelectorAll('button[data-action="view"]').forEach((btn) => {
+    btn.removeEventListener('click', handleViewClick);
+    btn.addEventListener('click', handleViewClick);
   });
 
   function handleViewClick(e) {
     e.preventDefault();
     const card = e.target.closest('article');
     const title = card?.querySelector('h3')?.textContent || 'Manual';
-    const description = card?.querySelector('p')?.textContent || 'No description available';
+    const type = card?.querySelector('.inline-flex')?.textContent || 'Document';
     
-    themedConfirm({
-      title: title,
-      text: description,
-      icon: 'info',
-      confirmButtonText: 'OK',
-      showCancelButton: false,
-    });
+    // Get the item ID from the card
+    const itemId = card?.dataset.itemId;
+    let item = null;
+    
+    // Find the item in localStorage if available
+    if (itemId) {
+      try {
+        const items = JSON.parse(localStorage.getItem('supervisionItems') || '[]');
+        item = items.find(i => i.id.toString() === itemId.toString());
+      } catch (err) {
+        console.error('Error retrieving item from localStorage:', err);
+      }
+    }
+    
+    // Show full-screen file preview modal
+    showFilePreviewModal(title, type, item);
   }
 
   // Toast when opening create manual (if button exists)
@@ -527,6 +417,426 @@ function attachModalInteractions() {
       background: isDarkMode() ? PALETTE.darkBg : '#fff',
       color: isDarkMode() ? '#E5E7EB' : '#111827',
       iconColor: PALETTE.primary,
+    });
+  }
+
+  // Show full-screen file preview modal
+  function showFilePreviewModal(title, type, item = null) {
+    if (typeof window === 'undefined' || !window.Swal) return;
+
+    const isDark = isDarkMode();
+    
+    window.Swal.fire({
+      title: `<div class="flex items-center justify-between w-full">
+        <span class="text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}">${title}</span>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-800'}">${type}</span>
+          <button id="fullscreen-btn" class="inline-flex items-center justify-center w-8 h-8 rounded-lg ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'} transition-colors cursor-pointer" title="Toggle Fullscreen">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+            </svg>
+          </button>
+        </div>
+      </div>`,
+      html: createFilePreviewHTML(title, type, isDark, item),
+      showConfirmButton: false,
+      showCloseButton: true,
+      width: '90vw',
+      heightAuto: false,
+      customClass: {
+        popup: `${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border shadow-2xl`,
+        htmlContainer: 'p-0 h-[70vh]',
+        closeButton: `${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'} text-2xl`,
+        title: 'p-4 pb-2'
+      },
+      background: isDark ? '#111827' : '#ffffff',
+      didOpen: () => {
+        setupFullscreenToggle();
+        
+        // Show loading state first
+        const loadingEl = document.getElementById('preview-loading');
+        const previewEl = document.getElementById('preview-content');
+        
+        if (!loadingEl || !previewEl) return;
+        
+        // Check if we're loading a real file or a demo
+        const isRealFile = item && item.filePath;
+        const loadingTime = isRealFile ? 1500 : 1000; // Longer loading time for real files
+        
+        // Simulate file loading
+        setTimeout(() => {
+          loadingEl.classList.add('hidden');
+          previewEl.classList.remove('hidden');
+          previewEl.classList.add('flex-1', 'flex', 'flex-col');
+          
+          // Set up download button for all files
+          const downloadBtn = document.getElementById('file-download-btn');
+          if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => {
+              if (isRealFile && item.filePath) {
+                // Create a temporary link to download the file
+                const link = document.createElement('a');
+                link.href = item.filePath;
+                link.download = item.fileName || item.originalFilename || 'document.pdf';
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Show success toast
+                window.Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'success',
+                  title: `Downloading ${item.fileName || 'document'}...`,
+                  showConfirmButton: false,
+                  timer: 1500
+                });
+              } else {
+                // For demo files, just show a message
+                window.Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'info',
+                  title: 'Demo file - download not available',
+                  showConfirmButton: false,
+                  timer: 2000
+                });
+              }
+            });
+          }
+        }, loadingTime);
+      }
+    });
+  }
+
+  // Create file preview HTML content
+  function createFilePreviewHTML(title, type, isDark, item = null) {
+    // Get file details from item if available
+    const fileSize = item?.fileSize ? formatFileSize(item.fileSize) : `${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 9) + 1}MB`;
+    const pages = item?.pages || Math.floor(Math.random() * 30) + 5;
+    const fileName = item?.fileName || `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+    const uploadDate = item?.updatedDate || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    
+    return `
+      <div class="h-full flex flex-col">
+        <!-- Loading State -->
+        <div id="preview-loading" class="flex-1 flex items-center justify-center">
+          <div class="text-center">
+            <svg class="animate-spin h-12 w-12 ${isDark ? 'text-blue-400' : 'text-blue-600'} mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="${isDark ? 'text-gray-300' : 'text-gray-600'} text-sm">Loading document preview...</p>
+          </div>
+        </div>
+
+        <!-- Preview Content -->
+        <div id="preview-content" class="hidden">
+          <!-- File Info Bar -->
+          <div class="flex items-center gap-3 p-3 ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}">
+            <div class="h-8 w-8 rounded-lg ${getFileIconColor(type, isDark)} flex items-center justify-center">
+              ${getFileIcon(type)}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'} truncate">${title}</p>
+              <p class="text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}">
+                ${fileName} • ${fileSize} • ${pages} pages • Uploaded ${uploadDate}
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="file-download-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} text-xs font-medium transition-colors cursor-pointer">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Download
+              </button>
+            </div>
+          </div>
+
+          <!-- Document Preview -->
+          <div class="flex-1 p-4">
+            <div class="h-full rounded-lg border ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} overflow-hidden">
+              <iframe 
+                src="${generatePreviewURL(title, type, item)}" 
+                class="w-full h-full"
+                frameborder="0"
+                title="Document Preview">
+              </iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  // Format file size for display
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Get file icon based on type
+  function getFileIcon(type) {
+    const icons = {
+      'PDF': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.828A2 2 0 0 0 19.414 7.414l-4.828-4.828A2 2 0 0 0 12.172 2H6zm6 1.414L18.586 10H14a2 2 0 0 1-2-2V3.414z"/></svg>',
+      'Operations': '<svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.246 4.86L13.527.411a3.07 3.07 0 0 0-3.071 0l-2.34 1.344v6.209l3.104-1.793a1.52 1.52 0 0 1 1.544 0l3.884 2.241c.482.282.764.78.764 1.328v4.482a1.54 1.54 0 0 1-.764 1.328l-3.884 2.241V24l8.482-4.897a3.08 3.08 0 0 0 1.544-2.656V7.532a3.05 3.05 0 0 0-1.544-2.672M6.588 14.222V2.652L2.754 4.876A3.08 3.08 0 0 0 1.21 7.532v8.915c0 1.095.581 2.108 1.544 2.656L11.236 24v-6.209L7.352 15.55a1.53 1.53 0 0 1-.764-1.328" stroke-width="0.3" stroke="currentColor" /></svg>',
+      'Intake': '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" width="12" height="12" viewBox="0 0 24 24"><g fill="none"><path d="M19.781 14.555L13.5 16h-.375a1.875 1.875 0 0 0 0-3.75H8.438a2.25 2.25 0 0 0-1.594.656L4.5 15.25v5.25h6.75l6-1.5l3.64-1.552a1.555 1.555 0 0 0-1.109-2.893M4.5 15.25v5.25H1v-5.25z"/><path d="M18.5 2a3.5 3.5 0 1 1-2 6.373l.01-.008a3.5 3.5 0 1 1-.01-5.738a3.5 3.5 0 0 1 2-.627" clip-rule="evenodd"/><path stroke="currentColor" stroke-linecap="square" stroke-width="2" d="M4.5 20.5h6.75l6-1.5l3.64-1.552a1.555 1.555 0 0 0-1.109-2.893L13.5 16h-.375M4.5 20.5v-5.25m0 5.25H1v-5.25h3.5m0 0l2.344-2.344a2.25 2.25 0 0 1 1.593-.656h4.688a1.875 1.875 0 0 1 0 3.75H11m6-13.663a3.5 3.5 0 1 1 0 6.326M14.5 9a3.5 3.5 0 1 1 0-7a3.5 3.5 0 0 1 0 7Z"/></g></svg>',
+      'Safety': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a7 7 0 017 7v2a7 7 0 01-14 0V9a7 7 0 017-7z M11 14h2v6h-2z"/></svg>',
+      'Medical': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 7a4 4 0 014-4h10a4 4 0 014 4v2H3z M21 10H3v7a4 4 0 004 4h10a4 4 0 004-4z"/></svg>',
+      'Visitation': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 7h10v2H7zM7 11h10v2H7zM7 15h10v2H7z"/></svg>',
+      'Training': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7v2a7 7 0 0014 0V9a7 7 0 00-7-7zm0 12a3 3 0 113-3 3 3 0 01-3 3z"/></svg>',
+      'Discipline': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5 3a2 2 0 00-2 2v9.764A3.236 3.236 0 006.236 18H18a3 3 0 003-3V5a2 2 0 00-2-2z M7 21a1 1 0 01-1-1v-2h12v2a1 1 0 01-1 1z"/></svg>',
+      'Emergency': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a9 9 0 00-9 9v4a3 3 0 003 3h1v2a1 1 0 001.555.832L12 19h6a3 3 0 003-3v-4a9 9 0 00-9-9z"/></svg>'
+    };
+    return icons[type] || icons['PDF'];
+  }
+
+  // Get file icon color based on type and theme
+  function getFileIconColor(type, isDark) {
+    const colors = {
+      'Operations': isDark ? 'bg-blue-950/40 text-blue-400' : 'bg-blue-100 text-blue-600',
+      'Intake': isDark ? 'bg-emerald-950/40 text-emerald-400' : 'bg-emerald-100 text-emerald-600',
+      'Safety': isDark ? 'bg-amber-950/40 text-amber-400' : 'bg-amber-100 text-amber-600',
+      'Medical': isDark ? 'bg-rose-950/40 text-rose-400' : 'bg-rose-100 text-rose-600',
+      'Visitation': isDark ? 'bg-indigo-950/40 text-indigo-400' : 'bg-indigo-100 text-indigo-600',
+      'Training': isDark ? 'bg-fuchsia-950/40 text-fuchsia-400' : 'bg-fuchsia-100 text-fuchsia-600',
+      'Discipline': isDark ? 'bg-teal-950/40 text-teal-400' : 'bg-teal-100 text-teal-600',
+      'Emergency': isDark ? 'bg-red-950/40 text-red-400' : 'bg-red-100 text-red-600'
+    };
+    return colors[type] || (isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600');
+  }
+
+  // Generate preview URL for the file
+  function generatePreviewURL(title, type, item) {
+    // Check if we have a real file path from localStorage
+    if (item && item.filePath) {
+      // Return the actual file path for preview
+      return item.filePath;
+    }
+    
+    // Return empty string if no file path available
+    return '';
+  }
+
+  // Create document info content for non-PDF files
+  function createDocumentInfoContent(title, type, item) {
+    const fileSize = formatFileSize(item.fileSize);
+    const uploadDate = item.updatedDate || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            background: #ffffff;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+          }
+          .document-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+            width: 100%;
+            max-width: 800px;
+          }
+          .document-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+          }
+          .document-meta {
+            color: #6b7280;
+            font-size: 14px;
+          }
+          .file-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: #f0f9ff;
+            border-radius: 12px;
+            border: 1px solid #0ea5e9;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+          }
+          .file-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 24px;
+            background: #3b82f6;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+          }
+          .file-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+          }
+          .file-details {
+            text-align: center;
+            margin-bottom: 20px;
+          }
+          .file-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+          }
+          .file-meta {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+          }
+          .info-box {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            max-width: 800px;
+            width: 100%;
+          }
+          .info-box h4 {
+            color: #0369a1;
+            margin-bottom: 8px;
+          }
+          @media (prefers-color-scheme: dark) {
+            body { background: #111827; color: #e5e7eb; }
+            .document-title { color: #f9fafb; }
+            .file-info { background: #0c4a6e; border-color: #0ea5e9; color: #e0f2fe; }
+            .info-box { background: #0c4a6e; border-color: #0ea5e9; color: #e0f2fe; }
+            .info-box h4 { color: #7dd3fc; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="document-header">
+          <h1 class="document-title">${title}</h1>
+          <div class="document-meta">
+            ${type} Manual • Uploaded: ${uploadDate}
+          </div>
+        </div>
+
+        <div class="file-info">
+          <div class="file-icon">
+            ${getFileIcon(type)}
+          </div>
+          <div class="file-details">
+            <div class="file-name">${item.fileName || item.originalFilename}</div>
+            <div class="file-meta">
+              Size: ${fileSize} • Type: ${item.fileExtension?.toUpperCase()} • Pages: ${item.pages || 'N/A'}
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <h4>📄 Document Information</h4>
+          <p>This document has been successfully uploaded and processed. Use the download button above to save the file to your device.</p>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+
+  // Setup fullscreen toggle functionality
+  function setupFullscreenToggle() {
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    if (!fullscreenBtn) return;
+
+    fullscreenBtn.addEventListener('click', () => {
+      const modal = document.querySelector('.swal2-popup');
+      if (!modal) return;
+
+      if (!document.fullscreenElement) {
+        // Enter fullscreen
+        modal.requestFullscreen().then(() => {
+          modal.style.width = '100vw';
+          modal.style.height = '100vh';
+          modal.style.maxWidth = 'none';
+          modal.style.maxHeight = 'none';
+          modal.style.margin = '0';
+          modal.querySelector('.swal2-html-container').style.height = '90vh';
+          
+          // Update button icon to exit fullscreen
+          fullscreenBtn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          `;
+          fullscreenBtn.title = 'Exit Fullscreen';
+        }).catch(err => {
+          console.error('Error entering fullscreen:', err);
+        });
+      } else {
+        // Exit fullscreen
+        document.exitFullscreen().then(() => {
+          modal.style.width = '90vw';
+          modal.style.height = 'auto';
+          modal.style.maxWidth = '';
+          modal.style.maxHeight = '';
+          modal.style.margin = '';
+          modal.querySelector('.swal2-html-container').style.height = '70vh';
+          
+          // Update button icon to enter fullscreen
+          fullscreenBtn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+            </svg>
+          `;
+          fullscreenBtn.title = 'Toggle Fullscreen';
+        }).catch(err => {
+          console.error('Error exiting fullscreen:', err);
+        });
+      }
+    });
+
+    // Handle fullscreen change events
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        // Exited fullscreen, restore original styles
+        const modal = document.querySelector('.swal2-popup');
+        if (modal) {
+          modal.style.width = '90vw';
+          modal.style.height = 'auto';
+          modal.style.maxWidth = '';
+          modal.style.maxHeight = '';
+          modal.style.margin = '';
+          modal.querySelector('.swal2-html-container').style.height = '70vh';
+          
+          fullscreenBtn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+            </svg>
+          `;
+          fullscreenBtn.title = 'Toggle Fullscreen';
+        }
+      }
     });
   }
 }

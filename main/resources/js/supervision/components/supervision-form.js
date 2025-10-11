@@ -10,14 +10,14 @@ const DESCRIPTION_MIN_LENGTH = 50;
 
 // Category configuration with color mappings
 const CATEGORIES = [
-  { value: 'operations', label: 'Operations', color: 'blue' },
-  { value: 'intake', label: 'Intake', color: 'emerald' },
-  { value: 'safety', label: 'Safety', color: 'amber' },
-  { value: 'medical', label: 'Medical', color: 'rose' },
-  { value: 'visitation', label: 'Visitation', color: 'indigo' },
-  { value: 'training', label: 'Training', color: 'fuchsia' },
-  { value: 'discipline', label: 'Discipline', color: 'teal' },
-  { value: 'emergency', label: 'Emergency', color: 'red' }
+  { value: 'Operations', label: 'Operations', color: 'blue' },
+  { value: 'Intake', label: 'Intake', color: 'emerald' },
+  { value: 'Safety', label: 'Safety', color: 'amber' },
+  { value: 'Medical', label: 'Medical', color: 'rose' },
+  { value: 'Visitation', label: 'Visitation', color: 'indigo' },
+  { value: 'Training', label: 'Training', color: 'fuchsia' },
+  { value: 'Discipline', label: 'Discipline', color: 'teal' },
+  { value: 'Emergency', label: 'Emergency', color: 'red' }
 ];
 
 // SVG path templates for random icon generation
@@ -46,6 +46,9 @@ export function initSupervisionForm() {
   setupFileUpload();
   setupCategorySelector();
   setupFormSubmission();
+
+  // Optional: initialize drag & drop for the file input
+  initDragAndDropForFileInput();
 }
 
 // Setup form validation for all inputs
@@ -199,6 +202,59 @@ function setupFileUpload() {
   });
 }
 
+// Drag & Drop support for file input
+function initDragAndDropForFileInput() {
+  const fileInput = document.getElementById('file_input');
+  if (!fileInput) return;
+
+  // Create a drop zone wrapper around the input
+  const wrapper = document.createElement('div');
+  wrapper.className = 'mt-2 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/30 p-4 transition';
+
+  // Move input into wrapper
+  fileInput.parentNode.insertBefore(wrapper, fileInput);
+  wrapper.appendChild(fileInput);
+
+  const help = document.getElementById('file_input_help');
+  if (help) wrapper.appendChild(help);
+
+  // Visual feedback helpers
+  function setActive(active) {
+    if (active) {
+      wrapper.classList.add('border-blue-400');
+      wrapper.classList.remove('border-gray-200', 'dark:border-gray-700');
+    } else {
+      wrapper.classList.remove('border-blue-400');
+      wrapper.classList.add('border-gray-200', 'dark:border-gray-700');
+    }
+  }
+
+  ;['dragenter','dragover'].forEach(evt => {
+    wrapper.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setActive(true);
+    });
+  });
+
+  ;['dragleave','drop'].forEach(evt => {
+    wrapper.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setActive(false);
+    });
+  });
+
+  wrapper.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    if (!dt || !dt.files || !dt.files.length) return;
+    fileInput.files = dt.files;
+    // Trigger change to run validation & info update
+    const changeEvt = new Event('change', { bubbles: true });
+    fileInput.dispatchEvent(changeEvt);
+  });
+}
+
 // Setup category selector with color-coded badges
 function setupCategorySelector() {
   const categorySelect = document.getElementById('guideline-category');
@@ -250,12 +306,29 @@ function setupCategorySelector() {
       };
       
       const badge = document.createElement('span');
-      badge.className = `category-badge absolute right-10 top-1/2 transform -translate-y-1/2 px-2 py-0.5 text-xs font-medium rounded-full ${badgeColors[color] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`;
+      badge.className = `category-badge absolute right-12 top-1/2 transform -translate-y-1/2 px-2.5 py-1 text-xs font-medium rounded-full shadow-sm ${badgeColors[color] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`;
       badge.textContent = selectedOption.textContent;
       
-      // Position the badge inside the select container
+      // Position the badge inside the select container with proper z-index
       categorySelect.parentNode.style.position = 'relative';
       categorySelect.parentNode.appendChild(badge);
+      
+      // Ensure the badge is above the select dropdown
+      badge.style.zIndex = '10';
+      
+      // Also update the file preview category - dispatch a custom event
+      try {
+        // Create and dispatch a custom event for file-preview.js
+        const event = new CustomEvent('categorySelected', {
+          detail: {
+            value: selectedOption.value,
+            label: selectedOption.textContent
+          }
+        });
+        window.dispatchEvent(event);
+      } catch (err) {
+        console.error('Error dispatching category event:', err);
+      }
     }
   });
 }

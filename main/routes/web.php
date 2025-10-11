@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WardenController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SupervisionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -62,6 +63,8 @@ Route::prefix('warden')->middleware(['auth', 'verified'])->group(function () {
     Route::patch('/officers/{user:user_id}', [WardenController::class, 'updateOfficer'])->name('warden.officers.update');
     // Super Vision static page
     Route::view('/supervision', 'warden.supervision.supervision')->name('warden.supervision');
+    // Supervision file upload
+    Route::post('/supervision/upload', [SupervisionController::class, 'upload'])->name('warden.supervision.upload');
 });
 
 // Legacy routes (for backward compatibility)

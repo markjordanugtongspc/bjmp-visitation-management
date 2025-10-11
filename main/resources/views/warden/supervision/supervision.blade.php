@@ -234,92 +234,114 @@
                 <!-- Upload Guidelines Section -->
                 <div class="mt-2 sm:mt-8 flex flex-col gap-8">
                     <div class="w-full flex flex-col lg:flex-row gap-6">
-                        <!-- Upload Info Card -->
-                        <div class="flex-1 bg-white dark:bg-gray-900 rounded-xl shadow p-5 flex flex-col min-h-[420px]">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Supervision Guidelines</h3>
-                            <div class="flex-1 flex flex-col justify-between">
-                                <div class="space-y-4">
-                                    <p class="text-gray-600 dark:text-gray-300">
-                                        Upload and manage supervision guidelines and manuals for your facility. These documents help standardize operations and ensure consistent procedures.
-                                    </p>
-                                    
-                                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
-                                        <h4 class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Benefits of Standardized Manuals</h4>
-                                        <ul class="list-disc pl-5 text-sm text-blue-700 dark:text-blue-400 space-y-1">
-                                            <li>Ensures consistent operations across shifts</li>
-                                            <li>Simplifies training for new officers</li>
-                                            <li>Provides clear guidance during emergencies</li>
-                                            <li>Helps maintain compliance with regulations</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-6">
-                                    <button type="button" data-modal-target="createManualModal" data-modal-toggle="createManualModal" 
-                                        class="w-full cursor-pointer inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-base font-semibold shadow-md transition-all duration-150 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
-                                        </svg>
-                                        Create New Manual
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Modern Card Preview (Responsive, No Empty Space, Modernized, Buttons Spaced) -->
+                        <!-- Uploader Form Card (Left Side) -->
                         <div class="flex-1 flex items-stretch justify-center">
                             <div class="w-full max-w-xl sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 flex flex-col min-h-[420px] h-full transition-all duration-300">
-                                <div class="flex flex-col h-full justify-between">
-                                  <!-- Modernized File Card -->
-                                   <div class="space-y-6">
-                                     <!-- File Header -->
-                                     <div class="flex items-center gap-4">
-                                       <!-- File Icon -->
-                                       <div class="h-14 w-14 flex items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 ring-2 ring-blue-500/10 shadow">
-                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Upload Manual</h3>
+                                <form id="supervision-form" class="space-y-4 flex-1 flex flex-col" enctype="multipart/form-data">
+                                    <div>
+                                        <label for="guideline-title" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Title</label>
+                                        <input id="guideline-title" name="title" type="text" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="e.g. Cell Inspection SOP">
+                                    </div>
+                                    <div>
+                                        <label for="guideline-category" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Category</label>
+                                        <div class="relative">
+                                            <select id="guideline-category" name="category" required class="block w-full appearance-none rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                                <option value="" disabled selected>Select a category</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+                                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="guideline-summary" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Summary</label>
+                                        <textarea id="guideline-summary" name="summary" rows="3" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Brief summary (minimum 50 characters)..."></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200" for="file_input">Upload file</label>
+                                        <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">PDF, DOC, or DOCX only (MAX. 10MB).</p>
+                                </div>
+                                    <div class="mt-auto flex items-center justify-end gap-2 pt-2">
+                                        <button
+                                            type="reset"
+                                            class="inline-flex items-center cursor-pointer text-red-600 bg-red-50 hover:text-white hover:bg-red-500 focus:ring-4 focus:outline-none focus:ring-red-300 rounded-lg border border-red-200 text-sm font-medium px-5 py-2.5 focus:z-10 transition-colors dark:bg-red-900/60 dark:text-red-300 dark:border-red-700 dark:hover:bg-red-700 dark:hover:text-white dark:focus:ring-red-800"
+                                        >Clear</button>
+                                        <button type="submit" class="cursor-pointer inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a.75.75 0 01.75.75V12h6.75a.75.75 0 010 1.5H12.75V20a.75.75 0 01-1.5 0v-6.5H4.5a.75.75 0 010-1.5h6.75V5.25A.75.75 0 0112 4.5z"/></svg>
+                                            Upload Manual
+                                    </button>
+                                </div>
+                                </form>
+                            </div>
+                        </div>
+                        <!-- File Preview Card (Right Side) -->
+                        <div class="flex-1 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-6 flex flex-col min-h-[420px]">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">File Preview</h3>
+                                <div id="preview-status" class="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                                    No file selected
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1 flex flex-col">
+                                <!-- Dynamic File Header -->
+                                <div id="file-header" class="hidden mb-4">
+                                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                                        <!-- Dynamic File Icon with Category -->
+                                        <div id="file-icon" class="h-12 w-12 flex items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500/20">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                                            <path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.828A2 2 0 0 0 19.414 7.414l-4.828-4.828A2 2 0 0 0 12.172 2H6zm6 1.414L18.586 10H14a2 2 0 0 1-2-2V3.414z"/>
                                          </svg>
                                        </div>
                                    
-                                       <!-- File Info -->
-                                       <div class="flex flex-col min-w-0">
-                                         <p class="truncate text-base font-semibold text-gray-900 dark:text-gray-100">
-                                           Cell Inspection SOP.pdf
-                                         </p>
-                                         <p class="text-xs text-gray-500 dark:text-gray-400">
-                                           PDF • 2.1MB • Uploaded just now
-                                         </p>
+                                        <!-- Dynamic File Info -->
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <p id="file-name" class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                                    No file selected
+                                                </p>
+                                                <!-- Category Badge (moved here) -->
+                                                <span id="category-badge" class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                                                    No category
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                                <span id="file-type">-</span>
+                                                <span>•</span>
+                                                <span id="file-size">-</span>
+                                                <span>•</span>
+                                                <span id="file-date">-</span>
+                                            </div>
                                        </div>
                                    
-                                       <!-- Action Button -->
-                                       <button
-                                         class="ml-auto inline-flex items-center px-3 py-1.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-medium shadow transition"
-                                       >
+                                        <!-- Remove Button -->
+                                        <button id="remove-file-btn" class="hidden cursor-pointer items-center px-2 py-1 rounded-md bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 text-xs font-medium transition">
                                          Remove
                                        </button>
-                                     </div>
+                                    </div>
+                                </div>
                                    
-                                     <!-- File Preview -->
-                                     <div class="flex justify-center">
-                                       <div class="w-full min-h-[160px] flex items-center justify-center rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 overflow-hidden">
-                                         <div class="p-8 flex flex-col items-center justify-center text-sm text-gray-400 dark:text-gray-500 w-full">
-                                           <svg class="mb-3 h-12 w-12 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                <!-- Dynamic File Preview Area -->
+                                <div class="flex-1 flex flex-col">
+                                    <!-- Empty State -->
+                                    <div id="empty-preview" class="flex-1 flex items-center justify-center rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50/50 via-white to-gray-100/50 dark:from-gray-900/50 dark:via-gray-800/50 dark:to-gray-900/50">
+                                        <div class="text-center p-8">
+                                            <svg class="mx-auto h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                            </svg>
-                                           <span class="text-center">PDF preview is static for demo purposes.</span>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Upload a file to see preview</p>
+                                            <p class="text-xs text-gray-400 dark:text-gray-500">Supports PDF, DOC, DOCX files</p>
                                          </div>
                                        </div>
+                                    
+                                    <!-- File Preview Iframe -->
+                                    <div id="file-preview-container" class="hidden">
+                                        <iframe id="file-preview-iframe" class="w-full h-64 sm:h-72 md:h-80 lg:h-96 xl:h-[28rem] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm" src="" frameborder="0"></iframe>
                                      </div>
-                                   </div>
-                                        <div class="flex flex-wrap items-center gap-2 mt-2">
-                                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Discipline</span>
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">Updated Sep 03, 2025</span>
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">10 pages</span>
-                                        </div>
-                                        <div class="flex flex-row items-center justify-center gap-8 mt-6">
-                                            <button class="cursor-pointer inline-flex items-center gap-2 h-9 px-5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-medium shadow transition">View</button>
-                                            <button class="cursor-pointer inline-flex items-center gap-2 h-9 px-5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow transition">Download</button>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -346,17 +368,15 @@
                     </div>
                 </div>
 
-    <!-- Create Manual Modal -->
+    <!-- Guidelines Modal -->
     <div id="createManualModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full" style="backdrop-filter: blur(4px);">
         <div class="relative w-full max-w-2xl max-h-full">
             <!-- Modal content -->
-            <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
+            <div class="relative bg-brand-background-light rounded-lg shadow dark:bg-brand-background-dark">
                 <!-- Modal header -->
                 <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-700">
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                        Create New Manual
-                    </h3>
-                    <button type="button" class="cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-700 dark:hover:text-white" data-modal-hide="createManualModal" id="closeManualModalBtn">
+                    <h3 class="text-xl font-semibold text-brand-text-light dark:text-brand-text-dark">Guidelines</h3>
+                    <button type="button" class="cursor-pointer text-gray-400 bg-transparent hover:bg-brand-secondary-light hover:text-brand-text-light rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-brand-secondary-dark dark:hover:text-brand-text-dark" data-modal-hide="createManualModal" id="closeManualModalBtn">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
@@ -364,33 +384,23 @@
                     </button>
                 </div>
                 <!-- Modal body -->
-                <div class="p-6 space-y-6">
-                    <form id="supervision-form" class="space-y-4" enctype="multipart/form-data">
-                        <div>
-                            <label for="guideline-title" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Title</label>
-                            <input id="guideline-title" name="title" type="text" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="e.g. Cell Inspection SOP">
+                <div class="p-6 space-y-4">
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Upload and manage supervision guidelines and manuals for your facility. These documents help standardize operations and ensure consistent procedures.
+                    </p>
+                    <div class="bg-brand-primary-light/10 dark:bg-brand-primary-dark/20 rounded-lg p-4 border border-brand-primary-light/20 dark:border-brand-primary-dark/30">
+                        <h4 class="text-sm font-medium text-brand-primary-light dark:text-brand-primary-dark mb-2">Benefits of Standardized Manuals</h4>
+                        <ul class="list-disc pl-5 text-sm text-brand-primary-light/80 dark:text-brand-primary-dark/80 space-y-1">
+                            <li>Ensures consistent operations across shifts</li>
+                            <li>Simplifies training for new officers</li>
+                            <li>Provides clear guidance during emergencies</li>
+                            <li>Helps maintain compliance with regulations</li>
+                        </ul>
                         </div>
-                        <div>
-                            <label for="guideline-category" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Category</label>
-                            <select id="guideline-category" name="category" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                                <option value="" disabled selected>Select a category</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="guideline-summary" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Summary</label>
-                            <textarea id="guideline-summary" name="summary" rows="3" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Brief summary (minimum 50 characters)..."></textarea>
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200" for="file_input">Upload file</label>
-                            <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">PDF, DOC, or DOCX only (MAX. 10MB).</p>
-                        </div>
-                    </form>
                 </div>
                 <!-- Modal footer -->
                 <div class="flex items-center justify-end p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-700">
-                    <button data-modal-hide="createManualModal" type="button" id="cancelManualModalBtn" class="cursor-pointer text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700">Cancel</button>
-                    <button type="submit" form="supervision-form" class="cursor-pointer text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Upload Manual</button>
+                    <button data-modal-hide="createManualModal" type="button" id="cancelManualModalBtn" class="cursor-pointer text-brand-text-light bg-brand-background-light hover:bg-brand-secondary-light focus:ring-4 focus:outline-none focus:ring-brand-button-primary-light rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-brand-text-light focus:z-10 dark:bg-brand-background-dark dark:text-brand-text-dark dark:border-gray-600 dark:hover:text-brand-text-dark dark:hover:bg-brand-secondary-dark dark:focus:ring-brand-button-primary-dark">Close</button>
                 </div>
             </div>
         </div>
@@ -412,44 +422,4 @@
     @vite('resources/js/modules/flowbite.js')
     @vite('resources/js/supervision/supervision.js')
     
-    <script>
-        // Fallback script for modal functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Create manual button
-            const createManualBtn = document.querySelector('[data-modal-target="createManualModal"]');
-            const modal = document.getElementById('createManualModal');
-            const closeBtn = document.getElementById('closeManualModalBtn');
-            const cancelBtn = document.getElementById('cancelManualModalBtn');
-            
-            if (createManualBtn && modal) {
-                createManualBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    modal.classList.remove('hidden');
-                });
-            }
-            
-            if (closeBtn && modal) {
-                closeBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    modal.classList.add('hidden');
-                });
-            }
-            
-            if (cancelBtn && modal) {
-                cancelBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    modal.classList.add('hidden');
-                });
-            }
-            
-            // Close when clicking outside
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        modal.classList.add('hidden');
-                    }
-                });
-            }
-        });
-    </script>
 </x-app-layout>

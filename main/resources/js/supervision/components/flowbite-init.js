@@ -12,6 +12,9 @@ export function initFlowbiteComponents() {
   
   // Initialize modals
   initModals();
+  
+  // Setup fallback modal handlers for supervision page
+  setupSupervisionModalFallback();
 }
 
 // Initialize modals
@@ -95,4 +98,43 @@ function handleModalClose(e) {
   
   console.log('Hiding modal:', targetId);
   modal._modalInstance.hide();
+}
+
+// Setup fallback modal handlers for supervision page
+function setupSupervisionModalFallback() {
+  // Create manual button
+  const createManualBtn = document.querySelector('[data-modal-target="createManualModal"]');
+  const modal = document.getElementById('createManualModal');
+  const closeBtn = document.getElementById('closeManualModalBtn');
+  const cancelBtn = document.getElementById('cancelManualModalBtn');
+  
+  if (createManualBtn && modal) {
+    createManualBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      modal.classList.remove('hidden');
+    });
+  }
+  
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      modal.classList.add('hidden');
+    });
+  }
+  
+  if (cancelBtn && modal) {
+    cancelBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      modal.classList.add('hidden');
+    });
+  }
+  
+  // Close when clicking outside
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+  }
 }
