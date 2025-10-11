@@ -4,6 +4,7 @@ import { saveDraft, loadDraft, clearDraft, toDraftFromModalValue } from './compo
 import InmateApiClient from './components/inmateApi.js';
 import { initializeInmateCells } from './components/inmate-cells.js';
 import { createCellCounterManager } from './components/cell-counter-manager.js';
+import { createPointsSystemManager } from './components/points-system.js';
 // Female-specific entrypoint is loaded separately on the female page
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
@@ -59,6 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize API client
   const inmateApi = new InmateApiClient();
+
+  // Initialize points system
+  const pointsSystem = createPointsSystemManager();
 
   // Inmates data (start empty; will be populated dynamically later)
   let inmates = [];
@@ -697,6 +701,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label class="block text-xs text-gray-300 mb-1">Sentence *</label>
                 <input id="i-sentence" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" 
                        value="${inmate.sentence || ''}" placeholder="e.g., 2 years, Life, etc." />
+                ${isEdit && inmate.reducedSentenceDays > 0 ? `
+                  <div class="text-xs text-green-400 mt-1">
+                    ⚡ Adjusted: ${((inmate.originalSentenceDays - inmate.reducedSentenceDays) / 365).toFixed(2)} Years 
+                    (${inmate.reducedSentenceDays} days reduction earned)
+                  </div>
+                ` : ''}
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -781,45 +791,70 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="space-y-4">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Points System</h3>
           
-          <!-- Points Summary -->
+          <!-- Editable Points Fields (Always show for both Add and Edit) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gray-800/30 rounded-lg border border-gray-700">
             <div>
               <label class="block text-sm text-gray-300 mb-2 font-medium">Initial Points</label>
-              <input id="i-initial-points" type="number" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+              <input id="i-initial-points" type="number" min="0" max="500" 
+                     class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
                      value="${inmate.initialPoints || 0}" placeholder="Starting points" />
+              <div class="text-xs text-gray-400 mt-1">Points at admission</div>
             </div>
             <div>
               <label class="block text-sm text-gray-300 mb-2 font-medium">Current Points</label>
-              <input id="i-current-points" type="number" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+              <input id="i-current-points" type="number" min="0" max="500" 
+                     class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
                      value="${inmate.currentPoints || 0}" placeholder="Current points" />
+              <div class="text-xs text-gray-400 mt-1">Maximum: 500 points</div>
             </div>
           </div>
           
-          <!-- Points History Management - Expanded -->
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <h4 class="text-md font-semibold text-gray-200">Points History</h4>
-              <button type="button" id="add-points-entry" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md cursor-pointer transition-colors">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Add Points Entry
-              </button>
+          <!-- Points Summary with Sentence Preview (Always show) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-gray-800/30 rounded-lg border border-gray-700">
+            <div>
+              <label class="block text-sm text-gray-300 mb-2 font-medium">Points Overview</label>
+              <div class="text-3xl font-bold text-blue-400" id="display-current-points">${inmate.currentPoints || 0}</div>
+              <div class="text-xs text-gray-400 mt-1">Current accumulated points</div>
+              <div class="mt-2 w-full bg-gray-700 rounded-full h-2">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all" style="width: ${Math.min((inmate.currentPoints || 0) / 500 * 100, 100)}%"></div>
+              </div>
             </div>
-            
-            <!-- Points History Container - Expanded and Responsive -->
-            <div id="points-entries-container" class="space-y-3 max-h-96 overflow-y-auto">
-              <!-- Points entries will be dynamically added here -->
-            </div>
-            
-            <!-- Empty State -->
-            <div id="points-empty-state" class="text-center py-8 text-gray-400 hidden">
-              <svg class="w-12 h-12 mx-auto mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <p class="text-sm">No points history yet. Click "Add Points Entry" to get started.</p>
+            <div id="sentence-preview-container">
+              ${pointsSystem.renderSentencePreview(inmate.currentPoints || 0, inmate.originalSentenceDays)}
             </div>
           </div>
+          
+          <!-- Points History - ONLY show in Edit Mode with functional backend integration -->
+          ${isEdit ? `
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="text-md font-semibold text-gray-200">Points History</h4>
+                <button type="button" id="add-points-entry" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md cursor-pointer transition-colors">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Add Points Entry
+                </button>
+              </div>
+              
+              <div id="points-history-display" class="max-h-64 overflow-y-auto space-y-2">
+                ${(inmate.pointsHistory || []).map(h => `
+                  <div class="p-3 bg-gray-800/40 rounded border border-gray-600">
+                    <div class="flex justify-between">
+                      <span class="text-sm text-gray-300">${h.activity}</span>
+                      <span class="text-sm font-semibold ${h.points >= 0 ? 'text-green-400' : 'text-red-400'}">${h.points > 0 ? '+' : ''}${h.points}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">${h.date}</div>
+                    ${h.note ? `<div class="text-xs text-gray-400 mt-1">${h.note}</div>` : ''}
+                  </div>
+                `).join('') || '<div class="text-sm text-gray-400">No points history yet</div>'}
+              </div>
+            </div>
+          ` : `
+            <div class="text-center py-4 text-gray-400 text-sm">
+              Save inmate first to manage points history
+            </div>
+          `}
         </div>
 
           <!-- Visitation Information -->
@@ -948,9 +983,192 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Initialize dynamic form elements
-        initializePointsHistory();
         initializeAllowedVisitors();
         initializeVisitRecords();
+        
+        // Real-time points display update
+        const currentPointsInput = document.getElementById('i-current-points');
+        if (currentPointsInput) {
+          currentPointsInput.addEventListener('input', (e) => {
+            const points = parseInt(e.target.value) || 0;
+            const clampedPoints = Math.max(0, Math.min(500, points));
+            
+            const displayElement = document.getElementById('display-current-points');
+            if (displayElement) {
+              displayElement.textContent = clampedPoints;
+            }
+            
+            const progressBar = document.querySelector('#display-current-points').parentElement.querySelector('.bg-gradient-to-r');
+            if (progressBar) {
+              progressBar.style.width = `${Math.min((clampedPoints / 500) * 100, 100)}%`;
+            }
+            
+            const previewContainer = document.getElementById('sentence-preview-container');
+            if (previewContainer) {
+              previewContainer.innerHTML = pointsSystem.renderSentencePreview(clampedPoints, inmate.originalSentenceDays);
+            }
+          });
+        }
+
+        // Wire "Add Points Entry" button (EDIT MODE ONLY)
+        if (inmate.id) {
+          const addPtsBtn = document.getElementById('add-points-entry');
+          if (addPtsBtn) {
+            addPtsBtn.addEventListener('click', async () => {
+              const result = await Swal.fire({
+                title: 'Add Points Entry',
+                html: `
+                  <div class="text-left space-y-4">
+                    ${pointsSystem.renderQuickButtons()}
+                    
+                    <div>
+                      <label class="block text-sm mb-1 text-gray-300">Date *</label>
+                      <input type="date" id="pts-date" class="w-full rounded border border-gray-600 bg-gray-800 text-white px-3 py-2" 
+                             value="${new Date().toISOString().split('T')[0]}" required />
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm mb-1 text-gray-300">Points *</label>
+                      <input type="number" id="pts-points" class="w-full rounded border border-gray-600 bg-gray-800 text-white px-3 py-2" 
+                             placeholder="Enter points (+/-)" required />
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm mb-1 text-gray-300">Activity *</label>
+                      <select id="pts-activity" class="w-full rounded border border-gray-600 bg-gray-800 text-white px-3 py-2" required>
+                        <option value="">Select Activity</option>
+                        <option value="Good behavior">Good behavior</option>
+                        <option value="Work assignment">Work assignment</option>
+                        <option value="Educational program">Educational program</option>
+                        <option value="Community service">Community service</option>
+                        <option value="Rule violation">Rule violation (-)</option>
+                        <option value="Fighting">Fighting (-)</option>
+                        <option value="Disobedience">Disobedience (-)</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm mb-1 text-gray-300">Notes</label>
+                      <textarea id="pts-notes" class="w-full rounded border border-gray-600 bg-gray-800 text-white px-3 py-2" rows="2"></textarea>
+                    </div>
+                  </div>
+                `,
+                background: '#111827',
+                color: '#F9FAFB',
+                showCancelButton: true,
+                confirmButtonText: 'Save Points',
+                confirmButtonColor: '#3B82F6',
+                cancelButtonColor: '#6B7280',
+                didOpen: () => {
+                  // Wire quick buttons
+                  document.querySelectorAll('[data-quick-add]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                      document.getElementById('pts-points').value = btn.getAttribute('data-quick-add');
+                    });
+                  });
+                  document.querySelectorAll('[data-quick-subtract]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                      document.getElementById('pts-points').value = '-' + btn.getAttribute('data-quick-subtract');
+                    });
+                  });
+                },
+                preConfirm: () => {
+                  const points = parseInt(document.getElementById('pts-points').value);
+                  const activity = document.getElementById('pts-activity').value;
+                  const date = document.getElementById('pts-date').value;
+                  
+                  if (!points || !activity || !date) {
+                    Swal.showValidationMessage('Please fill all required fields');
+                    return false;
+                  }
+                  
+                  return { points, activity, notes: document.getElementById('pts-notes').value, date };
+                }
+              });
+              
+              if (result.isConfirmed && result.value) {
+                try {
+                  // Save to backend immediately
+                  const response = await fetch(`/api/inmates/${inmate.id}/points/add`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(result.value)
+                  });
+                  
+                  const data = await response.json();
+                  
+                  if (data.success) {
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'Points Added!',
+                      text: 'Points entry saved successfully',
+                      timer: 1500,
+                      showConfirmButton: false,
+                      background: '#111827',
+                      color: '#F9FAFB'
+                    });
+                    
+                    // Update inmate object with fresh data
+                    Object.assign(inmate, data.data);
+                    
+                    // Update display elements with null checks
+                    const currentPointsInput = document.getElementById('i-current-points');
+                    if (currentPointsInput) {
+                      currentPointsInput.value = inmate.currentPoints;
+                    }
+                    
+                    const displayElement = document.getElementById('display-current-points');
+                    if (displayElement) {
+                      displayElement.textContent = inmate.currentPoints;
+                    }
+                    
+                    // Update progress bar
+                    const progressBar = document.querySelector('.bg-gradient-to-r');
+                    if (progressBar) {
+                      progressBar.style.width = `${Math.min((inmate.currentPoints / 500) * 100, 100)}%`;
+                    }
+                    
+                    // Update sentence preview
+                    const previewContainer = document.getElementById('sentence-preview-container');
+                    if (previewContainer) {
+                      previewContainer.innerHTML = pointsSystem.renderSentencePreview(inmate.currentPoints, inmate.originalSentenceDays);
+                    }
+                    
+                    // Refresh points history display
+                    const historyDisplay = document.getElementById('points-history-display');
+                    if (historyDisplay) {
+                      historyDisplay.innerHTML = (inmate.pointsHistory || []).map(h => `
+                        <div class="p-3 bg-gray-800/40 rounded border border-gray-600">
+                          <div class="flex justify-between">
+                            <span class="text-sm text-gray-300">${h.activity}</span>
+                            <span class="text-sm font-semibold ${h.points >= 0 ? 'text-green-400' : 'text-red-400'}">${h.points > 0 ? '+' : ''}${h.points}</span>
+                          </div>
+                          <div class="text-xs text-gray-500 mt-1">${h.date}</div>
+                          ${h.note ? `<div class="text-xs text-gray-400 mt-1">${h.note}</div>` : ''}
+                        </div>
+                      `).join('') || '<div class="text-sm text-gray-400">No points history yet</div>';
+                    }
+                  } else {
+                    throw new Error(data.message || 'Failed to add points');
+                  }
+                } catch (error) {
+                  console.error('Error adding points:', error);
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Failed to add points',
+                    background: '#111827',
+                    color: '#F9FAFB'
+                  });
+                }
+              }
+            });
+          }
+        }
       },
       preConfirm: () => {
         const isEditing = !!inmate.id;
@@ -981,7 +1199,6 @@ document.addEventListener('DOMContentLoaded', () => {
           // Points System
           initialPoints: parseInt(document.getElementById('i-initial-points').value) || 0,
           currentPoints: parseInt(document.getElementById('i-current-points').value) || 0,
-          pointsHistory: collectPointsHistory(),
           // Visitation Information
           allowedVisitors: collectAllowedVisitors(),
           recentVisits: collectVisitRecords()
@@ -1091,13 +1308,15 @@ document.addEventListener('DOMContentLoaded', () => {
         </button>
       </div>
 
+      ${pointsSystem.renderQuickButtons()}
+
       <!-- Main Form Grid - Responsive -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-4">
         <!-- Date Field -->
         <div class="sm:col-span-1">
           <label class="block text-sm text-gray-300 mb-2 font-medium">Date *</label>
           <input type="date" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                 value="${entry.date || ''}" data-field="date" required />
+                 value="${entry.date || new Date().toISOString().split('T')[0]}" data-field="date" required />
         </div>
         
         <!-- Points Field -->
@@ -1105,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <label class="block text-sm text-gray-300 mb-2 font-medium">Points *</label>
           <div class="relative">
             <input type="number" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                   value="${entry.points || ''}" data-field="points" placeholder="+5 or -2" required />
+                   value="${entry.points || ''}" data-field="points" placeholder="Enter points" required />
             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
               <span class="text-gray-400 text-xs">pts</span>
             </div>
@@ -1148,6 +1367,23 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
     container.appendChild(entryDiv);
+
+    // Attach quick button handlers
+    entryDiv.querySelectorAll('[data-quick-add]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const amount = parseInt(btn.getAttribute('data-quick-add'));
+        const pointsInput = entryDiv.querySelector('[data-field="points"]');
+        pointsInput.value = amount;
+      });
+    });
+
+    entryDiv.querySelectorAll('[data-quick-subtract]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const amount = parseInt(btn.getAttribute('data-quick-subtract'));
+        const pointsInput = entryDiv.querySelector('[data-field="points"]');
+        pointsInput.value = -amount;
+      });
+    });
   }
 
   // Helper function to update empty state visibility
@@ -1772,7 +2008,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dobEl) dobEl.textContent = `DOB: ${formatDate(inmate.dateOfBirth)}`;
     if (addrEl) addrEl.textContent = `Address: ${formatAddress(inmate)}`;
     row.querySelector('[data-i-crime]').textContent = inmate.crime;
-    row.querySelector('[data-i-sentence]').textContent = inmate.sentence;
+    row.querySelector('[data-i-sentence]').innerHTML = formatSentenceWithReduction(inmate);
     const cellName = inmate.cell ? inmate.cell.name : 'Not Assigned';
     row.querySelector('[data-i-cell]').textContent = cellName;
     row.querySelector('[data-i-admission]').textContent = formatDate(inmate.admissionDate);
@@ -1882,8 +2118,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Add click listener for inmate name
-    nameBtn.onclick = () => {
-      openUnifiedInmateModal(inmate);
+    nameBtn.onclick = async () => {
+      await openUnifiedInmateModal(inmate);
     };
   }
 
@@ -1954,7 +2190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.querySelector('[data-i-name]').textContent = `${inmate.firstName} ${inmate.lastName}`;
     card.querySelector('[data-i-details]').textContent = `${inmate.gender}, ${inmate.age} years old`;
     card.querySelector('[data-i-crime]').textContent = inmate.crime;
-    card.querySelector('[data-i-sentence]').textContent = inmate.sentence;
+    card.querySelector('[data-i-sentence]').innerHTML = formatSentenceWithReduction(inmate);
     const cellName = inmate.cell ? inmate.cell.name : 'Not Assigned';
     card.querySelector('[data-i-cell]').textContent = cellName;
     card.querySelector('[data-i-admission]').textContent = formatDate(inmate.admissionDate);
@@ -2064,8 +2300,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Add click listener for inmate name
-    nameBtn.onclick = () => {
-      openUnifiedInmateModal(inmate);
+    nameBtn.onclick = async () => {
+      await openUnifiedInmateModal(inmate);
     };
   }
 
@@ -2088,6 +2324,37 @@ document.addEventListener('DOMContentLoaded', () => {
       month: 'short', 
       day: 'numeric' 
     });
+  }
+
+  /**
+   * Format sentence with reduction indicator as subtitle
+   * Shows original sentence with reduced sentence below in green text with parentheses
+   * Italic for table/card views, normal for modals
+   * @param {Object} inmate - Inmate object
+   * @param {Boolean} showEmoji - Whether to show emoji (for modals only)
+   */
+  function formatSentenceWithReduction(inmate, showEmoji = false) {
+    if (!inmate.sentence) return '—';
+    
+    const hasReduction = inmate.reducedSentenceDays && inmate.reducedSentenceDays > 0;
+    
+    if (!hasReduction || !inmate.originalSentenceDays) {
+      return inmate.sentence;
+    }
+    
+    const adjustedDays = inmate.originalSentenceDays - inmate.reducedSentenceDays;
+    const adjustedYears = (adjustedDays / 365).toFixed(2);
+    const emoji = showEmoji ? '⚡ ' : '';
+    const italicClass = showEmoji ? '' : 'italic';
+    
+    return `
+      <div class="flex flex-col">
+        <span class="text-gray-900 dark:text-gray-200">${inmate.sentence}</span>
+        <span class="text-xs text-green-600 dark:text-green-400 ${italicClass} mt-0.5">
+          (${emoji}${adjustedYears} Years after ${inmate.reducedSentenceDays} days reduction)
+        </span>
+      </div>
+    `;
   }
 
   /**
@@ -2174,7 +2441,28 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========================================
 // UNIFIED INMATE MODAL (SweetAlert2 + Tailwind, responsive)
 // ========================================
-function openUnifiedInmateModal(inmate) {
+async function openUnifiedInmateModal(inmate) {
+  // Fetch fresh data with points history from backend
+  try {
+    const response = await fetch(`/api/inmates/${inmate.id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      // Use fresh data with points history
+      inmate = data.data;
+    }
+  } catch (error) {
+    console.error('Error fetching inmate details:', error);
+    // Continue with existing data if fetch fails
+  }
+  
   const width = isMobile() ? '98vw' : '64rem';
   const avatar = inmateAvatarHTML(inmate);
   const name = fullName(inmate);
@@ -2282,7 +2570,7 @@ function openUnifiedInmateModal(inmate) {
               <dt class="text-gray-500 dark:text-gray-400">Admission Date</dt><dd class="text-gray-900 dark:text-gray-200">${formatDate(inmate.admissionDate)}</dd>
               <dt class="text-gray-500 dark:text-gray-400">Work / Job</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.job || '—'}</dd>
               <dt class="text-gray-500 dark:text-gray-400">Crime Committed</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.crime}</dd>
-              <dt class="text-gray-500 dark:text-gray-400">Sentence</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.sentence}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Sentence</dt><dd class="text-gray-900 dark:text-gray-200">${formatSentenceWithReduction(inmate, true)}</dd>
               <dt class="text-gray-500 dark:text-gray-400">Cell Assignment</dt><dd class="text-gray-900 dark:text-gray-200">${inmate.cell ? `${inmate.cell.name} (${inmate.cell.location || 'Location N/A'})` : 'Not Assigned'}</dd>
               <dt class="text-gray-500 dark:text-gray-400">Additional</dt><dd class="text-gray-900 dark:text-gray-200">ID #${inmate.id.toString().padStart(4,'0')} • ${daysInCustody(inmate)} days in custody</dd>
             </dl>
@@ -2438,20 +2726,32 @@ function openUnifiedInmateModal(inmate) {
         </div>
       </div>
       <div class="lg:col-span-2 space-y-4">
+      <!-- Points Summary with Progress -->
       <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center justify-between gap-4 mb-3">
           <div>
             <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Points Summary</h3>
             <p class="text-xs text-gray-500 dark:text-gray-400">Cumulative points based on activities</p>
-      </div>
+          </div>
           <div class="text-right">
             <div class="text-2xl font-bold ${pointsTotal >= 0 ? 'text-green-600' : 'text-red-500'}">${pointsTotal}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Total Points</div>
           </div>
         </div>
-        <div class="mt-3 w-full h-2 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
-          <div class="h-2 bg-blue-500" style="width: ${Math.min(Math.max(pointsTotal, 0), 100)}%"></div>
+        <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
+          <div class="h-2 bg-gradient-to-r from-blue-500 to-purple-500 transition-all" style="width: ${Math.min((pointsTotal / 500) * 100, 100)}%"></div>
         </div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 text-right mt-1">${pointsTotal} / 500 points</div>
+      </div>
+      
+      <!-- Add Points Button -->
+      <div class="flex justify-end">
+        <button type="button" id="add-points-entry-modal" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg cursor-pointer transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Add Points Entry
+        </button>
       </div>
       <!-- Mobile list -->
       <div class="sm:hidden">
@@ -2582,6 +2882,128 @@ function openUnifiedInmateModal(inmate) {
     });
   }
 
+  async function attachPointsModalHandlers(inmate) {
+    const addPtsBtn = document.getElementById('add-points-entry-modal');
+    if (!addPtsBtn || !inmate.id) return;
+    
+    addPtsBtn.addEventListener('click', async () => {
+      const result = await Swal.fire({
+        title: 'Add Points Entry',
+        html: `
+          <div class="text-left space-y-4">
+            ${pointsSystem.renderQuickButtons()}
+            
+            <div>
+              <label class="block text-sm mb-1 text-gray-300">Date *</label>
+              <input type="date" id="pts-date" class="w-full rounded border border-gray-600 bg-gray-800 text-white px-3 py-2" 
+                     value="${new Date().toISOString().split('T')[0]}" required />
+            </div>
+            
+            <div>
+              <label class="block text-sm mb-1 text-gray-300">Points *</label>
+              <input type="number" id="pts-points" class="w-full rounded border border-gray-600 bg-gray-800 text-white px-3 py-2" 
+                     placeholder="Enter points (+/-)" required />
+            </div>
+            
+            <div>
+              <label class="block text-sm mb-1 text-gray-300">Activity *</label>
+              <select id="pts-activity" class="w-full rounded border border-gray-600 bg-gray-800 text-white px-3 py-2" required>
+                <option value="">Select Activity</option>
+                <option value="Good behavior">Good behavior</option>
+                <option value="Work assignment">Work assignment</option>
+                <option value="Educational program">Educational program</option>
+                <option value="Community service">Community service</option>
+                <option value="Rule violation">Rule violation (-)</option>
+                <option value="Fighting">Fighting (-)</option>
+                <option value="Disobedience">Disobedience (-)</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm mb-1 text-gray-300">Notes</label>
+              <textarea id="pts-notes" class="w-full rounded border border-gray-600 bg-gray-800 text-white px-3 py-2" rows="2"></textarea>
+            </div>
+          </div>
+        `,
+        background: '#111827',
+        color: '#F9FAFB',
+        showCancelButton: true,
+        confirmButtonText: 'Save Points',
+        confirmButtonColor: '#3B82F6',
+        cancelButtonColor: '#6B7280',
+        didOpen: () => {
+          document.querySelectorAll('[data-quick-add]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              document.getElementById('pts-points').value = btn.getAttribute('data-quick-add');
+            });
+          });
+          document.querySelectorAll('[data-quick-subtract]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              document.getElementById('pts-points').value = '-' + btn.getAttribute('data-quick-subtract');
+            });
+          });
+        },
+        preConfirm: () => {
+          const points = parseInt(document.getElementById('pts-points').value);
+          const activity = document.getElementById('pts-activity').value;
+          const date = document.getElementById('pts-date').value;
+          
+          if (!points || !activity || !date) {
+            Swal.showValidationMessage('Please fill all required fields');
+            return false;
+          }
+          
+          return { points, activity, notes: document.getElementById('pts-notes').value, date };
+        }
+      });
+      
+      if (result.isConfirmed && result.value) {
+        try {
+          const response = await fetch(`/api/inmates/${inmate.id}/points/add`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(result.value)
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            await Swal.fire({
+              icon: 'success',
+              title: 'Points Added!',
+              text: 'Points entry saved successfully. Reopen modal to see updates.',
+              timer: 2000,
+              showConfirmButton: false,
+              background: '#111827',
+              color: '#F9FAFB'
+            });
+            
+            // Close the unified modal to refresh
+            window.Swal.close();
+            
+            // Optionally reload the page or refresh the inmate list
+            await renderInmates();
+          } else {
+            throw new Error(data.message || 'Failed to add points');
+          }
+        } catch (error) {
+          console.error('Error adding points:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to add points',
+            background: '#111827',
+            color: '#F9FAFB'
+          });
+        }
+      }
+    });
+  }
+
   // Custom close button (SVG X) for top-right
   const closeBtnHTML = `
     <button type="button"
@@ -2632,7 +3054,10 @@ function openUnifiedInmateModal(inmate) {
         if (!container) return;
         if (id === 'overview') container.innerHTML = overviewHTML;
         if (id === 'medical') container.innerHTML = medicalHTML;
-        if (id === 'points') container.innerHTML = pointsHTML;
+        if (id === 'points') {
+          container.innerHTML = pointsHTML;
+          attachPointsModalHandlers(inmate);
+        }
         if (id === 'visitation') container.innerHTML = visitationHTML;
         if (id === 'overview') attachAccordionHandlers();
         if (id === 'visitation') attachVisitorModalHandlers();

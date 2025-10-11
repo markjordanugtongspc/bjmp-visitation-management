@@ -46,8 +46,8 @@ class UpdateInmateRequest extends FormRequest
             'medical_notes' => ['nullable', 'string'],
             
             // Points System
-            'initial_points' => ['nullable', 'integer', 'min:0'],
-            'current_points' => ['nullable', 'integer', 'min:0'],
+            'initial_points' => ['nullable', 'integer', 'min:0', 'max:500'],
+            'current_points' => ['nullable', 'integer', 'min:0', 'max:500'],
             
             // Additional data (for future use)
             'points_history' => ['nullable', 'array'],

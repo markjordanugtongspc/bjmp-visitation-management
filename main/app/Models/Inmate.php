@@ -37,6 +37,10 @@ class Inmate extends Model
         'medical_notes',
         'initial_points',
         'current_points',
+        'original_sentence_days',
+        'reduced_sentence_days',
+        'expected_release_date',
+        'adjusted_release_date',
     ];
 
     protected $casts = [
@@ -45,6 +49,10 @@ class Inmate extends Model
         'last_medical_check' => 'date',
         'initial_points' => 'integer',
         'current_points' => 'integer',
+        'original_sentence_days' => 'integer',
+        'reduced_sentence_days' => 'integer',
+        'expected_release_date' => 'date',
+        'adjusted_release_date' => 'date',
     ];
 
     protected $dates = [
@@ -65,24 +73,30 @@ class Inmate extends Model
         return $this->belongsTo(Cell::class);
     }
 
-    public function medicalRecords(): HasMany
-    {
-        return $this->hasMany(MedicalRecord::class);
-    }
+    // Commented out until models are created
+    // public function medicalRecords(): HasMany
+    // {
+    //     return $this->hasMany(MedicalRecord::class);
+    // }
 
-    public function disciplinaryActions(): HasMany
-    {
-        return $this->hasMany(DisciplinaryAction::class);
-    }
+    // public function disciplinaryActions(): HasMany
+    // {
+    //     return $this->hasMany(DisciplinaryAction::class);
+    // }
 
-    public function visitationLogs(): HasMany
-    {
-        return $this->hasMany(VisitationLog::class);
-    }
+    // public function visitationLogs(): HasMany
+    // {
+    //     return $this->hasMany(VisitationLog::class);
+    // }
 
-    public function allowedVisitors(): HasMany
+    // public function allowedVisitors(): HasMany
+    // {
+    //     return $this->hasMany(InmateAllowedVisitor::class);
+    // }
+
+    public function pointsHistory(): HasMany
     {
-        return $this->hasMany(InmateAllowedVisitor::class);
+        return $this->hasMany(PointsHistory::class)->orderBy('activity_date', 'desc');
     }
 
     // Accessors

@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Inmate;
 use App\Services\InmateService;
+use App\Services\PointsService;
 use App\Http\Requests\StoreInmateRequest;
 use App\Http\Requests\UpdateInmateRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class InmateController extends Controller
 {
@@ -244,6 +246,51 @@ class InmateController extends Controller
     }
 
     /**
+     * Add points entry to inmate.
+     */
+    public function addPointsEntry(Request $request, int $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'points' => ['required', 'integer'],
+                'activity' => ['required', 'string', 'max:255'],
+                'notes' => ['nullable', 'string'],
+                'date' => ['required', 'date']
+            ]);
+
+            $pointsService = app(PointsService::class);
+            $inmate = Inmate::with('pointsHistory')->findOrFail($id);
+
+            $pointsService->addPoints(
+                $inmate,
+                $request->input('points'),
+                $request->input('activity'),
+                $request->input('notes'),
+                Carbon::parse($request->input('date'))
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => $this->transformInmateForFrontend($inmate->fresh(['pointsHistory', 'cell', 'admittedBy'])),
+                'message' => 'Points added successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to add points entry', [
+                'inmate_id' => $id,
+                'error' => $e->getMessage(),
+                'data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add points entry',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
      * Search inmates by name.
      */
     public function search(Request $request): JsonResponse
@@ -323,6 +370,21 @@ class InmateController extends Controller
                 'medicalNotes' => $inmate->medical_notes,
                 'initialPoints' => $inmate->initial_points,
                 'currentPoints' => $inmate->current_points,
+                'originalSentenceDays' => $inmate->original_sentence_days ?? null,
+                'reducedSentenceDays' => $inmate->reduced_sentence_days ?? 0,
+                'expectedReleaseDate' => $inmate->expected_release_date?->format('Y-m-d'),
+                'adjustedReleaseDate' => $inmate->adjusted_release_date?->format('Y-m-d'),
+                'pointsHistory' => $inmate->relationLoaded('pointsHistory') 
+                    ? $inmate->pointsHistory->map(fn($h) => [
+                        'id' => $h->id,
+                        'date' => $h->activity_date->format('Y-m-d'),
+                        'points' => $h->points_delta,
+                        'activity' => $h->activity,
+                        'note' => $h->notes,
+                        'pointsBefore' => $h->points_before,
+                        'pointsAfter' => $h->points_after,
+                    ])->toArray()
+                    : [],
                 'daysInCustody' => $inmate->days_in_custody,
                 'createdAt' => $inmate->created_at?->format('Y-m-d H:i:s'),
                 'updatedAt' => $inmate->updated_at?->format('Y-m-d H:i:s'),

@@ -52,10 +52,7 @@ class InmateService
         return Inmate::with([
             'admittedBy',
             'cell',
-            'medicalRecords',
-            'disciplinaryActions',
-            'visitationLogs',
-            'allowedVisitors'
+            'pointsHistory'
         ])->find($id);
     }
 
@@ -116,9 +113,25 @@ class InmateService
             $data = $this->prepareInmateData($request->validated());
             $newCellId = $data['cell_id'] ?? null;
 
+            // Track if points changed
+            $pointsChanged = isset($data['current_points']) && $inmate->current_points != $data['current_points'];
+            
             // Update the inmate
             $inmate->update($data);
 
+            // Recalculate sentence reduction if points changed
+            if ($pointsChanged && $inmate->original_sentence_days) {
+                $pointsService = app(\App\Services\PointsService::class);
+                $reduction = $pointsService->calculateSentenceReduction($inmate->current_points);
+                $inmate->reduced_sentence_days = $reduction;
+                
+                if ($inmate->date_of_admission) {
+                    $adjustedDays = max(0, $inmate->original_sentence_days - $reduction);
+                    $inmate->adjusted_release_date = $inmate->date_of_admission->copy()->addDays($adjustedDays);
+                }
+                
+                $inmate->save();
+            }
 
             // Handle additional data if provided
             $this->handleAdditionalData($inmate, $request->validated());
@@ -262,6 +275,12 @@ class InmateService
      */
     private function prepareInmateData(array $data): array
     {
+        // Parse sentence text to days if provided
+        $originalSentenceDays = null;
+        if (!empty($data['sentence'])) {
+            $originalSentenceDays = \App\Helpers\SentenceParser::parseToDays($data['sentence']);
+        }
+        
         return [
             'first_name' => $data['first_name'],
             'middle_name' => $data['middle_name'],
@@ -277,6 +296,7 @@ class InmateService
             'country' => $data['country'],
             'crime' => $data['crime'],
             'sentence' => $data['sentence'],
+            'original_sentence_days' => $originalSentenceDays,
             'job' => $data['job'] ?? null,
             'date_of_admission' => $data['date_of_admission'],
             'status' => $data['status'],
