@@ -57,16 +57,6 @@
                     <span>Officers</span>
                 </a>
 
-                <div class="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center gap-3">
-                        <div class="h-9 w-9 rounded-full bg-blue-500/10 ring-2 ring-blue-500/20 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25A9.75 9.75 0 1021.75 12 9.76 9.76 0 0012 2.25zm0 3a1.5 1.5 0 11-1.5 1.5A1.5 1.5 0 0112 5.25zM9 10.5h6v8.25H9z"/></svg>
-                        </div>
-                        <div class="text-xs text-gray-600 dark:text-gray-300">
-                            Facial recognition replaces QR scanning.
-                        </div>
-                    </div>
-                </div>
             </nav>
         </aside>
 
