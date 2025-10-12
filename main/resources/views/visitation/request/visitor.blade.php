@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visitation Form</title>
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('images/logo/logo-temp_round.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('images/logo/bjmp_logo.png') }}" type="image/png">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

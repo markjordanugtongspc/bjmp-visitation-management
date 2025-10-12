@@ -11,7 +11,7 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
         <!-- Favicon -->
-        <link rel="icon" href="{{ asset('images/logo/logo-temp_round.png') }}" type="image/png">
+        <link rel="icon" href="{{ asset('images/logo/bjmp_logo.png') }}" type="image/png">
 
         <!-- Styles / Scripts -->
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -28,7 +28,7 @@
             <nav class="container mx-auto flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
                 <!-- Brand -->
                 <div class="flex items-center gap-4 bg-transparent dark:bg-transparent backdrop-blur-0 rounded-xl p-2.5 md:p-3 border-0 transition-all duration-300">
-                    <img src="{{ asset('images/logo/logo-temp_round.png') }}" alt="BJMP Logo" class="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 object-contain">
+                    <img src="{{ asset('images/logo/bjmp_logo.png') }}" alt="BJMP Logo" class="w-10 h-10 md:w-12 md:h-12 lg:w-20 lg:h-20 object-contain">
                     <div class="block">
                         <h2 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">BJMP</h2>
                         <p class="text-xs md:text-sm text-gray-600 dark:text-gray-300 font-medium">Iligan City</p>

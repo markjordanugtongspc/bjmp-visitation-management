@@ -6,7 +6,7 @@
   <title>Login</title>
 
   <!-- Favicon -->
-  <link rel="icon" href="{{ asset('images/logo/logo-temp_round.png') }}" type="image/png">
+  <link rel="icon" href="{{ asset('images/logo/bjmp_logo.png') }}" type="image/png">
     
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/auth/slideshow.js']) <!--- Kani gamiton aron ma import ang tailwind css nga naka built in -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->

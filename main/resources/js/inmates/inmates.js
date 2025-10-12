@@ -1502,7 +1502,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="sm:col-span-2 lg:col-span-1">
           <label class="block text-sm text-gray-300 mb-2 font-medium">1x1 Photo</label>
           <div class="flex items-center gap-3">
-            <img data-field="avatarPreview" src="/images/logo/logo-temp_round.png" alt="Visitor avatar" class="h-16 w-16 rounded-full object-cover ring-2 ring-green-500/20 bg-gray-700/40" />
+            <img data-field="avatarPreview" src="/images/logo/bjmp_logo.png" alt="Visitor avatar" class="h-16 w-16 rounded-full object-cover ring-2 ring-green-500/20 bg-gray-700/40" />
             <div>
               <label class="inline-flex items-center px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded-md cursor-pointer transition-colors">
                 Choose Image
@@ -2507,7 +2507,7 @@ async function openUnifiedInmateModal(inmate) {
           <div class="flex items-center justify-center mb-4">
             <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
               <img 
-                src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
+                src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
                 alt="${name}'s avatar" 
                 class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
                 loading="lazy"
@@ -2528,7 +2528,7 @@ async function openUnifiedInmateModal(inmate) {
         <div class="flex flex-col items-center lg:hidden gap-2">
           <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
             <img 
-              src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
+              src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
               alt="${name}'s avatar" 
               class="w-full h-full object-cover rounded-full border-4 border-white shadow"
               loading="lazy"
@@ -2588,7 +2588,7 @@ async function openUnifiedInmateModal(inmate) {
           <div class="flex items-center justify-center mb-4">
             <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
               <img 
-                src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
+                src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
                 alt="${name}'s avatar" 
                 class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
                 loading="lazy"
@@ -2609,7 +2609,7 @@ async function openUnifiedInmateModal(inmate) {
         <div class="flex flex-col items-center lg:hidden gap-2">
           <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
             <img 
-              src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
+              src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
               alt="${name}'s avatar" 
               class="w-full h-full object-cover rounded-full border-4 border-white shadow"
               loading="lazy"
@@ -2689,7 +2689,7 @@ async function openUnifiedInmateModal(inmate) {
           <div class="flex items-center justify-center mb-4">
             <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
               <img 
-                src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
+                src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
                 alt="${name}'s avatar" 
                 class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
                 loading="lazy"
@@ -2710,7 +2710,7 @@ async function openUnifiedInmateModal(inmate) {
         <div class="flex flex-col items-center lg:hidden gap-2">
           <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
             <img 
-              src="${inmate.avatarUrl || '/images/logo/logo-temp_round.png'}" 
+              src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
               alt="${name}'s avatar" 
               class="w-full h-full object-cover rounded-full border-4 border-white shadow"
               loading="lazy"
@@ -3078,7 +3078,7 @@ function openVisitorModal(visitor) {
   const width = isMobile() ? '95vw' : '32rem';
   const avatarSrc = (() => {
     if (visitor && typeof visitor.avatarDataUrl === 'string' && visitor.avatarDataUrl) return visitor.avatarDataUrl;
-    return '/images/logo/logo-temp_round.png';
+    return '/images/logo/bjmp_logo.png';
   })();
 
   const name = visitor?.name || 'Visitor';
