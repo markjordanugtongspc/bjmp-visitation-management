@@ -497,6 +497,11 @@ export function clearPreview() {
   updateCategoryPreview('', 'Select a category');
 }
 
+// Make clearPreview available globally for form reset
+if (typeof window !== 'undefined') {
+  window.clearPreview = clearPreview;
+}
+
 // Setup category selector listener
 function setupCategoryListener() {
   const categorySelect = document.getElementById('guideline-category');

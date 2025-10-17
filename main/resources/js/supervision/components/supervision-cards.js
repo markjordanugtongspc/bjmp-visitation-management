@@ -21,43 +21,64 @@ async function initializeSupervisionCardsPage() {
   }
 }
 
-// Empty array for supervision data - will be populated from localStorage
+// Empty array for supervision data - will be populated from API
 const staticSupervisionData = [];
 
-// Fetch supervision data page (using localStorage only)
+// Fetch supervision data page from API
 async function fetchSupervisionPage(offset = 0, limit = 3) {
   const cacheKey = `${offset}:${limit}`;
   if (supervisionPageCache.has(cacheKey)) {
     return supervisionPageCache.get(cacheKey);
   }
 
-  // Simulate API delay for realistic testing
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
-  // Get items from localStorage only
-  let allSupervisionData = [];
   try {
-    const localItems = JSON.parse(localStorage.getItem('supervisionItems') || '[]');
-    if (localItems && Array.isArray(localItems) && localItems.length > 0) {
-      allSupervisionData = [...localItems];
-      console.log('Loaded supervision items from localStorage:', localItems.length);
-    } else {
-      console.log('No supervision items found in localStorage');
+    // Get API endpoint from data attributes
+    const listUrl = document.querySelector('[data-list-url]')?.dataset.listUrl;
+    const csrfToken = document.querySelector('[data-csrf-token]')?.dataset.csrfToken;
+    
+    if (!listUrl) {
+      throw new Error('API endpoint not configured');
     }
+
+    // Fetch data from API
+    const response = await fetch(listUrl, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to fetch data');
+    }
+
+    const allSupervisionData = result.data || [];
+    const total = allSupervisionData.length;
+    const supervision = allSupervisionData.slice(offset, offset + limit);
+
+    const payload = {
+      supervision,
+      pagination: { total, limit, offset }
+    };
+    
+    supervisionPageCache.set(cacheKey, payload);
+    return payload;
   } catch (error) {
-    console.error('Error loading supervision items from localStorage:', error);
+    console.error('Error fetching supervision data:', error);
+    // Return empty data on error
+    return {
+      supervision: [],
+      pagination: { total: 0, limit, offset }
+    };
   }
-
-  const total = allSupervisionData.length;
-  const supervision = allSupervisionData.slice(offset, offset + limit);
-
-  const payload = {
-    supervision,
-    pagination: { total, limit, offset }
-  };
-  
-  supervisionPageCache.set(cacheKey, payload);
-  return payload;
 }
 
 // Render supervision cards
@@ -209,9 +230,32 @@ function renderSupervisionGrid(supervision, container) {
   attachModalInteractions();
 }
 
+// Category-based icon mapping
+const CATEGORY_ICONS = {
+  'Operations': 'M21.246 4.86L13.527.411a3.07 3.07 0 0 0-3.071 0l-2.34 1.344v6.209l3.104-1.793a1.52 1.52 0 0 1 1.544 0l3.884 2.241c.482.282.764.78.764 1.328v4.482a1.54 1.54 0 0 1-.764 1.328l-3.884 2.241V24l8.482-4.897a3.08 3.08 0 0 0 1.544-2.656V7.532a3.05 3.05 0 0 0-1.544-2.672M6.588 14.222V2.652L2.754 4.876A3.08 3.08 0 0 0 1.21 7.532v8.915c0 1.095.581 2.108 1.544 2.656L11.236 24v-6.209L7.352 15.55a1.53 1.53 0 0 1-.764-1.328',
+  'Intake': 'M8.75 2.75A2.75 2.75 0 006 5.5v13a2.75 2.75 0 002.75 2.75h8.5A2.75 2.75 0 0020 18.5v-13A2.75 2.75 0 0017.25 2.75zM9.5 6h7v1.5h-7zM9.5 9h7v1.5h-7zM9.5 12h7v1.5h-7z',
+  'Safety': 'M12 2a7 7 0 017 7v2a7 7 0 01-14 0V9a7 7 0 017-7z M11 14h2v6h-2z',
+  'Medical': 'M3 7a4 4 0 014-4h10a4 4 0 014 4v2H3z M21 10H3v7a4 4 0 004 4h10a4 4 0 004-4z',
+  'Visitation': 'M7 7h10v2H7zM7 11h10v2H7zM7 15h10v2H7z',
+  'Training': 'M12 2a7 7 0 00-7 7v2a7 7 0 0014 0V9a7 7 0 00-7-7zm0 12a3 3 0 113-3 3 3 0 01-3 3z',
+  'Discipline': 'M5 3a2 2 0 00-2 2v9.764A3.236 3.236 0 006.236 18H18a3 3 0 003-3V5a2 2 0 00-2-2z M7 21a1 1 0 01-1-1v-2h12v2a1 1 0 01-1 1z',
+  'Emergency': 'M12 2a9 9 0 00-9 9v4a3 3 0 003 3h1v2a1 1 0 001.555.832L12 19h6a3 3 0 003-3v-4a9 9 0 00-9-9z'
+};
+
 // Create individual supervision card
 function createSupervisionCard(item, index) {
-  // Icon color mapping
+  // Icon color mapping based on category
+  const categoryColors = {
+    'Operations': 'blue',
+    'Intake': 'emerald', 
+    'Safety': 'amber',
+    'Medical': 'rose',
+    'Visitation': 'indigo',
+    'Training': 'fuchsia',
+    'Discipline': 'teal',
+    'Emergency': 'red'
+  };
+
   const iconColors = {
     blue: 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 ring-blue-500/10',
     emerald: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 ring-emerald-500/10',
@@ -223,45 +267,57 @@ function createSupervisionCard(item, index) {
     red: 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 ring-red-500/10'
   };
 
-  const iconClass = iconColors[item.icon] || iconColors.blue;
+  const colorKey = categoryColors[item.category] || 'blue';
+  const iconClass = iconColors[colorKey];
+
+  // Get category-based icon
+  const categoryIcon = CATEGORY_ICONS[item.category] || CATEGORY_ICONS['Operations'];
 
   return `
     <article data-item-id="${item.id}" class="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 hover:shadow-sm transition cursor-pointer">
       <div class="flex items-start gap-3">
         <div class="h-10 w-10 rounded-lg ${iconClass} flex items-center justify-center ring-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="${item.iconSvg}"/>
+            <path d="${item.iconSvg || categoryIcon}"/>
           </svg>
         </div>
         <div class="ml-auto">
-          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">${item.type}</span>
+          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">${item.category}</span>
         </div>
       </div>
-      <h3 class="mt-3 text-sm font-semibold text-gray-900 dark:text-gray-50">${item.name}</h3>
-      <p class="mt-1 text-xs text-gray-600 dark:text-gray-400 line-clamp-2">${item.description}</p>
+      <h3 class="mt-3 text-sm font-semibold text-gray-900 dark:text-gray-50">${item.title}</h3>
+      <p class="mt-1 text-xs text-gray-600 dark:text-gray-400 line-clamp-2">${item.summary || 'No description available'}</p>
       <div class="mt-3 flex items-center gap-3 text-[11px] text-gray-500 dark:text-gray-400">
         <span class="inline-flex items-center gap-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2.25a9.75 9.75 0 109.75 9.75A9.76 9.76 0 0012 2.25zm.75 9V6a.75.75 0 10-1.5 0v6a.75.75 0 00.22.53l3.5 3.5a.75.75 0 101.06-1.06z"/>
           </svg>
-          Updated ${item.updatedDate}
+          ${item.upload_date}
         </span>
-        <span>${item.pages} pages</span>
+        <span>${item.formatted_file_size || 'Unknown size'}</span>
       </div>
       <div class="mt-4 flex items-center gap-2">
-        <button data-action="view" class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+        <button data-action="view" data-file-id="${item.id}" class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 5c-7.633 0-10 7-10 7s2.367 7 10 7 10-7 10-7-2.367-7-10-7zm0 12a5 5 0 115-5 5 5 0 01-5 5zm0-8a3 3 0 103 3 3 3 0 00-3-3z"/>
           </svg>
           View
         </button>
-        <button data-action="download" class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
+        <button data-action="download" data-download-url="${item.download_url}" class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
             <path d="M11 3a1 1 0 012 0v9.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L11 12.586z"/>
             <path d="M5 20a2 2 0 002 2h10a2 2 0 002-2v-2a1 1 0 10-2 0v2H7v-2a1 1 0 10-2 0z"/>
           </svg>
           Download
         </button>
+        ${item.can_delete ? `
+        <button data-action="delete" data-file-id="${item.id}" class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-red-600 hover:bg-red-700 text-white cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6"/>
+          </svg>
+          Delete
+        </button>
+        ` : ''}
       </div>
     </article>
   `;
@@ -342,32 +398,41 @@ function attachModalInteractions() {
     e.preventDefault();
     const card = e.target.closest('article');
     const title = card?.querySelector('h3')?.textContent || 'Manual';
+    const downloadUrl = e.target.dataset.downloadUrl;
+    
+    if (!downloadUrl) {
+      themedToast({
+        icon: 'error',
+        title: 'Download failed',
+        text: 'Download URL not available',
+        background: isDarkMode() ? PALETTE.darkBg : '#fff',
+        color: isDarkMode() ? '#E5E7EB' : '#111827',
+        iconColor: PALETTE.danger,
+      });
+      return;
+    }
     
     themedConfirm({
       title: 'Start download?',
-      text: `You are about to download "${title}" as PDF.`,
+      text: `You are about to download "${title}".`,
       icon: 'question',
       confirmButtonText: 'Download',
     }).then((result) => {
       if (result.isConfirmed) {
-        const opts = {
-          title: 'Downloading...',
-          timer: 1200,
-          timerProgressBar: true,
-          didOpen: () => { window.Swal.showLoading(); },
-        };
-        if (isDarkMode()) {
-          opts.background = PALETTE.darkBg;
-          opts.color = '#E5E7EB';
-        }
-        window.Swal.fire(opts).then(() => {
-          themedToast({
-            icon: 'success',
-            title: 'Download started!',
-            background: isDarkMode() ? PALETTE.darkBg : '#fff',
-            color: isDarkMode() ? '#E5E7EB' : '#111827',
-            iconColor: PALETTE.primary,
-          });
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = title;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        themedToast({
+          icon: 'success',
+          title: 'Download started!',
+          background: isDarkMode() ? PALETTE.darkBg : '#fff',
+          color: isDarkMode() ? '#E5E7EB' : '#111827',
+          iconColor: PALETTE.primary,
         });
       }
     });
@@ -379,28 +444,146 @@ function attachModalInteractions() {
     btn.addEventListener('click', handleViewClick);
   });
 
-  function handleViewClick(e) {
+  // Delete button functionality
+  document.querySelectorAll('button[data-action="delete"]').forEach((btn) => {
+    btn.removeEventListener('click', handleDeleteClick);
+    btn.addEventListener('click', handleDeleteClick);
+  });
+
+  async function handleViewClick(e) {
     e.preventDefault();
     const card = e.target.closest('article');
     const title = card?.querySelector('h3')?.textContent || 'Manual';
-    const type = card?.querySelector('.inline-flex')?.textContent || 'Document';
+    const category = card?.querySelector('.inline-flex')?.textContent || 'Document';
+    const fileId = e.target.dataset.fileId;
     
-    // Get the item ID from the card
-    const itemId = card?.dataset.itemId;
-    let item = null;
-    
-    // Find the item in localStorage if available
-    if (itemId) {
-      try {
-        const items = JSON.parse(localStorage.getItem('supervisionItems') || '[]');
-        item = items.find(i => i.id.toString() === itemId.toString());
-      } catch (err) {
-        console.error('Error retrieving item from localStorage:', err);
-      }
+    if (!fileId) {
+      themedToast({
+        icon: 'error',
+        title: 'Preview failed',
+        text: 'File ID not available',
+        background: isDarkMode() ? PALETTE.darkBg : '#fff',
+        color: isDarkMode() ? '#E5E7EB' : '#111827',
+        iconColor: PALETTE.danger,
+      });
+      return;
     }
     
-    // Show full-screen file preview modal
-    showFilePreviewModal(title, type, item);
+    try {
+      // Get file details from API
+      const csrfToken = document.querySelector('[data-csrf-token]')?.dataset.csrfToken;
+      const response = await fetch(`/warden/supervision/files/${fileId}`, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to fetch file details');
+      }
+
+      const fileData = result.data;
+      
+      // Show full-screen file preview modal
+      showFilePreviewModal(title, category, fileData);
+      
+    } catch (error) {
+      console.error('Error fetching file details:', error);
+      themedToast({
+        icon: 'error',
+        title: 'Preview failed',
+        text: error.message || 'Failed to load file details',
+        background: isDarkMode() ? PALETTE.darkBg : '#fff',
+        color: isDarkMode() ? '#E5E7EB' : '#111827',
+        iconColor: PALETTE.danger,
+      });
+    }
+  }
+
+  async function handleDeleteClick(e) {
+    e.preventDefault();
+    const card = e.target.closest('article');
+    const title = card?.querySelector('h3')?.textContent || 'Manual';
+    const fileId = e.target.dataset.fileId;
+    
+    if (!fileId) {
+      themedToast({
+        icon: 'error',
+        title: 'Delete failed',
+        text: 'File ID not available',
+        background: isDarkMode() ? PALETTE.darkBg : '#fff',
+        color: isDarkMode() ? '#E5E7EB' : '#111827',
+        iconColor: PALETTE.danger,
+      });
+      return;
+    }
+    
+    const result = await themedConfirm({
+      title: 'Delete file?',
+      text: `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+      icon: 'warning',
+      confirmButtonText: 'Delete',
+      confirmButtonColor: PALETTE.danger,
+    });
+    
+    if (result.isConfirmed) {
+      try {
+        // Get CSRF token
+        const csrfToken = document.querySelector('[data-csrf-token]')?.dataset.csrfToken;
+        
+        // Send DELETE request
+        const response = await fetch(`/warden/supervision/files/${fileId}`, {
+          method: 'DELETE',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+          }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || 'Delete failed');
+        }
+
+        // Remove the card from UI
+        card.remove();
+        
+        // Show success message
+        themedToast({
+          icon: 'success',
+          title: 'File deleted',
+          text: `"${title}" has been deleted successfully`,
+          background: isDarkMode() ? PALETTE.darkBg : '#fff',
+          color: isDarkMode() ? '#E5E7EB' : '#111827',
+          iconColor: PALETTE.primary,
+        });
+
+        // Refresh the data to update pagination
+        await refreshSupervisionData();
+        
+      } catch (error) {
+        console.error('Error deleting file:', error);
+        themedToast({
+          icon: 'error',
+          title: 'Delete failed',
+          text: error.message || 'Failed to delete file',
+          background: isDarkMode() ? PALETTE.darkBg : '#fff',
+          color: isDarkMode() ? '#E5E7EB' : '#111827',
+          iconColor: PALETTE.danger,
+        });
+      }
+    }
   }
 
   // Toast when opening create manual (if button exists)
@@ -421,16 +604,18 @@ function attachModalInteractions() {
   }
 
   // Show full-screen file preview modal
-  function showFilePreviewModal(title, type, item = null) {
+  function showFilePreviewModal(title, category, fileData = null) {
     if (typeof window === 'undefined' || !window.Swal) return;
 
     const isDark = isDarkMode();
+    const isPDF = fileData?.file_type === 'application/pdf';
+    const isWordDoc = fileData?.file_type?.includes('word') || fileData?.file_extension?.toLowerCase() === 'docx' || fileData?.file_extension?.toLowerCase() === 'doc';
     
     window.Swal.fire({
       title: `<div class="flex items-center justify-between w-full">
         <span class="text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}">${title}</span>
         <div class="flex items-center gap-2">
-          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-800'}">${type}</span>
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-800'}">${category}</span>
           <button id="fullscreen-btn" class="inline-flex items-center justify-center w-8 h-8 rounded-lg ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'} transition-colors cursor-pointer" title="Toggle Fullscreen">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
@@ -438,7 +623,7 @@ function attachModalInteractions() {
           </button>
         </div>
       </div>`,
-      html: createFilePreviewHTML(title, type, isDark, item),
+      html: createFilePreviewHTML(title, category, isDark, fileData, isPDF, isWordDoc),
       showConfirmButton: false,
       showCloseButton: true,
       width: '90vw',
@@ -453,117 +638,107 @@ function attachModalInteractions() {
       didOpen: () => {
         setupFullscreenToggle();
         
-        // Show loading state first
-        const loadingEl = document.getElementById('preview-loading');
-        const previewEl = document.getElementById('preview-content');
-        
-        if (!loadingEl || !previewEl) return;
-        
-        // Check if we're loading a real file or a demo
-        const isRealFile = item && item.filePath;
-        const loadingTime = isRealFile ? 1500 : 1000; // Longer loading time for real files
-        
-        // Simulate file loading
-        setTimeout(() => {
-          loadingEl.classList.add('hidden');
-          previewEl.classList.remove('hidden');
-          previewEl.classList.add('flex-1', 'flex', 'flex-col');
-          
-          // Set up download button for all files
-          const downloadBtn = document.getElementById('file-download-btn');
-          if (downloadBtn) {
-            downloadBtn.addEventListener('click', () => {
-              if (isRealFile && item.filePath) {
-                // Create a temporary link to download the file
-                const link = document.createElement('a');
-                link.href = item.filePath;
-                link.download = item.fileName || item.originalFilename || 'document.pdf';
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Show success toast
-                window.Swal.fire({
-                  toast: true,
-                  position: 'top-end',
-                  icon: 'success',
-                  title: `Downloading ${item.fileName || 'document'}...`,
-                  showConfirmButton: false,
-                  timer: 1500
-                });
-              } else {
-                // For demo files, just show a message
-                window.Swal.fire({
-                  toast: true,
-                  position: 'top-end',
-                  icon: 'info',
-                  title: 'Demo file - download not available',
-                  showConfirmButton: false,
-                  timer: 2000
-                });
-              }
+        // Set up download button
+        const downloadBtn = document.getElementById('file-download-btn');
+        if (downloadBtn && fileData?.download_url) {
+          downloadBtn.addEventListener('click', () => {
+            // Create a temporary link to download the file
+            const link = document.createElement('a');
+            link.href = fileData.download_url;
+            link.download = fileData.file_name || 'document.pdf';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Show success toast
+            window.Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: `Downloading ${fileData.file_name || 'document'}...`,
+              showConfirmButton: false,
+              timer: 1500
             });
-          }
-        }, loadingTime);
+          });
+        }
       }
     });
   }
 
   // Create file preview HTML content
-  function createFilePreviewHTML(title, type, isDark, item = null) {
-    // Get file details from item if available
-    const fileSize = item?.fileSize ? formatFileSize(item.fileSize) : `${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 9) + 1}MB`;
-    const pages = item?.pages || Math.floor(Math.random() * 30) + 5;
-    const fileName = item?.fileName || `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
-    const uploadDate = item?.updatedDate || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  function createFilePreviewHTML(title, category, isDark, fileData = null, isPDF = false, isWordDoc = false) {
+    // Get file details from API data
+    const fileSize = fileData?.formatted_file_size || `${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 9) + 1}MB`;
+    const fileName = fileData?.file_name || `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+    const uploadDate = fileData?.upload_date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const fileType = fileData?.file_type || 'application/pdf';
+    const previewUrl = fileData?.preview_url;
     
     return `
       <div class="h-full flex flex-col">
-        <!-- Loading State -->
-        <div id="preview-loading" class="flex-1 flex items-center justify-center">
-          <div class="text-center">
-            <svg class="animate-spin h-12 w-12 ${isDark ? 'text-blue-400' : 'text-blue-600'} mx-auto mb-4" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="${isDark ? 'text-gray-300' : 'text-gray-600'} text-sm">Loading document preview...</p>
+        <!-- File Info Bar -->
+        <div class="flex items-center gap-3 p-3 ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}">
+          <div class="h-8 w-8 rounded-lg ${getFileIconColor(category, isDark)} flex items-center justify-center">
+            ${getFileIcon(category)}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'} truncate">${title}</p>
+            <p class="text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}">
+              ${fileName} • ${fileSize} • Uploaded ${uploadDate}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="file-download-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} text-xs font-medium transition-colors cursor-pointer">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Download
+            </button>
           </div>
         </div>
 
-        <!-- Preview Content -->
-        <div id="preview-content" class="hidden">
-          <!-- File Info Bar -->
-          <div class="flex items-center gap-3 p-3 ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}">
-            <div class="h-8 w-8 rounded-lg ${getFileIconColor(type, isDark)} flex items-center justify-center">
-              ${getFileIcon(type)}
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'} truncate">${title}</p>
-              <p class="text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}">
-                ${fileName} • ${fileSize} • ${pages} pages • Uploaded ${uploadDate}
-              </p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button id="file-download-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} text-xs font-medium transition-colors cursor-pointer">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Download
-              </button>
-            </div>
-          </div>
-
-          <!-- Document Preview -->
-          <div class="flex-1 p-4">
-            <div class="h-full rounded-lg border ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} overflow-hidden">
+        <!-- Document Preview -->
+        <div class="flex-1 p-4">
+          <div class="h-full rounded-lg border ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} overflow-hidden">
+            ${isPDF && previewUrl ? `
               <iframe 
-                src="${generatePreviewURL(title, type, item)}" 
+                src="${previewUrl}" 
                 class="w-full h-full"
                 frameborder="0"
-                title="Document Preview">
+                title="PDF Preview">
               </iframe>
-            </div>
+            ` : isWordDoc ? `
+              <div class="h-full flex items-center justify-center p-8">
+                <div class="text-center max-w-md">
+                  <div class="h-20 w-20 mx-auto mb-4 rounded-lg ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'} flex items-center justify-center">
+                    <svg class="h-10 w-10 ${isDark ? 'text-blue-400' : 'text-blue-600'}" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M4 4a2 2 0 0 1 2-2h8l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4zm8 0v4h4l-4-4z"/>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'} mb-2">${title}</h3>
+                  <p class="text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-4">Microsoft Word Document</p>
+                  <p class="text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'} mb-6">Word documents cannot be previewed in the browser. Click the download button above to view the file.</p>
+                  <button id="file-download-btn" class="inline-flex items-center gap-2 px-4 py-2 rounded-md ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} font-medium transition-colors cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Download Document
+                  </button>
+                </div>
+              </div>
+            ` : `
+              <div class="h-full flex items-center justify-center p-8">
+                <div class="text-center">
+                  <div class="h-16 w-16 mx-auto mb-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center">
+                    <svg class="h-8 w-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                  </div>
+                  <p class="${isDark ? 'text-gray-400' : 'text-gray-600'}">Preview not available for this file type</p>
+                </div>
+              </div>
+            `}
           </div>
         </div>
       </div>
@@ -614,154 +789,15 @@ function attachModalInteractions() {
 
   // Generate preview URL for the file
   function generatePreviewURL(title, type, item) {
-    // Check if we have a real file path from localStorage
-    if (item && item.filePath) {
-      // Return the actual file path for preview
-      return item.filePath;
+    // Check if we have a preview URL from API
+    if (item && item.preview_url) {
+      return item.preview_url;
     }
     
-    // Return empty string if no file path available
+    // Return empty string if no preview URL available
     return '';
   }
 
-  // Create document info content for non-PDF files
-  function createDocumentInfoContent(title, type, item) {
-    const fileSize = formatFileSize(item.fileSize);
-    const uploadDate = item.updatedDate || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    
-    return `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #374151;
-            background: #ffffff;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-          }
-          .document-header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e5e7eb;
-            width: 100%;
-            max-width: 800px;
-          }
-          .document-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 8px;
-          }
-          .document-meta {
-            color: #6b7280;
-            font-size: 14px;
-          }
-          .file-info {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            background: #f0f9ff;
-            border-radius: 12px;
-            border: 1px solid #0ea5e9;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-          }
-          .file-icon {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 24px;
-            background: #3b82f6;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-          }
-          .file-icon svg {
-            width: 40px;
-            height: 40px;
-            fill: white;
-          }
-          .file-details {
-            text-align: center;
-            margin-bottom: 20px;
-          }
-          .file-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-          }
-          .file-meta {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 16px;
-          }
-          .info-box {
-            background: #f0f9ff;
-            border: 1px solid #0ea5e9;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 20px 0;
-            max-width: 800px;
-            width: 100%;
-          }
-          .info-box h4 {
-            color: #0369a1;
-            margin-bottom: 8px;
-          }
-          @media (prefers-color-scheme: dark) {
-            body { background: #111827; color: #e5e7eb; }
-            .document-title { color: #f9fafb; }
-            .file-info { background: #0c4a6e; border-color: #0ea5e9; color: #e0f2fe; }
-            .info-box { background: #0c4a6e; border-color: #0ea5e9; color: #e0f2fe; }
-            .info-box h4 { color: #7dd3fc; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="document-header">
-          <h1 class="document-title">${title}</h1>
-          <div class="document-meta">
-            ${type} Manual • Uploaded: ${uploadDate}
-          </div>
-        </div>
-
-        <div class="file-info">
-          <div class="file-icon">
-            ${getFileIcon(type)}
-          </div>
-          <div class="file-details">
-            <div class="file-name">${item.fileName || item.originalFilename}</div>
-            <div class="file-meta">
-              Size: ${fileSize} • Type: ${item.fileExtension?.toUpperCase()} • Pages: ${item.pages || 'N/A'}
-            </div>
-          </div>
-        </div>
-
-        <div class="info-box">
-          <h4>📄 Document Information</h4>
-          <p>This document has been successfully uploaded and processed. Use the download button above to save the file to your device.</p>
-        </div>
-      </body>
-      </html>
-    `;
-  }
 
 
   // Setup fullscreen toggle functionality

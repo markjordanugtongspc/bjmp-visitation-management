@@ -19,7 +19,11 @@
         </aside>
 
         <!-- Main content -->
-        <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950" 
+         data-upload-url="{{ route('warden.supervision.upload') }}"
+         data-list-url="{{ route('warden.supervision.index') }}"
+         data-preview-url="{{ route('warden.supervision.preview', ':id') }}"
+         data-csrf-token="{{ csrf_token() }}">
             <!-- Hope UI–style Header -->
             <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
                 <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">

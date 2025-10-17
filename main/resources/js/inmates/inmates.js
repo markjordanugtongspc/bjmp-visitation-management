@@ -1034,7 +1034,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       <td class="align-top px-4 py-3 text-slate-400">${vitalsText}</td>
                       <td class="align-top px-4 py-3 text-slate-400">${allergiesText}</td>
                       <td class="align-top px-4 py-3 text-slate-400">${medicationsText}</td>
-                      <td class="align-top px-4 py-3 text-slate-400">${m.notes ? `<span class="italic">“${m.notes}”</span>` : '—'}</td>
+                      <td class="align-top px-4 py-3 text-slate-400">${m.notes ? `<span class="italic">"${m.notes}"</span>` : '—'}</td>
                       <td class="align-top px-4 py-3 text-slate-500">${m.recordedBy || '—'}</td>
                     </tr>
                   `;
@@ -1071,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${m.notes ? `
                   <div class="mt-2 pt-2 border-t border-slate-700">
-                    <p class="text-sm text-slate-400 italic">“${m.notes}”</p>
+                    <p class="text-sm text-slate-400 italic">"${m.notes}"</p>
                   </div>
                 ` : ''}
                 <div class="text-right text-xs text-slate-500 mt-1">
@@ -1176,64 +1176,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           `}
         </div>
-
-          <!-- Visitation Information -->
-          <div class="space-y-6">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Visitation Information</h3>
-            
-            <!-- Allowed Visitors Management - Expanded -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <h4 class="text-md font-semibold text-gray-200">Allowed Visitors</h4>
-                <button type="button" id="add-allowed-visitor" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md cursor-pointer transition-colors">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                  </svg>
-                  Add Visitor
-                </button>
-              </div>
-              
-              <!-- Allowed Visitors Container - Expanded and Responsive -->
-              <div id="allowed-visitors-container" class="space-y-3 max-h-96 overflow-y-auto">
-                <!-- Allowed visitors will be dynamically added here -->
-              </div>
-              
-              <!-- Empty State -->
-              <div id="visitors-empty-state" class="text-center py-8 text-gray-400 hidden">
-                <svg class="w-12 h-12 mx-auto mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-                <p class="text-sm">No allowed visitors yet. Click "Add Visitor" to get started.</p>
-              </div>
-            </div>
-            
-            <!-- Recent Visits Management - Expanded -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <h4 class="text-md font-semibold text-gray-200">Recent Visits</h4>
-                <button type="button" id="add-visit-record" class="inline-flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-md cursor-pointer transition-colors">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                  </svg>
-                  Add Visit
-                </button>
-              </div>
-              
-              <!-- Visit Records Container - Expanded and Responsive -->
-              <div id="visit-records-container" class="space-y-3">
-                <!-- Visit records will be dynamically added here -->
-              </div>
-              
-              <!-- Empty State -->
-              <div id="visits-empty-state" class="text-center py-8 text-gray-400 hidden">
-                <svg class="w-12 h-12 mx-auto mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-                <p class="text-sm">No visit records yet. Click "Add Visit" to get started.</p>
-              </div>
-            </div>
-          </div>
-        </div>
         <style>
           .swal2-html-container > div::-webkit-scrollbar { display: none !important; }
           .swal2-html-container > div { -ms-overflow-style: none !important; scrollbar-width: none !important; }
@@ -1305,7 +1247,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Initialize dynamic form elements
-        initializeAllowedVisitors();
         initializeVisitRecords();
         
         // Real-time points display update
@@ -1586,10 +1527,8 @@ document.addEventListener('DOMContentLoaded', () => {
           // Points System
           initialPoints: parseInt(document.getElementById('i-initial-points').value) || 0,
           currentPoints: parseInt(document.getElementById('i-current-points').value) || 0,
-          // Visitation Information
-          allowedVisitors: collectAllowedVisitors(),
-          recentVisits: collectVisitRecords()
-        };
+          // Visitation Information (removed UI)
+         };
 
         // Validate required fields: strict for edit, permissive for add
         if (isEditing) {

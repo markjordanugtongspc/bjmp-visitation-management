@@ -61,10 +61,15 @@ Route::prefix('warden')->middleware(['auth', 'verified'])->group(function () {
     Route::post('/officers', [WardenController::class, 'storeOfficer'])->name('warden.officers.store');
     Route::get('/officers/list', [WardenController::class, 'listOfficers'])->name('warden.officers.list');
     Route::patch('/officers/{user:user_id}', [WardenController::class, 'updateOfficer'])->name('warden.officers.update');
-    // Super Vision static page
+    
+    // Supervision routes
     Route::view('/supervision', 'warden.supervision.supervision')->name('warden.supervision');
-    // Supervision file upload
-    Route::post('/supervision/upload', [SupervisionController::class, 'upload'])->name('warden.supervision.upload');
+        Route::get('/supervision/files', [SupervisionController::class, 'index'])->name('warden.supervision.index');
+        Route::post('/supervision/upload', [SupervisionController::class, 'upload'])->name('warden.supervision.upload');
+        Route::get('/supervision/files/{id}', [SupervisionController::class, 'show'])->name('warden.supervision.show');
+        Route::get('/supervision/files/{id}/preview', [SupervisionController::class, 'preview'])->name('warden.supervision.preview');
+        Route::get('/supervision/files/{id}/download', [SupervisionController::class, 'download'])->name('warden.supervision.download');
+        Route::delete('/supervision/files/{id}', [SupervisionController::class, 'destroy'])->name('warden.supervision.destroy');
 });
 
 // Legacy routes (for backward compatibility)

@@ -20,17 +20,17 @@ const CATEGORIES = [
   { value: 'Emergency', label: 'Emergency', color: 'red' }
 ];
 
-// SVG path templates for random icon generation
-const SVG_PATHS = [
-  'M6 4a2 2 0 00-2 2v12.5a.5.5 0 00.777.416L8 17l3.223 1.916a.5.5 0 00.554 0L15 17l3.223 1.916A.5.5 0 0019 18.5V6a2 2 0 00-2-2z',
-  'M8.75 2.75A2.75 2.75 0 006 5.5v13a2.75 2.75 0 002.75 2.75h8.5A2.75 2.75 0 0020 18.5v-13A2.75 2.75 0 0017.25 2.75zM9.5 6h7v1.5h-7zM9.5 9h7v1.5h-7zM9.5 12h7v1.5h-7z',
-  'M12 2a7 7 0 017 7v2a7 7 0 01-14 0V9a7 7 0 017-7z M11 14h2v6h-2z',
-  'M3 7a4 4 0 014-4h10a4 4 0 014 4v2H3z M21 10H3v7a4 4 0 004 4h10a4 4 0 004-4z',
-  'M7 7h10v2H7zM7 11h10v2H7zM7 15h10v2H7z',
-  'M12 2a7 7 0 00-7 7v2a7 7 0 0014 0V9a7 7 0 00-7-7zm0 12a3 3 0 113-3 3 3 0 01-3 3z',
-  'M5 3a2 2 0 00-2 2v9.764A3.236 3.236 0 006.236 18H18a3 3 0 003-3V5a2 2 0 00-2-2z M7 21a1 1 0 01-1-1v-2h12v2a1 1 0 01-1 1z',
-  'M12 2a9 9 0 00-9 9v4a3 3 0 003 3h1v2a1 1 0 001.555.832L12 19h6a3 3 0 003-3v-4a9 9 0 00-9-9z'
-];
+// Category-based icon mapping
+const CATEGORY_ICONS = {
+  'Operations': 'M21.246 4.86L13.527.411a3.07 3.07 0 0 0-3.071 0l-2.34 1.344v6.209l3.104-1.793a1.52 1.52 0 0 1 1.544 0l3.884 2.241c.482.282.764.78.764 1.328v4.482a1.54 1.54 0 0 1-.764 1.328l-3.884 2.241V24l8.482-4.897a3.08 3.08 0 0 0 1.544-2.656V7.532a3.05 3.05 0 0 0-1.544-2.672M6.588 14.222V2.652L2.754 4.876A3.08 3.08 0 0 0 1.21 7.532v8.915c0 1.095.581 2.108 1.544 2.656L11.236 24v-6.209L7.352 15.55a1.53 1.53 0 0 1-.764-1.328',
+  'Intake': 'M8.75 2.75A2.75 2.75 0 006 5.5v13a2.75 2.75 0 002.75 2.75h8.5A2.75 2.75 0 0020 18.5v-13A2.75 2.75 0 0017.25 2.75zM9.5 6h7v1.5h-7zM9.5 9h7v1.5h-7zM9.5 12h7v1.5h-7z',
+  'Safety': 'M12 2a7 7 0 017 7v2a7 7 0 01-14 0V9a7 7 0 017-7z M11 14h2v6h-2z',
+  'Medical': 'M3 7a4 4 0 014-4h10a4 4 0 014 4v2H3z M21 10H3v7a4 4 0 004 4h10a4 4 0 004-4z',
+  'Visitation': 'M7 7h10v2H7zM7 11h10v2H7zM7 15h10v2H7z',
+  'Training': 'M12 2a7 7 0 00-7 7v2a7 7 0 0014 0V9a7 7 0 00-7-7zm0 12a3 3 0 113-3 3 3 0 01-3 3z',
+  'Discipline': 'M5 3a2 2 0 00-2 2v9.764A3.236 3.236 0 006.236 18H18a3 3 0 003-3V5a2 2 0 00-2-2z M7 21a1 1 0 01-1-1v-2h12v2a1 1 0 01-1 1z',
+  'Emergency': 'M12 2a9 9 0 00-9 9v4a3 3 0 003 3h1v2a1 1 0 001.555.832L12 19h6a3 3 0 003-3v-4a9 9 0 00-9-9z'
+};
 
 // Initialize the form functionality
 export function initSupervisionForm() {
@@ -42,6 +42,8 @@ export function initSupervisionForm() {
     return;
   }
 
+  console.log('Supervision form found:', form);
+  
   setupFormValidation();
   setupFileUpload();
   setupCategorySelector();
@@ -49,6 +51,8 @@ export function initSupervisionForm() {
 
   // Optional: initialize drag & drop for the file input
   initDragAndDropForFileInput();
+  
+  console.log('Supervision form initialized successfully');
 }
 
 // Setup form validation for all inputs
@@ -333,200 +337,75 @@ function setupCategorySelector() {
   });
 }
 
-// Setup form submission
+// Setup form submission - handled by file-uploader.js
 function setupFormSubmission() {
-  const form = document.getElementById('supervision-form');
-  
-  if (!form) return;
-  
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // Validate all fields
-    const titleInput = document.getElementById('guideline-title');
-    const summaryInput = document.getElementById('guideline-summary');
-    const categorySelect = document.getElementById('guideline-category');
-    const fileInput = document.getElementById('file_input');
-    
-    let isValid = true;
-    
-    // Validate title
-    if (!titleInput.value.trim()) {
-      showInputError(titleInput, 'Title is required');
-      isValid = false;
-    }
-    
-    // Validate summary
-    if (summaryInput.value.trim().length < DESCRIPTION_MIN_LENGTH) {
-      showInputError(summaryInput, `Description must be at least ${DESCRIPTION_MIN_LENGTH} characters`);
-      isValid = false;
-    }
-    
-    // Validate category
-    if (!categorySelect.value) {
-      showInputError(categorySelect, 'Please select a category');
-      isValid = false;
-    }
-    
-    // Validate file
-    if (!fileInput.files[0]) {
-      showInputError(fileInput, 'Please upload a file');
-      isValid = false;
-    }
-    
-    if (!isValid) return;
-    
-    // Gather form data
-    const formData = {
-      title: titleInput.value.trim(),
-      description: summaryInput.value.trim(),
-      category: categorySelect.value,
-      categoryLabel: categorySelect.options[categorySelect.selectedIndex].textContent,
-      categoryColor: categorySelect.options[categorySelect.selectedIndex].dataset.color || 'blue',
-      file: fileInput.files[0],
-      updatedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      // Generate random page count for demo purposes
-      pages: Math.floor(Math.random() * 30) + 1,
-      // Generate random icon SVG path from the templates
-      iconSvg: SVG_PATHS[Math.floor(Math.random() * SVG_PATHS.length)]
-    };
-    
-    // Show loading state
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `
-      <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      Processing...
-    `;
-    
-    try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // PLACEHOLDER: This is where you would send data to the backend
-      // For now, we'll store in localStorage as a placeholder
-      saveSupervisionItem(formData);
-      
-      // Add the new card to the UI
-      addNewSupervisionCard(formData);
-      
-      // Close modal (if using Flowbite modal)
-      const modal = document.getElementById('createManualModal');
-      if (window.Flowbite && modal) {
-        const modalInstance = window.Flowbite.getInstance(modal);
-        if (modalInstance) {
-          modalInstance.hide();
-        }
-      }
-      
-      // Show success message
-      showToast('Success', 'Manual uploaded successfully!', 'success');
-      
-      // Reset form
-      form.reset();
-      
-      // Clear any badges
-      const existingBadge = categorySelect.parentNode.querySelector('.category-badge');
-      if (existingBadge) {
-        existingBadge.remove();
-      }
-      
-      // Clear file info
-      const fileInfo = document.getElementById('file-info');
-      if (fileInfo) fileInfo.innerHTML = '';
-      
-      // Reset counter
-      const counter = document.getElementById('summary-counter');
-      if (counter) counter.textContent = `0/${DESCRIPTION_MIN_LENGTH}`;
-      
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      showToast('Error', 'Failed to upload manual. Please try again.', 'error');
-    } finally {
-      // Restore button state
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnText;
-    }
-  });
+  // Form submission is now handled by file-uploader.js
+  // This function is kept for compatibility but does nothing
+  console.log('Form submission handled by file-uploader.js');
 }
 
-// Save supervision item to localStorage (placeholder for backend)
-function saveSupervisionItem(formData) {
-  // PLACEHOLDER: In a real implementation, this would be an API call
-  // For now, we'll use localStorage as a placeholder
-  
-  // Create a file reader to get the file as base64 (for demo purposes)
-  return new Promise((resolve, reject) => {
-    try {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          // Get existing items or initialize empty array
-          const existingItems = JSON.parse(localStorage.getItem('supervisionItems') || '[]');
-          
-          // Create new item
-          const newItem = {
-            id: Date.now(), // Use timestamp as ID
-            name: formData.title,
-            type: formData.categoryLabel,
-            category: formData.category,
-            description: formData.description,
-            updatedDate: formData.updatedDate,
-            pages: formData.pages,
-            icon: formData.categoryColor,
-            iconSvg: formData.iconSvg,
-            status: 'active',
-            priority: 'Medium',
-            progress: 100,
-            // Store file info (not the actual file in localStorage)
-            fileInfo: {
-              name: formData.file.name,
-              size: formData.file.size,
-              type: formData.file.type,
-              // In a real app, we would upload the file to a server
-              // This is just for demo purposes
-              dataPreview: e.target.result.substring(0, 100) + '...' // Just store a preview
-            }
-          };
-          
-          // Add to existing items
-          existingItems.unshift(newItem); // Add to beginning
-          
-          // Save back to localStorage
-          localStorage.setItem('supervisionItems', JSON.stringify(existingItems));
-          
-          // Set a cookie to indicate new items were added (for demo purposes)
-          document.cookie = `newSupervisionItem=${Date.now()}; path=/; max-age=86400`;
-          
-          resolve(newItem);
-        } catch (err) {
-          reject(err);
-        }
-      };
-      
-      reader.onerror = function() {
-        reject(new Error('Failed to read file'));
-      };
-      
-      // Read file as data URL (base64)
-      reader.readAsDataURL(formData.file);
-    } catch (err) {
-      reject(err);
+// Save supervision item via API
+async function saveSupervisionItem(formData) {
+  try {
+    // Get API endpoints from data attributes
+    const uploadUrl = document.querySelector('[data-upload-url]')?.dataset.uploadUrl;
+    const csrfToken = document.querySelector('[data-csrf-token]')?.dataset.csrfToken;
+    
+    console.log('Upload URL:', uploadUrl);
+    console.log('CSRF Token:', csrfToken ? 'Present' : 'Missing');
+    
+    if (!uploadUrl || !csrfToken) {
+      throw new Error('API endpoints not configured');
     }
-  });
+
+    // Create FormData for file upload
+    const formDataToSend = new FormData();
+    formDataToSend.append('file', formData.file);
+    formDataToSend.append('title', formData.title);
+    formDataToSend.append('category', formData.category);
+    formDataToSend.append('summary', formData.description);
+    formDataToSend.append('_token', csrfToken);
+
+    console.log('Sending FormData:', {
+      file: formData.file.name,
+      title: formData.title,
+      category: formData.category,
+      summary: formData.description
+    });
+
+    // Send POST request to upload endpoint
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      body: formDataToSend,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+
+    const result = await response.json();
+    console.log('Response data:', result);
+
+    if (!response.ok) {
+      throw new Error(result.message || `Upload failed with status ${response.status}`);
+    }
+
+    if (!result.success) {
+      throw new Error(result.message || 'Upload failed');
+    }
+
+    return result.data;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
 }
 
 // Add new supervision card to the UI
-function addNewSupervisionCard(formData) {
-  // PLACEHOLDER: In a real implementation, we would refresh data from the server
-  // For now, we'll manually add the card to the UI
-  
-  // Import the refreshSupervisionData function from supervision-cards.js
-  // This is a cleaner approach than directly manipulating the DOM
+function addNewSupervisionCard(serverResponse) {
+  // Refresh data from the server
   import('./supervision-cards.js')
     .then(module => {
       if (module.refreshSupervisionData) {
