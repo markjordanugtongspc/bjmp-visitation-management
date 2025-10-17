@@ -234,6 +234,33 @@ class InmateApiClient {
     }
 
     /**
+     * Add medical record to inmate
+     */
+    async addMedicalRecord(id, medicalRecordData) {
+        try {
+            const response = await fetch(`${this.baseUrl}/${id}/medical-records/add`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.csrfToken
+                },
+                body: JSON.stringify(medicalRecordData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(`Error adding medical record for inmate ${id}:`, error);
+            throw error;
+        }
+    }
+
+    /**
      * Transform JavaScript form data to API format
      */
     transformFormData(formData) {

@@ -5,6 +5,7 @@ import InmateApiClient from './components/inmateApi.js';
 import { initializeInmateCells } from './components/inmate-cells.js';
 import { createCellCounterManager } from './components/cell-counter-manager.js';
 import { createPointsSystemManager } from './components/points-system.js';
+import { createMedicalRecordsManager } from './components/medical-records-system.js';
 // Female-specific entrypoint is loaded separately on the female page
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
@@ -785,6 +786,150 @@ document.addEventListener('DOMContentLoaded', () => {
               <textarea id="i-medical-notes" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm" 
                         rows="3" placeholder="Enter any medical notes or conditions...">${inmate.medicalNotes || ''}</textarea>
             </div>
+
+            <!-- Medical Records History - Responsive Tailwind Table/Cards, sticky and aligned headers -->
+            ${isEdit ? `
+              <div class="space-y-3 mt-4">
+                <!-- Header with Toggle and Action Button -->
+                <div class="bg-gray-900/50 border border-gray-700 rounded-lg">
+                  <div class="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3">
+                    <div class="flex items-center gap-2">
+                      <button type="button" id="toggle-medical-records-basic" class="p-1 rounded hover:bg-gray-800 text-gray-300 transition-colors cursor-pointer" aria-label="Toggle medical records">
+                        <svg id="medical-chevron-basic" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                      </button>
+                      <div>
+                        <h4 class="text-sm sm:text-md font-semibold text-gray-200">Medical Records History</h4>
+                        <p class="hidden sm:block text-[11px] text-gray-400">Click to expand/collapse</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      id="add-medical-record"
+                      class="inline-flex items-center px-3 py-2 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white text-xs sm:text-sm font-medium rounded-md cursor-pointer transition-colors"
+                    >
+                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                      </svg>
+                      <span class="hidden sm:inline">Add Medical Record</span>
+                      <span class="sm:hidden">Add</span>
+                    </button>
+                  </div>
+
+                  <!-- Records Table/Cards (Collapsible) -->
+                    <div id="medical-records-container-basic" class="transition-all duration-300 overflow-hidden">
+  ${
+    (inmate.medicalRecords && inmate.medicalRecords.length > 0)
+    ? `
+      <div class="hidden md:block overflow-x-auto">
+        <div class="max-h-96 overflow-y-auto rounded-b-lg border border-slate-700">
+          <table class="w-full text-sm text-left text-slate-300">
+            <thead class="text-xs text-slate-400 uppercase bg-slate-800 sticky top-0 z-10">
+              <tr>
+                <th scope="col" class="px-4 py-3 whitespace-nowrap">Date</th>
+                <th scope="col" class="px-4 py-3">Diagnosis</th>
+                <th scope="col" class="px-4 py-3">Treatment</th>
+                <th scope="col" class="px-4 py-3">Vitals</th>
+                <th scope="col" class="px-4 py-3">Allergies</th>
+                <th scope="col" class="px-4 py-3">Medications</th>
+                <th scope="col" class="px-4 py-3">Notes</th>
+                <th scope="col" class="px-4 py-3 whitespace-nowrap">Recorded By</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                (inmate.medicalRecords || []).map(m => {
+                  const vitalsText = (() => {
+                    const v = m.vitals || {};
+                    const parts = [];
+                    if (v.blood_pressure) parts.push(`BP: ${v.blood_pressure}`);
+                    if (v.heart_rate) parts.push(`HR: ${v.heart_rate} bpm`);
+                    if (v.temperature) parts.push(`Temp: ${v.temperature}°C`);
+                    if (v.weight) parts.push(`Weight: ${v.weight}kg`);
+                    return parts.length ? parts.join(' / ') : '—';
+                  })();
+                  const allergiesText = (Array.isArray(m.allergies) && m.allergies.length) ? m.allergies.join(', ') : '—';
+                  const medicationsText = (Array.isArray(m.medications) && m.medications.length) ? m.medications.join(', ') : '—';
+                  return `
+                    <tr class="border-b border-slate-800 last:border-none hover:bg-slate-800/50 transition-colors">
+                      <td class="align-top px-4 py-3 whitespace-nowrap">${m.date || '—'}</td>
+                      <td class="align-top px-4 py-3 font-semibold text-teal-400">${m.diagnosis || '—'}</td>
+                      <td class="align-top px-4 py-3">${m.treatment || '—'}</td>
+                      <td class="align-top px-4 py-3 text-slate-400">${vitalsText}</td>
+                      <td class="align-top px-4 py-3 text-slate-400">${allergiesText}</td>
+                      <td class="align-top px-4 py-3 text-slate-400">${medicationsText}</td>
+                      <td class="align-top px-4 py-3 text-slate-400">${m.notes ? `<span class="italic">“${m.notes}”</span>` : '—'}</td>
+                      <td class="align-top px-4 py-3 text-slate-500">${m.recordedBy || '—'}</td>
+                    </tr>
+                  `;
+                }).join('')
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="md:hidden flex flex-col gap-3 max-h-96 overflow-y-auto p-3">
+        ${
+          (inmate.medicalRecords || []).map(m => {
+            const v = m.vitals || {};
+            const vitalsParts = [];
+            if (v.blood_pressure) vitalsParts.push(`<strong>BP:</strong> ${v.blood_pressure}`);
+            if (v.heart_rate) vitalsParts.push(`<strong>HR:</strong> ${v.heart_rate} bpm`);
+            if (v.temperature) vitalsParts.push(`<strong>Temp:</strong> ${v.temperature}°C`);
+            if (v.weight) vitalsParts.push(`<strong>Weight:</strong> ${v.weight}kg`);
+            const vitalsText = vitalsParts.length ? vitalsParts.join(', ') : '';
+            const allergiesText = (Array.isArray(m.allergies) && m.allergies.length) ? m.allergies.join(', ') : '';
+            const medicationsText = (Array.isArray(m.medications) && m.medications.length) ? m.medications.join(', ') : '';
+            return `
+              <div class="rounded-xl border border-slate-700 bg-slate-800/80 shadow-lg p-4 flex flex-col gap-2">
+                <div class="flex items-start justify-between gap-4">
+                  <h3 class="text-lg font-bold text-teal-300">${m.diagnosis || 'No Diagnosis'}</h3>
+                  <span class="text-sm text-slate-400 flex-shrink-0">${m.date || '—'}</span>
+                </div>
+                <div class="space-y-1 text-sm">
+                  <p><strong class="font-medium text-slate-400">Treatment:</strong> <span class="text-slate-200">${m.treatment || '—'}</span></p>
+                  ${vitalsText ? `<p><strong class="font-medium text-slate-400">Vitals:</strong> <span class="text-slate-300">${vitalsText}</span></p>` : ''}
+                  ${allergiesText ? `<p><strong class="font-medium text-slate-400">Allergies:</strong> <span class="text-slate-300">${allergiesText}</span></p>` : ''}
+                  ${medicationsText ? `<p><strong class="font-medium text-slate-400">Medications:</strong> <span class="text-slate-300">${medicationsText}</span></p>` : ''}
+                </div>
+                ${m.notes ? `
+                  <div class="mt-2 pt-2 border-t border-slate-700">
+                    <p class="text-sm text-slate-400 italic">“${m.notes}”</p>
+                  </div>
+                ` : ''}
+                <div class="text-right text-xs text-slate-500 mt-1">
+                  ${m.recordedBy ? `Recorded by ${m.recordedBy}` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')
+        }
+      </div>
+    `
+    : `
+      <div class="text-center py-8 px-4 text-slate-500 text-sm">
+        <div class="flex flex-col items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
+            <svg class="w-7 h-7 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <p class="font-medium text-base text-slate-300">No medical records found</p>
+          <span class="text-xs text-slate-600">Click "Add Medical Records" to create the first entry.</span>
+        </div>
+      </div>
+    `
+  }
+</div>
+                </div>
+              </div>
+            ` : `
+              <div class="text-center py-4 text-gray-400 text-sm">
+                Save inmate first to manage medical records
+              </div>
+            `}
           </div>
 
         <!-- Points System -->
@@ -1166,6 +1311,71 @@ document.addEventListener('DOMContentLoaded', () => {
                   });
                 }
               }
+            });
+          }
+
+        // Local toggle for Medical Records History (basic modal)
+        (function(){
+          const toggleBtn = document.getElementById('toggle-medical-records-basic');
+          const container = document.getElementById('medical-records-container-basic');
+          const chevron = document.getElementById('medical-chevron-basic');
+          if (toggleBtn && container && chevron) {
+            let isOpen = true;
+            toggleBtn.addEventListener('click', () => {
+              isOpen = !isOpen;
+              if (isOpen) {
+                container.style.maxHeight = container.scrollHeight + 'px';
+                chevron.style.transform = 'rotate(0deg)';
+              } else {
+                container.style.maxHeight = '0px';
+                chevron.style.transform = 'rotate(-90deg)';
+              }
+            });
+            // initial
+            container.style.maxHeight = container.scrollHeight + 'px';
+          }
+        })();
+
+        // Wire "Add Medical Record" button (EDIT MODE ONLY)
+          const addMedicalRecordBtn = document.getElementById('add-medical-record');
+          if (addMedicalRecordBtn && inmate.id) {
+            addMedicalRecordBtn.addEventListener('click', async () => {
+              const medicalRecordsManager = createMedicalRecordsManager();
+              
+              await medicalRecordsManager.openAddMedicalRecordModal(
+                inmate.id, 
+                inmate.medicalStatus, 
+                (updatedInmateData, formData) => {
+                  // Update inmate object with fresh data
+                  Object.assign(inmate, updatedInmateData);
+                  
+                  // Update medical status select if changed
+                  if (formData.medical_status) {
+                    const medicalStatusSelect = document.getElementById('i-medical-status');
+                    if (medicalStatusSelect) {
+                      medicalStatusSelect.value = formData.medical_status;
+                    }
+                  }
+                  
+                  // Refresh medical records display
+                  const recordsDisplay = document.getElementById('medical-records-display');
+                  if (recordsDisplay) {
+                    recordsDisplay.innerHTML = (inmate.medicalRecords || []).map(m => `
+                      <div class="p-3 bg-gray-800/40 rounded border border-gray-600">
+                        <div class="flex justify-between items-start">
+                          <div class="flex-1">
+                            <span class="text-sm font-semibold text-teal-400">${m.diagnosis}</span>
+                            <div class="text-xs text-gray-400 mt-1">${m.date}</div>
+                          </div>
+                        </div>
+                        <div class="text-sm text-gray-300 mt-2">Treatment: ${m.treatment}</div>
+                        ${m.notes ? `<div class="text-xs text-gray-400 mt-1 italic">Notes: ${m.notes}</div>` : ''}
+                        ${m.recordedBy ? `<div class="text-xs text-gray-500 mt-1">By: ${m.recordedBy}</div>` : ''}
+                      </div>
+                    `).join('') || '<div class="text-sm text-gray-400">No medical records yet</div>';
+                  }
+                }
+              );
             });
           }
         }
@@ -2580,13 +2790,130 @@ async function openUnifiedInmateModal(inmate) {
     </div>
   `;
 
+  const medicalRecords = Array.isArray(inmate.medicalRecords) ? inmate.medicalRecords : [];
+  
+  // Helper function to format vitals
+  const formatVitals = (vitals) => {
+    if (!vitals) return '—';
+    const parts = [];
+    if (vitals.blood_pressure) parts.push(`BP: ${vitals.blood_pressure}`);
+    if (vitals.heart_rate) parts.push(`HR: ${vitals.heart_rate}`);
+    if (vitals.temperature) parts.push(`Temp: ${vitals.temperature}°C`);
+    if (vitals.weight) parts.push(`Weight: ${vitals.weight}kg`);
+    return parts.length > 0 ? parts.join(', ') : '—';
+  };
+
+  // Helper function to format array fields
+  const formatArray = (arr) => {
+    if (!arr || !Array.isArray(arr) || arr.length === 0) return '—';
+    return arr.join(', ');
+  };
+
+  // Medical Status Badge Helper
+  const getMedicalStatusBadge = (status) => {
+    switch(status) {
+      case 'Healthy':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'Under Treatment':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+      case 'Critical':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      case 'Not Assessed':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+    }
+  };
+  
+  // Desktop table rows only
+  const medicalRecordsDesktopList = medicalRecords.map((m, idx) => {
+    const vitalsText = formatVitals(m.vitals);
+    const allergiesText = formatArray(m.allergies);
+    const medicationsText = formatArray(m.medications);
+
+    return `
+      <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">${formatDate(m.date)}</td>
+        <td class="px-5 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap w-[160px] md:max-w-xs text-ellipsis overflow-hidden">${m.diagnosis}</td>
+        <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">${m.treatment}</td>
+        <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">${vitalsText}</td>
+        <td class="px-6 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap w-[138px] md:max-w-xs text-ellipsis overflow-hidden">${allergiesText}</td>
+        <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap w-[140px] md:max-w-xs text-ellipsis overflow-hidden">${medicationsText}</td>
+        <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 italic whitespace-nowrap">${m.notes || '—'}</td>
+        <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-500 whitespace-nowrap">${m.recordedBy || 'Unknown'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // Mobile grid cards for better readability
+  const medicalRecordsMobileList = medicalRecords.map((m, idx) => {
+    const vitalsText = formatVitals(m.vitals);
+    const allergiesText = formatArray(m.allergies);
+    const medicationsText = formatArray(m.medications);
+
+    return `
+      <div class="grid grid-cols-1 gap-3 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg mb-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+        <!-- Date and Recorded By Row -->
+        <div class="grid grid-cols-2 gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+          <div>
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Date</div>
+            <div class="text-sm font-medium text-gray-900 dark:text-white">${formatDate(m.date)}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Recorded By</div>
+            <div class="text-sm text-gray-600 dark:text-gray-300">${m.recordedBy || 'Unknown'}</div>
+          </div>
+        </div>
+        
+        <!-- Diagnosis Row -->
+        <div>
+          <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Diagnosis</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">${m.diagnosis}</div>
+        </div>
+        
+        <!-- Treatment Row -->
+        <div>
+          <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Treatment</div>
+          <div class="text-sm text-gray-700 dark:text-gray-300">${m.treatment}</div>
+        </div>
+        
+        <!-- Vitals Row -->
+        <div>
+          <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Vitals</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">${vitalsText}</div>
+        </div>
+        
+        <!-- Allergies and Medications Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Allergies</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">${allergiesText}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Medications</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">${medicationsText}</div>
+          </div>
+        </div>
+        
+        <!-- Notes (if exists) -->
+        ${m.notes ? `
+          <div class="pt-2 border-t border-gray-100 dark:border-gray-700">
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Notes</div>
+            <div class="text-sm text-gray-700 dark:text-gray-300 italic">${m.notes}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+  
   const medicalHTML = `
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+      <!-- Profile Section - Responsive -->
       <div class="lg:col-span-1">
         <!-- Desktop: Profile Card -->
         <div class="hidden lg:flex flex-col items-center w-full">
           <div class="flex items-center justify-center mb-4">
-            <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
+            <div class="rounded-full bg-gradient-to-br from-teal-100 via-teal-200 to-emerald-300 shadow-lg shadow-teal-200/60 p-1">
               <img 
                 src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
                 alt="${name}'s avatar" 
@@ -2603,46 +2930,176 @@ async function openUnifiedInmateModal(inmate) {
             >
               ${inmate.status || '—'}
             </span>
+            <!-- Medical Status Badge -->
+            <span class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getMedicalStatusBadge(inmate.medicalStatus)}">
+              <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              ${inmate.medicalStatus || 'Not Assessed'}
+            </span>
           </div>
         </div>
+        
         <!-- Mobile/Tablet: Stacked Profile Card -->
-        <div class="flex flex-col items-center lg:hidden gap-2">
-          <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
+        <div class="flex flex-col items-center lg:hidden gap-2 mb-4">
+          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden ring-2 ring-teal-200 dark:ring-teal-700 bg-gradient-to-br from-teal-100 to-emerald-200 flex items-center justify-center shadow-lg">
             <img 
               src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
               alt="${name}'s avatar" 
-              class="w-full h-full object-cover rounded-full border-4 border-white shadow"
+              class="w-full h-full object-cover"
               loading="lazy"
             />
           </div>
-          <h2 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">${name}</h2>
-          <span 
-            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}"
-            aria-label="Inmate status: ${inmate.status || 'Unknown'}"
-          >
-            ${inmate.status || '—'}
-          </span>
+          <h2 class="text-base sm:text-lg font-bold text-gray-800 dark:text-white text-center">${name}</h2>
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}">
+              ${inmate.status || '—'}
+            </span>
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getMedicalStatusBadge(inmate.medicalStatus)}">
+              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              ${inmate.medicalStatus || 'Not Assessed'}
+            </span>
+          </div>
         </div>
       </div>
+      
+      <!-- Content Section -->
       <div class="lg:col-span-2 space-y-4">
-        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
-          <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Medical Information</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div>
-              <span class="text-gray-500 dark:text-gray-400">Medical Status:</span>
-              <span class="text-gray-900 dark:text-gray-200">${inmate.medicalStatus || 'Not Assessed'}</span>
-            </div>
-            <div>
-              <span class="text-gray-500 dark:text-gray-400">Last Check:</span>
-              <span class="text-gray-900 dark:text-gray-200">${inmate.lastMedicalCheck ? formatDate(inmate.lastMedicalCheck) : 'Not available'}</span>
+        <!-- Medical Information Card -->
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
+          <div class="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <h3 class="text-sm font-bold text-gray-900 dark:text-white">Current Medical Information</h3>
             </div>
           </div>
-          ${inmate.medicalNotes ? `
-            <div class="mt-3">
-              <span class="text-gray-500 dark:text-gray-400 text-sm">Notes:</span>
-              <p class="text-gray-900 dark:text-gray-200 text-sm mt-1">${inmate.medicalNotes}</p>
+          
+          <div class="p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Medical Status -->
+              <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
+                <div class="flex-shrink-0">
+                  <div class="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Medical Status</p>
+                  <p class="text-sm font-semibold text-gray-900 dark:text-white mt-1">${inmate.medicalStatus || 'Not Assessed'}</p>
+                </div>
+              </div>
+              
+              <!-- Last Check -->
+              <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
+                <div class="flex-shrink-0">
+                  <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Last Medical Check</p>
+                  <p class="text-sm font-semibold text-gray-900 dark:text-white mt-1">${inmate.lastMedicalCheck ? formatDate(inmate.lastMedicalCheck) : 'Not available'}</p>
+                </div>
+              </div>
             </div>
-          ` : ''}
+            
+            <!-- Medical Notes -->
+            ${inmate.medicalNotes ? `
+              <div class="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30">
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1">General Notes</p>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 break-words">${inmate.medicalNotes}</p>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Medical Records History -->
+        <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
+          <!-- Header with Toggle and Action Button -->
+          <div class="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <button type="button" id="toggle-medical-records" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+                  <svg id="medical-chevron" class="w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
+                <div>
+                  <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Medical Records History</h3>
+                  <p class="text-xs text-gray-600 dark:text-gray-400 hidden sm:block">Click to expand/collapse</p>
+                </div>
+              </div>
+              <button type="button" id="add-medical-record-modal" class="inline-flex items-center justify-center px-4 py-2 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white text-sm font-medium rounded-lg cursor-pointer transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span class="hidden sm:inline">Add Medical Record</span>
+                <span class="sm:hidden">Add Record</span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Records Table/Cards (Collapsible) -->
+          <div id="medical-records-container" class="transition-all duration-300 overflow-hidden">
+            ${medicalRecords.length > 0 ? `
+              <!-- Desktop Table View (only visible on md+ screens) -->
+              <div class="hidden md:block overflow-x-auto">
+                <div class="max-h-96 overflow-y-auto">
+                  <table class="w-full text-left">
+                    <thead class="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0">
+                      <tr>
+                        <th class="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase whitespace-nowrap">Date</th>
+                        <th class="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Diagnosis</th>
+                        <th class="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Treatment</th>
+                        <th class="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Vitals</th>
+                        <th class="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Allergies</th>
+                        <th class="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Medications</th>
+                        <th class="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Notes</th>
+                        <th class="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase whitespace-nowrap">Recorded By</th>
+                      </tr>
+                    </thead>
+                    <tbody id="medical-records-tbody">
+                      ${medicalRecordsDesktopList}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <!-- Mobile Grid View (only visible on <md screens) -->
+              <div id="medical-records-mobile" class="block md:hidden max-h-96 overflow-y-auto p-3">
+                ${medicalRecordsMobileList}
+              </div>
+            ` : `
+              <div class="text-center py-8 px-4">
+                <div class="flex flex-col items-center justify-center space-y-3">
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">No Medical Records Yet</p>
+                    <p class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1">Click "Add Medical Record" to create the first entry</p>
+                  </div>
+                </div>
+              </div>
+            `}
+          </div>
         </div>
       </div>
     </div>
@@ -3004,6 +3461,105 @@ async function openUnifiedInmateModal(inmate) {
     });
   }
 
+  async function attachMedicalRecordsHandlers(inmate) {
+    // Toggle medical records table
+    const toggleBtn = document.getElementById('toggle-medical-records');
+    const container = document.getElementById('medical-records-container');
+    const chevron = document.getElementById('medical-chevron');
+    
+    if (toggleBtn && container && chevron) {
+      let isOpen = true; // Start open
+      
+      toggleBtn.addEventListener('click', () => {
+        isOpen = !isOpen;
+        if (isOpen) {
+          container.style.maxHeight = container.scrollHeight + 'px';
+          chevron.style.transform = 'rotate(0deg)';
+        } else {
+          container.style.maxHeight = '0';
+          chevron.style.transform = 'rotate(-90deg)';
+        }
+      });
+      
+      // Set initial state
+      container.style.maxHeight = container.scrollHeight + 'px';
+    }
+    
+    const addMedicalBtn = document.getElementById('add-medical-record-modal');
+    if (!addMedicalBtn || !inmate.id) return;
+    
+    addMedicalBtn.addEventListener('click', async () => {
+      const medicalRecordsManager = createMedicalRecordsManager();
+      
+      await medicalRecordsManager.openAddMedicalRecordModal(
+        inmate.id, 
+        inmate.medicalStatus, 
+        async (updatedInmateData, formData) => {
+          // Update the medical records - both table and cards
+          const recordsTbody = document.getElementById('medical-records-tbody');
+          const recordsCards = document.getElementById('medical-records-cards');
+          
+          if (updatedInmateData.medicalRecords) {
+            const medicalRecords = updatedInmateData.medicalRecords;
+            const newRecordsList = medicalRecords.map((m, idx) => {
+              const vitalsText = formatVitals(m.vitals);
+              const allergiesText = formatArray(m.allergies);
+              const medicationsText = formatArray(m.medications);
+              
+              return `
+                <!-- Desktop Table Row -->
+                <tr class="hidden md:table-row border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td class="px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">${formatDate(m.date)}</td>
+                  <td class="px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100">${m.diagnosis}</td>
+                  <td class="px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300">${m.treatment}</td>
+                  <td class="px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400">${vitalsText}</td>
+                  <td class="px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400">${allergiesText}</td>
+                  <td class="px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400">${medicationsText}</td>
+                  <td class="px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400 italic">${m.notes || '—'}</td>
+                  <td class="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-500">${m.recordedBy || 'Unknown'}</td>
+                </tr>
+                
+                <!-- Mobile Card -->
+                <div class="md:hidden p-3 mb-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="font-semibold text-sm text-gray-900 dark:text-gray-100">${m.diagnosis}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">${formatDate(m.date)}</div>
+                  </div>
+                  <div class="space-y-1.5 text-xs">
+                    <div><span class="font-medium text-gray-700 dark:text-gray-300">Treatment:</span> <span class="text-gray-600 dark:text-gray-400">${m.treatment}</span></div>
+                    ${vitalsText !== '—' ? `<div><span class="font-medium text-gray-700 dark:text-gray-300">Vitals:</span> <span class="text-gray-600 dark:text-gray-400">${vitalsText}</span></div>` : ''}
+                    ${allergiesText !== '—' ? `<div><span class="font-medium text-gray-700 dark:text-gray-300">Allergies:</span> <span class="text-gray-600 dark:text-gray-400">${allergiesText}</span></div>` : ''}
+                    ${medicationsText !== '—' ? `<div><span class="font-medium text-gray-700 dark:text-gray-300">Medications:</span> <span class="text-gray-600 dark:text-gray-400">${medicationsText}</span></div>` : ''}
+                    ${m.notes ? `<div><span class="font-medium text-gray-700 dark:text-gray-300">Notes:</span> <span class="text-gray-600 dark:text-gray-400 italic">${m.notes}</span></div>` : ''}
+                    <div class="text-gray-500 dark:text-gray-500 pt-1.5 border-t border-gray-200 dark:border-gray-700">Recorded by ${m.recordedBy || 'Unknown'}</div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+            
+            if (recordsTbody) recordsTbody.innerHTML = newRecordsList;
+            if (recordsCards) recordsCards.innerHTML = newRecordsList;
+          }
+          
+          // Show success message
+          await Swal.fire({
+            icon: 'success',
+            title: 'Medical Record Added!',
+            text: 'Medical record saved successfully.',
+            timer: 2000,
+            showConfirmButton: false,
+            background: '#111827',
+            color: '#F9FAFB',
+            iconColor: '#14B8A6'
+          });
+          
+          // Refresh the inmate list
+          await renderInmates();
+        }
+      );
+    });
+  }
+
   // Custom close button (SVG X) for top-right
   const closeBtnHTML = `
     <button type="button"
@@ -3053,7 +3609,10 @@ async function openUnifiedInmateModal(inmate) {
         });
         if (!container) return;
         if (id === 'overview') container.innerHTML = overviewHTML;
-        if (id === 'medical') container.innerHTML = medicalHTML;
+        if (id === 'medical') {
+          container.innerHTML = medicalHTML;
+          attachMedicalRecordsHandlers(inmate);
+        }
         if (id === 'points') {
           container.innerHTML = pointsHTML;
           attachPointsModalHandlers(inmate);

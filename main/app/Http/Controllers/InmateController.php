@@ -94,6 +94,7 @@ class InmateController extends Controller
         {
             try {
                 $inmate = $this->inmateService->getById($id);
+                $inmate->load('medicalRecords.createdBy');
 
                 if (!$inmate) {
                     return response()->json([
@@ -291,6 +292,59 @@ class InmateController extends Controller
     }
 
     /**
+     * Add medical record entry to inmate.
+     */
+    public function addMedicalRecord(Request $request, int $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'record_date' => ['required', 'date'],
+                'diagnosis' => ['required', 'string', 'max:255'],
+                'treatment' => ['required', 'string'],
+                'notes' => ['nullable', 'string'],
+                'vitals' => ['nullable', 'array'],
+                'allergies' => ['nullable', 'array'],
+                'medications' => ['nullable', 'array'],
+                'medical_status' => ['nullable', 'string']
+            ]);
+
+            $medicalRecordsService = app(\App\Services\MedicalRecordsService::class);
+            $inmate = Inmate::with('medicalRecords')->findOrFail($id);
+
+            $medicalRecordsService->addMedicalRecord(
+                $inmate,
+                $request->input('diagnosis'),
+                $request->input('treatment'),
+                $request->input('notes'),
+                Carbon::parse($request->input('record_date')),
+                $request->input('vitals'),
+                $request->input('allergies'),
+                $request->input('medications'),
+                $request->input('medical_status')
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => $this->transformInmateForFrontend($inmate->fresh(['medicalRecords.createdBy', 'cell', 'admittedBy'])),
+                'message' => 'Medical record added successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to add medical record', [
+                'inmate_id' => $id,
+                'error' => $e->getMessage(),
+                'data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add medical record',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
      * Search inmates by name.
      */
     public function search(Request $request): JsonResponse
@@ -383,6 +437,19 @@ class InmateController extends Controller
                         'note' => $h->notes,
                         'pointsBefore' => $h->points_before,
                         'pointsAfter' => $h->points_after,
+                    ])->toArray()
+                    : [],
+                'medicalRecords' => $inmate->relationLoaded('medicalRecords') 
+                    ? $inmate->medicalRecords->map(fn($m) => [
+                        'id' => $m->id,
+                        'date' => $m->record_date->format('Y-m-d'),
+                        'diagnosis' => $m->diagnosis,
+                        'treatment' => $m->treatment,
+                        'notes' => $m->doctor_notes,
+                        'vitals' => $m->vitals,
+                        'allergies' => $m->allergies,
+                        'medications' => $m->medications,
+                        'recordedBy' => $m->createdBy?->name,
                     ])->toArray()
                     : [],
                 'daysInCustody' => $inmate->days_in_custody,

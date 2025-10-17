@@ -32,6 +32,7 @@ Route::prefix('inmates')->middleware(['web'])->group(function () {
     Route::delete('/{id}', [InmateController::class, 'destroy'])->name('api.inmates.destroy');
     Route::patch('/{id}/points', [InmateController::class, 'updatePoints'])->name('api.inmates.update-points');
     Route::post('/{id}/points/add', [InmateController::class, 'addPointsEntry'])->name('api.inmates.add-points');
+    Route::post('/{id}/medical-records/add', [InmateController::class, 'addMedicalRecord'])->name('api.inmates.add-medical-record');
 });
 
 // Cells API routes (order matters: static paths before dynamic /{cell})

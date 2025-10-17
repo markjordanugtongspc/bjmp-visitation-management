@@ -73,11 +73,10 @@ class Inmate extends Model
         return $this->belongsTo(Cell::class);
     }
 
-    // Commented out until models are created
-    // public function medicalRecords(): HasMany
-    // {
-    //     return $this->hasMany(MedicalRecord::class);
-    // }
+    public function medicalRecords(): HasMany
+    {
+        return $this->hasMany(MedicalRecord::class)->orderBy('record_date', 'desc');
+    }
 
     // public function disciplinaryActions(): HasMany
     // {
