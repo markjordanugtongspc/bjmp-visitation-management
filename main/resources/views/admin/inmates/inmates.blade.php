@@ -57,10 +57,10 @@
                         <!-- User dropdown -->
                         <div class="relative">
                         <button data-user-menu
-                          data-user-name="{{ Auth::user()->name ?? 'User' }}"
+                          data-user-name="{{ Auth::user()->full_name ?? 'User' }}"
                           data-user-role="{{ Auth::user()->role_id ?? 0 }}"
                           class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                          aria-label="User menu for {{ Auth::user()->name ?? 'User' }}">
+                          aria-label="User menu for {{ Auth::user()->full_name ?? 'User' }}">
                           <span
                             class="h-8 w-8 inline-flex items-center justify-center rounded-full ring-2 ring-blue-500/30 bg-white dark:bg-gray-800"
                             aria-label="Profile image">
@@ -72,7 +72,7 @@
                           </span>
                           <div class="hidden sm:block text-left leading-tight">
                             <div class="text-xs font-medium text-gray-900 dark:text-gray-50" data-user-name-target>
-                              {{ Auth::user()->name ?? 'User' }}
+                              {{ Auth::user()->full_name ?? 'User' }}
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400" data-user-role-target>
                               {{ Auth::user()->getRoleName() }}
