@@ -2840,7 +2840,7 @@ async function openUnifiedInmateModal(inmate) {
         <td class="px-6 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap w-[138px] md:max-w-xs text-ellipsis overflow-hidden">${allergiesText}</td>
         <td class="px-5 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap w-[140px] md:max-w-xs text-ellipsis overflow-hidden">${medicationsText}</td>
         <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 italic whitespace-nowrap">${m.notes || '—'}</td>
-        <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-500 whitespace-nowrap">${m.recordedBy || 'Unknown'}</td>
+        <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-500 whitespace-nowrap">${m.recordedBy || 'System'}</td>
       </tr>
     `;
   }).join('');
@@ -2861,7 +2861,7 @@ async function openUnifiedInmateModal(inmate) {
           </div>
           <div>
             <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Recorded By</div>
-            <div class="text-sm text-gray-600 dark:text-gray-300">${m.recordedBy || 'Unknown'}</div>
+            <div class="text-sm text-gray-600 dark:text-gray-300">${m.recordedBy || 'System'}</div>
           </div>
         </div>
         
@@ -3516,7 +3516,7 @@ async function openUnifiedInmateModal(inmate) {
                   <td class="px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400">${allergiesText}</td>
                   <td class="px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400">${medicationsText}</td>
                   <td class="px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400 italic">${m.notes || '—'}</td>
-                  <td class="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-500">${m.recordedBy || 'Unknown'}</td>
+                  <td class="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-500">${m.recordedBy || 'System'}</td>
                 </tr>
                 
                 <!-- Mobile Card -->
@@ -3531,7 +3531,7 @@ async function openUnifiedInmateModal(inmate) {
                     ${allergiesText !== '—' ? `<div><span class="font-medium text-gray-700 dark:text-gray-300">Allergies:</span> <span class="text-gray-600 dark:text-gray-400">${allergiesText}</span></div>` : ''}
                     ${medicationsText !== '—' ? `<div><span class="font-medium text-gray-700 dark:text-gray-300">Medications:</span> <span class="text-gray-600 dark:text-gray-400">${medicationsText}</span></div>` : ''}
                     ${m.notes ? `<div><span class="font-medium text-gray-700 dark:text-gray-300">Notes:</span> <span class="text-gray-600 dark:text-gray-400 italic">${m.notes}</span></div>` : ''}
-                    <div class="text-gray-500 dark:text-gray-500 pt-1.5 border-t border-gray-200 dark:border-gray-700">Recorded by ${m.recordedBy || 'Unknown'}</div>
+                    <div class="text-gray-500 dark:text-gray-500 pt-1.5 border-t border-gray-200 dark:border-gray-700">Recorded by ${m.recordedBy || 'System'}</div>
                   </div>
                 </div>
               `;

@@ -31,7 +31,7 @@ export function createMedicalRecordsManager() {
         </div>
         <div class="text-sm text-gray-300 mt-2">Treatment: ${record.treatment}</div>
         ${record.notes ? `<div class="text-xs text-gray-400 mt-1 italic">Notes: ${record.notes}</div>` : ''}
-        ${record.recordedBy ? `<div class="text-xs text-gray-500 mt-1">By: ${record.recordedBy}</div>` : ''}
+        ${record.recordedBy ? `<div class="text-xs text-gray-500 mt-1">By: ${record.recordedBy}</div>` : '<div class="text-xs text-gray-500 mt-1">By: System</div>'}
       </div>
     `).join('');
   }

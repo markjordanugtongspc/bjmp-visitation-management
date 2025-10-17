@@ -40,6 +40,6 @@ class MedicalRecord extends Model
 
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by_user_id');
+        return $this->belongsTo(User::class, 'created_by_user_id', 'user_id');
     }
 }

@@ -65,7 +65,7 @@ class Inmate extends Model
     // Relationships
     public function admittedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'admitted_by_user_id');
+        return $this->belongsTo(User::class, 'admitted_by_user_id', 'user_id');
     }
 
     public function cell(): BelongsTo

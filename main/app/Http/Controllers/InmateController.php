@@ -309,7 +309,7 @@ class InmateController extends Controller
             ]);
 
             $medicalRecordsService = app(\App\Services\MedicalRecordsService::class);
-            $inmate = Inmate::with('medicalRecords')->findOrFail($id);
+            $inmate = Inmate::with('medicalRecords.createdBy')->findOrFail($id);
 
             $medicalRecordsService->addMedicalRecord(
                 $inmate,
@@ -418,7 +418,7 @@ class InmateController extends Controller
                 ] : null,
                 'cellNumber' => $inmate->cell ? $inmate->cell->name : 'Not Assigned',
                 'admittedByUserId' => $inmate->admitted_by_user_id,
-                'admittedBy' => $inmate->admittedBy ? $inmate->admittedBy->name : null,
+                'admittedBy' => $inmate->admittedBy ? $inmate->admittedBy->full_name : null,
                 'medicalStatus' => $inmate->medical_status,
                 'lastMedicalCheck' => $inmate->last_medical_check?->format('Y-m-d'),
                 'medicalNotes' => $inmate->medical_notes,
@@ -449,7 +449,7 @@ class InmateController extends Controller
                         'vitals' => $m->vitals,
                         'allergies' => $m->allergies,
                         'medications' => $m->medications,
-                        'recordedBy' => $m->createdBy?->name,
+                        'recordedBy' => $m->createdBy?->full_name,
                     ])->toArray()
                     : [],
                 'daysInCustody' => $inmate->days_in_custody,
