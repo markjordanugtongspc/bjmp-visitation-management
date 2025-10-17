@@ -363,6 +363,55 @@ class CellController extends Controller
     }
 
     /**
+     * Get all cells for a specific gender (for live filtering)
+     */
+    public function getCellsByGender(Request $request): JsonResponse
+    {
+        try {
+            $gender = $request->get('gender'); // Male or Female
+            
+            if (!$gender) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gender parameter is required'
+                ], 400);
+            }
+
+            $query = Cell::where('type', $gender)->orderBy('name');
+            $cells = $query->get();
+
+            $transformedCells = $cells->map(function ($cell) {
+                return [
+                    'id' => $cell->id,
+                    'name' => $cell->name,
+                    'capacity' => $cell->capacity,
+                    'currentCount' => $cell->current_count,
+                    'type' => $cell->type,
+                    'location' => $cell->location,
+                    'status' => $cell->status,
+                    'availableSpace' => $cell->capacity - $cell->current_count,
+                    'occupancyPercentage' => $cell->capacity > 0 ? ($cell->current_count / $cell->capacity) * 100 : 0,
+                    'isAtCapacity' => $cell->current_count >= $cell->capacity,
+                    'created_at' => $cell->created_at,
+                    'updated_at' => $cell->updated_at,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $transformedCells,
+                'message' => ucfirst(strtolower($gender)) . ' cells retrieved successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve cells: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Update cell occupancy count (recalculate from database or use forced count)
      */
     public function updateOccupancy(Request $request, Cell $cell): JsonResponse

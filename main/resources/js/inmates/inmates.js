@@ -44,14 +44,59 @@ document.addEventListener('DOMContentLoaded', () => {
       genderToggle.checked = false;
     }
 
-    genderToggle.addEventListener('change', () => {
+    genderToggle.addEventListener('change', async () => {
       // Immediate label feedback
       genderLabel.textContent = (currentGenderAttr === 'male') ? 'Switch to Female' : 'Switch to Male';
-      // Navigate to opposite route
-      const target = (currentGenderAttr === 'male') ? femaleUrl : maleUrl;
-      const targetPath = new URL(target, window.location.origin).pathname;
-      if (window.location.pathname !== targetPath) {
-        window.location.assign(target);
+      
+      // Get the target gender
+      const targetGender = (currentGenderAttr === 'male') ? 'Female' : 'Male';
+      
+      try {
+        // Show loading state
+        genderLabel.textContent = 'Switching...';
+        genderToggle.disabled = true;
+        
+        // Fetch cells for the target gender
+        const targetCells = await fetchCellsByGender(targetGender);
+        
+        // Update the global cells array
+        const otherGenderCells = cells.filter(cell => cell.type !== targetGender);
+        cells = [...otherGenderCells, ...targetCells];
+        
+        // Update page gender
+        const newPageGender = targetGender;
+        
+        // Update cells dropdown if it exists
+        const cellFilterSelect = document.getElementById('inmates-cell-filter');
+        if (cellFilterSelect) {
+          await updateCellsFilterDropdown(targetGender);
+        }
+        
+        // Update cells container if it exists
+        if (cellsContainer) {
+          await renderCells();
+        }
+        
+        // Update inmates list to show only the target gender
+        await renderInmates();
+        
+        // Update statistics
+        await updateStatistics();
+        
+        // Navigate to opposite route after updating data
+        const target = (currentGenderAttr === 'male') ? femaleUrl : maleUrl;
+        const targetPath = new URL(target, window.location.origin).pathname;
+        if (window.location.pathname !== targetPath) {
+          window.location.assign(target);
+        }
+        
+      } catch (error) {
+        console.error('Error switching gender:', error);
+        // Revert toggle state on error
+        genderToggle.checked = !genderToggle.checked;
+        genderLabel.textContent = (currentGenderAttr === 'male') ? 'Switch to Female' : 'Switch to Male';
+      } finally {
+        genderToggle.disabled = false;
       }
     });
   }
@@ -138,6 +183,98 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
+  // Live fetch cells by gender from API
+  async function fetchCellsByGender(gender) {
+    try {
+      console.log(`Fetching cells for gender: ${gender}`);
+      
+      const response = await fetch(`/api/cells/by-gender?gender=${gender}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          console.log(`Successfully fetched ${data.data.length} cells for ${gender}`);
+          return data.data;
+        } else {
+          throw new Error(data.message || 'Failed to fetch cells');
+        }
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error fetching cells by gender:', error);
+      // Show user-friendly error message
+      if (window.Swal) {
+        window.Swal.fire({
+          title: 'Error',
+          text: `Failed to load ${gender} cells. Please try again.`,
+          icon: 'error',
+          confirmButtonText: 'OK',
+          background: '#111827',
+          color: '#F9FAFB'
+        });
+      }
+      return [];
+    }
+  }
+
+  // Update cells dropdown with live data
+  async function updateCellsDropdown(gender, cellSelectElement, currentCellId = null) {
+    if (!cellSelectElement) return;
+
+    // Show loading state
+    cellSelectElement.innerHTML = '<option value="">Loading cells...</option>';
+    cellSelectElement.disabled = true;
+
+    try {
+      const genderCells = await fetchCellsByGender(gender);
+      
+      // Clear and rebuild options
+      cellSelectElement.innerHTML = '<option value="">Select Cell</option>';
+      
+      if (genderCells.length === 0) {
+        cellSelectElement.innerHTML += `<option value="" disabled>No ${gender} cells available</option>`;
+      } else {
+        genderCells.forEach(cell => {
+          const count = cell.currentCount ?? 0;
+          const occupancyPercentage = cell.capacity ? Math.round((count / cell.capacity) * 100) : 0;
+          const isSelected = currentCellId === cell.id;
+          const isFull = count >= cell.capacity;
+          const isActive = cell.status === 'Active';
+          const isDisabled = (!isActive || isFull) && !isSelected;
+          const statusBadge = cell.status === 'Active' ? '🟢' : (cell.status === 'Maintenance' ? '🟡' : '🔴');
+          const stateSuffix = isFull ? ' - FULL' : (!isActive ? (cell.status === 'Maintenance' ? ' - MAINTENANCE' : ' - INACTIVE') : '');
+
+          const option = document.createElement('option');
+          option.value = cell.id;
+          option.textContent = `${statusBadge} ${cell.name} (${count}/${cell.capacity} - ${occupancyPercentage}%) - ${cell.type}${stateSuffix}`;
+          option.selected = isSelected;
+          option.disabled = isDisabled;
+          
+          cellSelectElement.appendChild(option);
+        });
+      }
+      
+      cellSelectElement.disabled = false;
+      
+      // Update the global cells array for consistency
+      const otherGenderCells = cells.filter(cell => cell.type !== gender);
+      cells = [...otherGenderCells, ...genderCells];
+      
+    } catch (error) {
+      console.error('Error updating cells dropdown:', error);
+      cellSelectElement.innerHTML = '<option value="">Error loading cells</option>';
+      cellSelectElement.disabled = false;
+    }
+  }
+
   // Fetch cells from database
   async function fetchCellsFromDatabase() {
     try {
@@ -187,6 +324,44 @@ document.addEventListener('DOMContentLoaded', () => {
       option.textContent = label;
       cellSelect.appendChild(option);
     });
+  }
+
+  // Live update cells filter dropdown when gender changes
+  async function updateCellsFilterDropdown(gender) {
+    const cellSelect = document.getElementById('inmates-cell-filter');
+    if (!cellSelect) return;
+
+    // Show loading state
+    cellSelect.innerHTML = '<option value="">Loading cells...</option>';
+    cellSelect.disabled = true;
+
+    try {
+      // Fetch cells for the specific gender
+      const genderCells = await fetchCellsByGender(gender);
+      
+      // Clear and rebuild options
+      cellSelect.innerHTML = '<option value="">All Cells</option>';
+      
+      if (genderCells.length === 0) {
+        cellSelect.innerHTML += `<option value="" disabled>No ${gender} cells available</option>`;
+      } else {
+        genderCells.forEach(cell => {
+          const occupancyRate = cell.capacity ? Math.round((cell.currentCount / cell.capacity) * 100) : 0;
+          const label = `${cell.name} (${occupancyRate}%) - ${cell.type}`;
+          const option = document.createElement('option');
+          option.value = String(cell.id);
+          option.textContent = label;
+          cellSelect.appendChild(option);
+        });
+      }
+      
+      cellSelect.disabled = false;
+      
+    } catch (error) {
+      console.error('Error updating cells filter dropdown:', error);
+      cellSelect.innerHTML = '<option value="">Error loading cells</option>';
+      cellSelect.disabled = false;
+    }
   }
 
   // Initialize the page
@@ -1079,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
         popup: 'swal-responsive-popup',
         content: 'swal-responsive-content',
       },
-      didOpen: () => {
+      didOpen: async () => {
         // Add responsive behavior to dropdowns
         const selects = document.querySelectorAll('select');
         selects.forEach(select => {
@@ -1116,14 +1291,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (cellSelect) {
           const selectedGender = genderSelect ? genderSelect.value : pageGender;
-          cellSelect.innerHTML = '<option value="">Select Cell</option>' + generateCellOptionsForGender(selectedGender, inmate.cell_id);
+          // Use live cell fetching for initial population as well
+          await updateCellsDropdown(selectedGender, cellSelect, inmate.cell_id);
         }
 
-        // If user changes gender in the form, refresh cell options accordingly
+        // If user changes gender in the form, refresh cell options accordingly with live data
         if (genderSelect && cellSelect) {
-          genderSelect.addEventListener('change', () => {
+          genderSelect.addEventListener('change', async () => {
             const g = genderSelect.value || pageGender;
-            cellSelect.innerHTML = '<option value="">Select Cell</option>' + generateCellOptionsForGender(g, inmate.cell_id);
+            // Use live cell fetching instead of static generation
+            await updateCellsDropdown(g, cellSelect, inmate.cell_id);
           });
         }
 
