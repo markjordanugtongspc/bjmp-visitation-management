@@ -103,8 +103,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('mobile-edit-profile-btn')
     ].filter(Boolean);
     
-    // Load user data from cookies on page load
-    loadUserDataFromCookies();
+    // Load user data from server on page load
+    loadUserDataFromServer();
     
     const showProfileModal = () => {
         // Get cover photo from cookies or use default (keeping this functionality)
@@ -230,13 +230,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Helper function to get user name from cookies or UI
+// Helper function to get user name from server data or UI
 function getUserName() {
-    const cookieName = getCookie('user_name');
-    if (cookieName) {
-        return cookieName;
+    // First try to get from data attribute (set by server)
+    const userDataElement = document.querySelector('[data-user-name]');
+    if (userDataElement && userDataElement.getAttribute('data-user-name')) {
+        return userDataElement.getAttribute('data-user-name');
     }
     
+    // Fallback to UI elements
     const userNameElements = document.querySelectorAll('[data-user-name-target]');
     if (userNameElements.length > 0) {
         return userNameElements[0].textContent.trim();
@@ -320,7 +322,40 @@ function getCookie(name) {
     return null;
 }
 
-// Load user data from cookies and update UI
+// Load user data from server
+function loadUserDataFromServer() {
+    fetch('/profile/user-data', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update user name in UI
+            updateUserNameInUI(data.user.full_name);
+            
+            // Update profile image in UI
+            updateProfileImageInUI(data.user.profile_picture_url);
+            
+            // Store user data in data attributes for future reference
+            const userMenuButton = document.querySelector('[data-user-menu]');
+            if (userMenuButton) {
+                userMenuButton.setAttribute('data-user-name', data.user.full_name);
+                userMenuButton.setAttribute('data-user-profile-url', data.user.profile_picture_url);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Failed to load user data:', error);
+        // Fallback to existing UI data
+        loadUserDataFromCookies();
+    });
+}
+
+// Load user data from cookies and update UI (fallback)
 function loadUserDataFromCookies() {
     const userName = getCookie('user_name');
     if (userName) {

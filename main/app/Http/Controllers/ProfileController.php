@@ -75,6 +75,24 @@ class ProfileController extends Controller
     }
 
     /**
+     * Get the current user's data.
+     */
+    public function getUserData(Request $request)
+    {
+        $user = $request->user();
+        
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'full_name' => $user->full_name,
+                'email' => $user->email,
+                'profile_picture_url' => $user->profile_picture_url,
+                'role_name' => $user->getRoleName()
+            ]
+        ]);
+    }
+
+    /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse

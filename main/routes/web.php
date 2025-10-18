@@ -99,6 +99,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/upload-picture', [ProfileController::class, 'uploadProfilePicture'])->name('profile.upload-picture');
+    Route::get('/profile/user-data', [ProfileController::class, 'getUserData'])->name('profile.user-data');
 });
 
 require __DIR__.'/auth.php';
