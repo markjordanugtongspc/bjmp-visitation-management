@@ -63,7 +63,7 @@
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->full_name ?? 'User' }}"
                           data-user-role="{{ Auth::user()->role_id ?? 1 }}"
-                          class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                          class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                           aria-label="User menu for {{ Auth::user()->full_name ?? 'User' }}">
                           <span
                             class="h-8 w-8 inline-flex items-center justify-center rounded-full ring-2 ring-blue-500/30 bg-white dark:bg-gray-800"
