@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -118,5 +119,21 @@ class User extends Authenticatable
             3 => 'Staff',
             default => 'User'
         };
+    }
+    
+    /**
+     * Get the user's profile picture URL.
+     *
+     * @return string
+     */
+    public function getProfilePictureUrlAttribute()
+    {
+        if ($this->profile_picture && Storage::disk('public')->exists($this->profile_picture)) {
+            return Storage::url($this->profile_picture);
+        }
+        
+        // Fallback to ui-avatars.com API with user's full name
+        $name = urlencode($this->full_name ?? 'User');
+        return "https://ui-avatars.com/api/?name={$name}&background=random";
     }
 }

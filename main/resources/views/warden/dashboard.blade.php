@@ -61,16 +61,21 @@
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->full_name ?? 'User' }}"
                           data-user-role="{{ Auth::user()->role_id ?? 1 }}"
+                          data-user-profile-url="{{ Auth::user()->profile_picture_url ?? '' }}"
                           class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                           aria-label="User menu for {{ Auth::user()->full_name ?? 'User' }}">
                           <span
                             class="h-8 w-8 inline-flex items-center justify-center rounded-full ring-2 ring-blue-500/30 bg-white dark:bg-gray-800"
                             aria-label="Profile image">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" viewBox="0 0 24 24" fill="currentColor" aria-label="Profile">
-                              <!-- simple user silhouette -->
-                              <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/>
-                              <path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/>
-                            </svg>
+                            @if(Auth::user()->profile_picture)
+                                <img src="{{ Auth::user()->profile_picture_url }}" alt="Profile" class="h-full w-full object-cover rounded-full">
+                            @else
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" viewBox="0 0 24 24" fill="currentColor" aria-label="Profile">
+                                  <!-- simple user silhouette -->
+                                  <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/>
+                                  <path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/>
+                                </svg>
+                            @endif
                           </span>
                           <div class="hidden sm:block text-left leading-tight">
                             <div class="text-xs font-medium text-gray-900 dark:text-gray-50" data-user-name-target>

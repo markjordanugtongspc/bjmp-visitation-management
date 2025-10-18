@@ -10,35 +10,76 @@
 function saveProfileChanges() {
     const name = document.getElementById('profile-name')?.value.trim();
     const bio = document.getElementById('profile-bio')?.value.trim();
-    const profilePreview = document.getElementById('profile-preview');
-    const coverPreview = document.getElementById('cover-preview');
+    const profileUpload = document.getElementById('profile-upload');
     
     if (!name) {
         Swal.showValidationMessage('Name is required');
         return;
     }
     
-    // Save to cookies
+    // Save name and bio to cookies (keeping this functionality)
     setCookie('user_name', name, 30);
     setCookie('user_bio', bio || '', 30);
-    
-    // Save profile image if changed
-    if (profilePreview && profilePreview.src !== getUserProfileImage()) {
-        setCookie('user_profile_image', profilePreview.src, 30);
-        // Update the profile image in the UI
-        updateProfileImageInUI(profilePreview.src);
-    }
-    
-    // Save cover photo if changed
-    const coverPhoto = getCookie('user_cover_photo') || 'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=400&fit=max&ixid=eyJhcHBfaWQiOjE0NTg5fQ';
-    if (coverPreview && coverPreview.src !== coverPhoto) {
-        setCookie('user_cover_photo', coverPreview.src, 30);
-    }
     
     // Update UI
     updateUserNameInUI(name);
     
-    // Show success message and close the current modal
+    // Handle profile picture upload if a new file was selected
+    if (profileUpload && profileUpload.files && profileUpload.files[0]) {
+        uploadProfilePicture(profileUpload.files[0]);
+    } else {
+        // No file upload, just show success message
+        showSuccessMessage();
+    }
+}
+
+// Function to upload profile picture to server
+function uploadProfilePicture(file) {
+    const formData = new FormData();
+    formData.append('profile_picture', file);
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+    
+    // Show loading state
+    Swal.fire({
+        title: 'Uploading...',
+        text: 'Please wait while we upload your profile picture',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        background: '#0F172A',
+        color: '#F9FAFB'
+    });
+    
+    fetch('/profile/upload-picture', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update profile image in UI
+            updateProfileImageInUI(data.image_url);
+            showSuccessMessage();
+        } else {
+            throw new Error(data.message || 'Upload failed');
+        }
+    })
+    .catch(error => {
+        console.error('Upload error:', error);
+        Swal.fire({
+            title: 'Upload Failed',
+            text: error.message || 'Failed to upload profile picture. Please try again.',
+            icon: 'error',
+            background: '#0F172A',
+            color: '#F9FAFB'
+        });
+    });
+}
+
+// Function to show success message
+function showSuccessMessage() {
     Swal.close(); // Close the edit modal first
     
     setTimeout(() => {
@@ -66,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUserDataFromCookies();
     
     const showProfileModal = () => {
-        // Get cover photo from cookies or use default
+        // Get cover photo from cookies or use default (keeping this functionality)
         const coverPhoto = getCookie('user_cover_photo') || 'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=400&fit=max&ixid=eyJhcHBfaWQiOjE0NTg5fQ';
         
         Swal.fire({
@@ -203,11 +244,12 @@ function getUserName() {
     return '';
 }
 
-// Helper function to get user profile image from cookies or generate one
+// Helper function to get user profile image from server data or generate one
 function getUserProfileImage() {
-    const cookieImage = getCookie('user_profile_image');
-    if (cookieImage) {
-        return cookieImage;
+    // Get profile image URL from data attribute
+    const profileUrlElement = document.querySelector('[data-user-profile-url]');
+    if (profileUrlElement && profileUrlElement.getAttribute('data-user-profile-url')) {
+        return profileUrlElement.getAttribute('data-user-profile-url');
     }
     
     // Generate placeholder based on user name
@@ -224,6 +266,12 @@ function updateUserNameInUI(name) {
 
 // Helper function to update profile image in UI
 function updateProfileImageInUI(imageUrl) {
+    // Update the data attribute for future reference
+    const profileUrlElement = document.querySelector('[data-user-profile-url]');
+    if (profileUrlElement) {
+        profileUrlElement.setAttribute('data-user-profile-url', imageUrl);
+    }
+    
     // Update all profile images in the header
     document.querySelectorAll('span[aria-label="Profile image"]').forEach(span => {
         // Check if we already have an img element
@@ -256,13 +304,7 @@ function setCookie(name, value, days) {
         expires = "; expires=" + date.toUTCString();
     }
     
-    // For images (base64), we need to handle large cookies by storing in localStorage instead
-    if (value && value.length > 4000 && value.startsWith('data:image')) {
-        localStorage.setItem(name, value);
-        document.cookie = name + "=localStorage" + expires + "; path=/; SameSite=Lax";
-    } else {
-        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; SameSite=Lax";
-    }
+    document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; SameSite=Lax";
 }
 
 function getCookie(name) {
@@ -272,12 +314,7 @@ function getCookie(name) {
         let c = ca[i];
         while (c.charAt(0) === ' ') c = c.substring(1, c.length);
         if (c.indexOf(nameEQ) === 0) {
-            const value = decodeURIComponent(c.substring(nameEQ.length, c.length));
-            // Check if this is a localStorage reference
-            if (value === 'localStorage') {
-                return localStorage.getItem(name);
-            }
-            return value;
+            return decodeURIComponent(c.substring(nameEQ.length, c.length));
         }
     }
     return null;
@@ -290,9 +327,6 @@ function loadUserDataFromCookies() {
         updateUserNameInUI(userName);
     }
     
-    // Load and apply profile image if available
-    const profileImage = getCookie('user_profile_image');
-    if (profileImage) {
-        updateProfileImageInUI(profileImage);
-    }
+    // Profile image is now loaded from server data via data attributes
+    // No need to load from cookies
 }
