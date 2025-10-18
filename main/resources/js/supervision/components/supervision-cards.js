@@ -638,7 +638,7 @@ function attachModalInteractions() {
       didOpen: () => {
         setupFullscreenToggle();
         
-        // Set up download button
+        // Set up main download button
         const downloadBtn = document.getElementById('file-download-btn');
         if (downloadBtn && fileData?.download_url) {
           downloadBtn.addEventListener('click', () => {
@@ -646,6 +646,31 @@ function attachModalInteractions() {
             const link = document.createElement('a');
             link.href = fileData.download_url;
             link.download = fileData.file_name || 'document.pdf';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Show success toast
+            window.Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: `Downloading ${fileData.file_name || 'document'}...`,
+              showConfirmButton: false,
+              timer: 1500
+            });
+          });
+        }
+        
+        // Set up Word document download button (for Word docs that can't be previewed)
+        const wordDownloadBtn = document.getElementById('word-download-btn');
+        if (wordDownloadBtn && fileData?.download_url) {
+          wordDownloadBtn.addEventListener('click', () => {
+            // Create a temporary link to download the file
+            const link = document.createElement('a');
+            link.href = fileData.download_url;
+            link.download = fileData.file_name || 'document.docx';
             link.target = '_blank';
             document.body.appendChild(link);
             link.click();
@@ -719,7 +744,7 @@ function attachModalInteractions() {
                   <h3 class="text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'} mb-2">${title}</h3>
                   <p class="text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-4">Microsoft Word Document</p>
                   <p class="text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'} mb-6">Word documents cannot be previewed in the browser. Click the download button above to view the file.</p>
-                  <button id="file-download-btn" class="inline-flex items-center gap-2 px-4 py-2 rounded-md ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} font-medium transition-colors cursor-pointer">
+                  <button id="word-download-btn" class="inline-flex items-center gap-2 px-4 py-2 rounded-md ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} font-medium transition-colors cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>

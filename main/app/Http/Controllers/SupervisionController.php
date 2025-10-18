@@ -43,22 +43,25 @@ class SupervisionController extends Controller
             $summary = $request->input('summary', '');
             $customFilename = $request->input('filename');
 
-            // Generate filename
-            $originalName = $file->getClientOriginalName();
+            // Get file details
             $extension = $file->getClientOriginalExtension();
-            
-            if ($customFilename) {
-                $filename = $customFilename;
-            } else {
+            $originalName = $file->getClientOriginalName();
+
+            // Use title as filename (sanitize it)
+            $sanitizedTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $title);
+            $filename = $sanitizedTitle . '.' . $extension;
+
+            // Check if file exists and append timestamp if needed
+            $categoryPath = 'supervision/' . $category; // Use category as-is (capitalized)
+            $fullPath = $categoryPath . '/' . $filename;
+
+            // If file exists, append timestamp to make unique
+            if (Storage::disk('local')->exists($fullPath)) {
                 $timestamp = now()->timestamp;
-                $baseName = pathinfo($originalName, PATHINFO_FILENAME);
-                $filename = $baseName . '_' . $timestamp . '.' . $extension;
+                $filename = $sanitizedTitle . '_' . $timestamp . '.' . $extension;
             }
 
-            // Create category directory path
-            $categoryPath = 'supervision/' . strtolower($category);
-            
-            // Store the file in private storage
+            // Store the file in private storage (local disk)
             $filePath = $file->storeAs($categoryPath, $filename, 'local');
             
             if (!$filePath) {
@@ -189,6 +192,7 @@ class SupervisionController extends Controller
                     'uploaded_by' => $file->user->full_name ?? 'Unknown',
                     'upload_date' => $file->created_at->format('M j, Y'),
                     'download_url' => route('warden.supervision.download', $file->id),
+                    'preview_url' => route('warden.supervision.preview', $file->id),
                     'can_delete' => auth()->id() === $file->uploaded_by || auth()->user()->role_id === 0
                 ]
             ]);
@@ -229,9 +233,9 @@ class SupervisionController extends Controller
      * Download supervision file
      *
      * @param int $id
-     * @return Response
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
-    public function download(int $id): Response
+    public function download(int $id): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         try {
             $file = SupervisionFile::findOrFail($id);
