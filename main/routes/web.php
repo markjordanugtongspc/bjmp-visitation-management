@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WardenController;
+use App\Http\Controllers\NurseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupervisionController;
+use App\Http\Controllers\MedicalVisitController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -23,6 +25,10 @@ Route::get('/warden/dashboard', [WardenController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
     ->name('warden.dashboard');
 
+Route::get('/nurse/dashboard', [NurseController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('nurse.dashboard');
+
 // Legacy dashboard route (redirects based on role)
 Route::get('/dashboard', function () {
     $user = auth()->user();
@@ -32,10 +38,10 @@ Route::get('/dashboard', function () {
             return redirect()->route('admin.dashboard');
         case 1: // Warden
             return redirect()->route('warden.dashboard');
-        case 2: // Officer
-            return redirect()->route('officer.dashboard');
-        case 3: // Staff
-            return redirect()->route('staff.dashboard');
+        case 6: // Jail Head Nurse
+            return redirect()->route('nurse.dashboard');
+        case 7: // Jail Nurse
+            return redirect()->route('nurse.dashboard');
         default:
             return redirect()->route('admin.dashboard');
     }
@@ -100,6 +106,26 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/upload-picture', [ProfileController::class, 'uploadProfilePicture'])->name('profile.upload-picture');
     Route::get('/profile/user-data', [ProfileController::class, 'getUserData'])->name('profile.user-data');
+});
+
+// Medical Visit API Routes
+Route::prefix('api')->middleware(['auth', 'verified'])->group(function () {
+    // Medical visits for specific inmate
+    Route::get('/inmates/{id}/medical-visits', [MedicalVisitController::class, 'index'])
+        ->name('api.inmates.medical-visits');
+    
+    // Medical visit CRUD operations
+    Route::apiResource('medical-visits', MedicalVisitController::class);
+    
+    // Additional medical visit endpoints
+    Route::get('/medical-visits/upcoming', [MedicalVisitController::class, 'upcoming'])
+        ->name('api.medical-visits.upcoming');
+    
+    Route::patch('/medical-visits/{id}/complete', [MedicalVisitController::class, 'markCompleted'])
+        ->name('api.medical-visits.complete');
+    
+    Route::get('/medical-visits/statistics', [MedicalVisitController::class, 'statistics'])
+        ->name('api.medical-visits.statistics');
 });
 
 require __DIR__.'/auth.php';

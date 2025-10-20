@@ -86,23 +86,23 @@ class User extends Authenticatable
     }
     
     /**
-     * Check if the user is an officer.
+     * Check if the user is a jail head nurse.
      *
      * @return bool
      */
-    public function isOfficer()
+    public function isHeadNurse()
     {
-        return $this->role_id == 2;
+        return $this->role_id == 6;
     }
     
     /**
-     * Check if the user is staff.
+     * Check if the user is a jail nurse.
      *
      * @return bool
      */
-    public function isStaff()
+    public function isNurse()
     {
-        return $this->role_id == 3;
+        return $this->role_id == 7;
     }
     
     /**
@@ -115,8 +115,8 @@ class User extends Authenticatable
         return match($this->role_id) {
             0 => 'Admin',
             1 => 'Warden',
-            2 => 'Officer',
-            3 => 'Staff',
+            6 => 'Jail Head Nurse',
+            7 => 'Jail Nurse',
             default => 'User'
         };
     }
