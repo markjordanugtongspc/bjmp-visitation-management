@@ -359,9 +359,14 @@ class InmateController extends Controller
                 ->limit(10)
                 ->get();
 
+            // Transform inmates data to match frontend expectations
+            $transformedInmates = $inmates->map(function ($inmate) {
+                return $this->transformInmateForFrontend($inmate);
+            });
+
             return response()->json([
                 'success' => true,
-                'data' => $inmates,
+                'data' => $transformedInmates,
                 'message' => 'Search completed successfully'
             ]);
 
