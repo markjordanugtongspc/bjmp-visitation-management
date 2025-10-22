@@ -274,7 +274,7 @@ function createSupervisionCard(item, index) {
   const categoryIcon = CATEGORY_ICONS[item.category] || CATEGORY_ICONS['Operations'];
 
   return `
-    <article data-item-id="${item.id}" class="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 hover:shadow-sm transition cursor-pointer">
+    <article data-item-id="${item.id}" class="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 hover:shadow-sm transition">
       <div class="flex items-start gap-3">
         <div class="h-10 w-10 rounded-lg ${iconClass} flex items-center justify-center ring-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -296,13 +296,8 @@ function createSupervisionCard(item, index) {
         </span>
         <span>${item.formatted_file_size || 'Unknown size'}</span>
       </div>
-      <div class="mt-4 flex items-center gap-2">
-        <button data-action="view" data-file-id="${item.id}" class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 5c-7.633 0-10 7-10 7s2.367 7 10 7 10-7 10-7-2.367-7-10-7zm0 12a5 5 0 115-5 5 5 0 01-5 5zm0-8a3 3 0 103 3 3 3 0 00-3-3z"/>
-          </svg>
-          View
-        </button>
+      <!-- mt-4 & gap-4 for adjustable buttons spacing -->
+      <div class="mt-4 flex items-center justify-start gap-4">
         <button data-action="download" data-download-url="${item.download_url}" class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
             <path d="M11 3a1 1 0 012 0v9.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L11 12.586z"/>
@@ -312,8 +307,9 @@ function createSupervisionCard(item, index) {
         </button>
         ${item.can_delete ? `
         <button data-action="delete" data-file-id="${item.id}" class="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-red-600 hover:bg-red-700 text-white cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6"/>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 24 24" fill="currentColor">
+            <rect width="24" height="24" fill="none"/>
+            <path fill="currentColor" d="M16 9v10H8V9zm-1.5-6h-5l-1 1H5v2h14V4h-3.5zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2z" stroke-width="0.3" stroke="currentColor"/>
           </svg>
           Delete
         </button>
@@ -438,76 +434,11 @@ function attachModalInteractions() {
     });
   }
 
-  // View button functionality - only for preview, no download
-  document.querySelectorAll('button[data-action="view"]').forEach((btn) => {
-    btn.removeEventListener('click', handleViewClick);
-    btn.addEventListener('click', handleViewClick);
-  });
-
   // Delete button functionality
   document.querySelectorAll('button[data-action="delete"]').forEach((btn) => {
     btn.removeEventListener('click', handleDeleteClick);
     btn.addEventListener('click', handleDeleteClick);
   });
-
-  async function handleViewClick(e) {
-    e.preventDefault();
-    const card = e.target.closest('article');
-    const title = card?.querySelector('h3')?.textContent || 'Manual';
-    const category = card?.querySelector('.inline-flex')?.textContent || 'Document';
-    const fileId = e.target.dataset.fileId;
-    
-    if (!fileId) {
-      themedToast({
-        icon: 'error',
-        title: 'Preview failed',
-        text: 'File ID not available',
-        background: isDarkMode() ? PALETTE.darkBg : '#fff',
-        color: isDarkMode() ? '#E5E7EB' : '#111827',
-        iconColor: PALETTE.danger,
-      });
-      return;
-    }
-    
-    try {
-      // Get file details from API
-      const csrfToken = document.querySelector('[data-csrf-token]')?.dataset.csrfToken;
-      const response = await fetch(`/warden/supervision/files/${fileId}`, {
-        method: 'GET',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': csrfToken
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      if (!result.success) {
-        throw new Error(result.message || 'Failed to fetch file details');
-      }
-
-      const fileData = result.data;
-      
-      // Show full-screen file preview modal
-      showFilePreviewModal(title, category, fileData);
-      
-    } catch (error) {
-      console.error('Error fetching file details:', error);
-      themedToast({
-        icon: 'error',
-        title: 'Preview failed',
-        text: error.message || 'Failed to load file details',
-        background: isDarkMode() ? PALETTE.darkBg : '#fff',
-        color: isDarkMode() ? '#E5E7EB' : '#111827',
-        iconColor: PALETTE.danger,
-      });
-    }
-  }
 
   async function handleDeleteClick(e) {
     e.preventDefault();
@@ -603,172 +534,7 @@ function attachModalInteractions() {
     });
   }
 
-  // Show full-screen file preview modal
-  function showFilePreviewModal(title, category, fileData = null) {
-    if (typeof window === 'undefined' || !window.Swal) return;
 
-    const isDark = isDarkMode();
-    const isPDF = fileData?.file_type === 'application/pdf';
-    const isWordDoc = fileData?.file_type?.includes('word') || fileData?.file_extension?.toLowerCase() === 'docx' || fileData?.file_extension?.toLowerCase() === 'doc';
-    
-    window.Swal.fire({
-      title: `<div class="flex items-center justify-between w-full">
-        <span class="text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}">${title}</span>
-        <div class="flex items-center gap-2">
-          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-800'}">${category}</span>
-          <button id="fullscreen-btn" class="inline-flex items-center justify-center w-8 h-8 rounded-lg ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'} transition-colors cursor-pointer" title="Toggle Fullscreen">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-            </svg>
-          </button>
-        </div>
-      </div>`,
-      html: createFilePreviewHTML(title, category, isDark, fileData, isPDF, isWordDoc),
-      showConfirmButton: false,
-      showCloseButton: true,
-      width: '90vw',
-      heightAuto: false,
-      customClass: {
-        popup: `${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border shadow-2xl`,
-        htmlContainer: 'p-0 h-[70vh]',
-        closeButton: `${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'} text-2xl`,
-        title: 'p-4 pb-2'
-      },
-      background: isDark ? '#111827' : '#ffffff',
-      didOpen: () => {
-        setupFullscreenToggle();
-        
-        // Set up main download button
-        const downloadBtn = document.getElementById('file-download-btn');
-        if (downloadBtn && fileData?.download_url) {
-          downloadBtn.addEventListener('click', () => {
-            // Create a temporary link to download the file
-            const link = document.createElement('a');
-            link.href = fileData.download_url;
-            link.download = fileData.file_name || 'document.pdf';
-            link.target = '_blank';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Show success toast
-            window.Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: `Downloading ${fileData.file_name || 'document'}...`,
-              showConfirmButton: false,
-              timer: 1500
-            });
-          });
-        }
-        
-        // Set up Word document download button (for Word docs that can't be previewed)
-        const wordDownloadBtn = document.getElementById('word-download-btn');
-        if (wordDownloadBtn && fileData?.download_url) {
-          wordDownloadBtn.addEventListener('click', () => {
-            // Create a temporary link to download the file
-            const link = document.createElement('a');
-            link.href = fileData.download_url;
-            link.download = fileData.file_name || 'document.docx';
-            link.target = '_blank';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Show success toast
-            window.Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: `Downloading ${fileData.file_name || 'document'}...`,
-              showConfirmButton: false,
-              timer: 1500
-            });
-          });
-        }
-      }
-    });
-  }
-
-  // Create file preview HTML content
-  function createFilePreviewHTML(title, category, isDark, fileData = null, isPDF = false, isWordDoc = false) {
-    // Get file details from API data
-    const fileSize = fileData?.formatted_file_size || `${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 9) + 1}MB`;
-    const fileName = fileData?.file_name || `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
-    const uploadDate = fileData?.upload_date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const fileType = fileData?.file_type || 'application/pdf';
-    const previewUrl = fileData?.preview_url;
-    
-    return `
-      <div class="h-full flex flex-col">
-        <!-- File Info Bar -->
-        <div class="flex items-center gap-3 p-3 ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}">
-          <div class="h-8 w-8 rounded-lg ${getFileIconColor(category, isDark)} flex items-center justify-center">
-            ${getFileIcon(category)}
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'} truncate">${title}</p>
-            <p class="text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}">
-              ${fileName} • ${fileSize} • Uploaded ${uploadDate}
-            </p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="file-download-btn" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} text-xs font-medium transition-colors cursor-pointer">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-              Download
-            </button>
-          </div>
-        </div>
-
-        <!-- Document Preview -->
-        <div class="flex-1 p-4">
-          <div class="h-full rounded-lg border ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} overflow-hidden">
-            ${isPDF && previewUrl ? `
-              <iframe 
-                src="${previewUrl}" 
-                class="w-full h-full"
-                frameborder="0"
-                title="PDF Preview">
-              </iframe>
-            ` : isWordDoc ? `
-              <div class="h-full flex items-center justify-center p-8">
-                <div class="text-center max-w-md">
-                  <div class="h-20 w-20 mx-auto mb-4 rounded-lg ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'} flex items-center justify-center">
-                    <svg class="h-10 w-10 ${isDark ? 'text-blue-400' : 'text-blue-600'}" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M4 4a2 2 0 0 1 2-2h8l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4zm8 0v4h4l-4-4z"/>
-                    </svg>
-                  </div>
-                  <h3 class="text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'} mb-2">${title}</h3>
-                  <p class="text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-4">Microsoft Word Document</p>
-                  <p class="text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'} mb-6">Word documents cannot be previewed in the browser. Click the download button above to view the file.</p>
-                  <button id="word-download-btn" class="inline-flex items-center gap-2 px-4 py-2 rounded-md ${isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} font-medium transition-colors cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Download Document
-                  </button>
-                </div>
-              </div>
-            ` : `
-              <div class="h-full flex items-center justify-center p-8">
-                <div class="text-center">
-                  <div class="h-16 w-16 mx-auto mb-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center">
-                    <svg class="h-8 w-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                  </div>
-                  <p class="${isDark ? 'text-gray-400' : 'text-gray-600'}">Preview not available for this file type</p>
-                </div>
-              </div>
-            `}
-          </div>
-        </div>
-      </div>
-    `;
-  }
   
   // Format file size for display
   function formatFileSize(bytes) {
@@ -781,125 +547,10 @@ function attachModalInteractions() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  // Get file icon based on type
-  function getFileIcon(type) {
-    const icons = {
-      'PDF': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.828A2 2 0 0 0 19.414 7.414l-4.828-4.828A2 2 0 0 0 12.172 2H6zm6 1.414L18.586 10H14a2 2 0 0 1-2-2V3.414z"/></svg>',
-      'Operations': '<svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.246 4.86L13.527.411a3.07 3.07 0 0 0-3.071 0l-2.34 1.344v6.209l3.104-1.793a1.52 1.52 0 0 1 1.544 0l3.884 2.241c.482.282.764.78.764 1.328v4.482a1.54 1.54 0 0 1-.764 1.328l-3.884 2.241V24l8.482-4.897a3.08 3.08 0 0 0 1.544-2.656V7.532a3.05 3.05 0 0 0-1.544-2.672M6.588 14.222V2.652L2.754 4.876A3.08 3.08 0 0 0 1.21 7.532v8.915c0 1.095.581 2.108 1.544 2.656L11.236 24v-6.209L7.352 15.55a1.53 1.53 0 0 1-.764-1.328" stroke-width="0.3" stroke="currentColor" /></svg>',
-      'Intake': '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" width="12" height="12" viewBox="0 0 24 24"><g fill="none"><path d="M19.781 14.555L13.5 16h-.375a1.875 1.875 0 0 0 0-3.75H8.438a2.25 2.25 0 0 0-1.594.656L4.5 15.25v5.25h6.75l6-1.5l3.64-1.552a1.555 1.555 0 0 0-1.109-2.893M4.5 15.25v5.25H1v-5.25z"/><path d="M18.5 2a3.5 3.5 0 1 1-2 6.373l.01-.008a3.5 3.5 0 1 1-.01-5.738a3.5 3.5 0 0 1 2-.627" clip-rule="evenodd"/><path stroke="currentColor" stroke-linecap="square" stroke-width="2" d="M4.5 20.5h6.75l6-1.5l3.64-1.552a1.555 1.555 0 0 0-1.109-2.893L13.5 16h-.375M4.5 20.5v-5.25m0 5.25H1v-5.25h3.5m0 0l2.344-2.344a2.25 2.25 0 0 1 1.593-.656h4.688a1.875 1.875 0 0 1 0 3.75H11m6-13.663a3.5 3.5 0 1 1 0 6.326M14.5 9a3.5 3.5 0 1 1 0-7a3.5 3.5 0 0 1 0 7Z"/></g></svg>',
-      'Safety': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a7 7 0 017 7v2a7 7 0 01-14 0V9a7 7 0 017-7z M11 14h2v6h-2z"/></svg>',
-      'Medical': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 7a4 4 0 014-4h10a4 4 0 014 4v2H3z M21 10H3v7a4 4 0 004 4h10a4 4 0 004-4z"/></svg>',
-      'Visitation': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 7h10v2H7zM7 11h10v2H7zM7 15h10v2H7z"/></svg>',
-      'Training': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7v2a7 7 0 0014 0V9a7 7 0 00-7-7zm0 12a3 3 0 113-3 3 3 0 01-3 3z"/></svg>',
-      'Discipline': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5 3a2 2 0 00-2 2v9.764A3.236 3.236 0 006.236 18H18a3 3 0 003-3V5a2 2 0 00-2-2z M7 21a1 1 0 01-1-1v-2h12v2a1 1 0 01-1 1z"/></svg>',
-      'Emergency': '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a9 9 0 00-9 9v4a3 3 0 003 3h1v2a1 1 0 001.555.832L12 19h6a3 3 0 003-3v-4a9 9 0 00-9-9z"/></svg>'
-    };
-    return icons[type] || icons['PDF'];
-  }
-
-  // Get file icon color based on type and theme
-  function getFileIconColor(type, isDark) {
-    const colors = {
-      'Operations': isDark ? 'bg-blue-950/40 text-blue-400' : 'bg-blue-100 text-blue-600',
-      'Intake': isDark ? 'bg-emerald-950/40 text-emerald-400' : 'bg-emerald-100 text-emerald-600',
-      'Safety': isDark ? 'bg-amber-950/40 text-amber-400' : 'bg-amber-100 text-amber-600',
-      'Medical': isDark ? 'bg-rose-950/40 text-rose-400' : 'bg-rose-100 text-rose-600',
-      'Visitation': isDark ? 'bg-indigo-950/40 text-indigo-400' : 'bg-indigo-100 text-indigo-600',
-      'Training': isDark ? 'bg-fuchsia-950/40 text-fuchsia-400' : 'bg-fuchsia-100 text-fuchsia-600',
-      'Discipline': isDark ? 'bg-teal-950/40 text-teal-400' : 'bg-teal-100 text-teal-600',
-      'Emergency': isDark ? 'bg-red-950/40 text-red-400' : 'bg-red-100 text-red-600'
-    };
-    return colors[type] || (isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600');
-  }
-
-  // Generate preview URL for the file
-  function generatePreviewURL(title, type, item) {
-    // Check if we have a preview URL from API
-    if (item && item.preview_url) {
-      return item.preview_url;
-    }
-    
-    // Return empty string if no preview URL available
-    return '';
-  }
 
 
 
-  // Setup fullscreen toggle functionality
-  function setupFullscreenToggle() {
-    const fullscreenBtn = document.getElementById('fullscreen-btn');
-    if (!fullscreenBtn) return;
 
-    fullscreenBtn.addEventListener('click', () => {
-      const modal = document.querySelector('.swal2-popup');
-      if (!modal) return;
-
-      if (!document.fullscreenElement) {
-        // Enter fullscreen
-        modal.requestFullscreen().then(() => {
-          modal.style.width = '100vw';
-          modal.style.height = '100vh';
-          modal.style.maxWidth = 'none';
-          modal.style.maxHeight = 'none';
-          modal.style.margin = '0';
-          modal.querySelector('.swal2-html-container').style.height = '90vh';
-          
-          // Update button icon to exit fullscreen
-          fullscreenBtn.innerHTML = `
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          `;
-          fullscreenBtn.title = 'Exit Fullscreen';
-        }).catch(err => {
-          console.error('Error entering fullscreen:', err);
-        });
-      } else {
-        // Exit fullscreen
-        document.exitFullscreen().then(() => {
-          modal.style.width = '90vw';
-          modal.style.height = 'auto';
-          modal.style.maxWidth = '';
-          modal.style.maxHeight = '';
-          modal.style.margin = '';
-          modal.querySelector('.swal2-html-container').style.height = '70vh';
-          
-          // Update button icon to enter fullscreen
-          fullscreenBtn.innerHTML = `
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-            </svg>
-          `;
-          fullscreenBtn.title = 'Toggle Fullscreen';
-        }).catch(err => {
-          console.error('Error exiting fullscreen:', err);
-        });
-      }
-    });
-
-    // Handle fullscreen change events
-    document.addEventListener('fullscreenchange', () => {
-      if (!document.fullscreenElement) {
-        // Exited fullscreen, restore original styles
-        const modal = document.querySelector('.swal2-popup');
-        if (modal) {
-          modal.style.width = '90vw';
-          modal.style.height = 'auto';
-          modal.style.maxWidth = '';
-          modal.style.maxHeight = '';
-          modal.style.margin = '';
-          modal.querySelector('.swal2-html-container').style.height = '70vh';
-          
-          fullscreenBtn.innerHTML = `
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-            </svg>
-          `;
-          fullscreenBtn.title = 'Toggle Fullscreen';
-        }
-      }
-    });
-  }
 }
 
 // Refresh supervision data
