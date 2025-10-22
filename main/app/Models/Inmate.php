@@ -78,6 +78,11 @@ class Inmate extends Model
         return $this->hasMany(MedicalRecord::class)->orderBy('record_date', 'desc');
     }
 
+    public function medicalFiles(): HasMany
+    {
+        return $this->hasMany(MedicalFile::class)->orderBy('created_at', 'desc');
+    }
+
     // public function disciplinaryActions(): HasMany
     // {
     //     return $this->hasMany(DisciplinaryAction::class);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inmate;
+use App\Models\MedicalFile;
 use App\Services\InmateService;
 use App\Services\PointsService;
 use App\Http\Requests\StoreInmateRequest;
@@ -11,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class InmateController extends Controller
@@ -94,7 +96,7 @@ class InmateController extends Controller
         {
             try {
                 $inmate = $this->inmateService->getById($id);
-                $inmate->load('medicalRecords.createdBy');
+                $inmate->load(['medicalRecords.createdBy', 'medicalFiles.uploader']);
 
                 if (!$inmate) {
                     return response()->json([
@@ -457,9 +459,130 @@ class InmateController extends Controller
                         'recordedBy' => $m->createdBy?->full_name,
                     ])->toArray()
                     : [],
+                'medicalFiles' => $inmate->relationLoaded('medicalFiles') 
+                    ? $inmate->medicalFiles->map(fn($f) => [
+                        'id' => $f->id,
+                        'file_name' => $f->file_name,
+                        'file_path' => $f->file_path,
+                        'file_type' => $f->file_type,
+                        'category' => $f->category,
+                        'file_size' => $f->file_size,
+                        'notes' => $f->notes,
+                        'uploaded_by' => $f->uploader?->full_name,
+                        'created_at' => $f->created_at?->format('Y-m-d H:i:s'),
+                        'updated_at' => $f->updated_at?->format('Y-m-d H:i:s'),
+                    ])->toArray()
+                    : [],
                 'daysInCustody' => $inmate->days_in_custody,
                 'createdAt' => $inmate->created_at?->format('Y-m-d H:i:s'),
                 'updatedAt' => $inmate->updated_at?->format('Y-m-d H:i:s'),
             ];
         }
+
+    /**
+     * Upload medical files for an inmate
+     */
+    public function uploadMedicalFile(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'files.*' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'category' => 'required|string',
+            'notes' => 'nullable|string|max:200'
+        ]);
+        
+        $inmate = Inmate::findOrFail($id);
+        $uploadedFiles = [];
+        
+        foreach ($request->file('files') as $file) {
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('medical/' . $inmate->id, $fileName, 'public');
+            
+            $medicalFile = MedicalFile::create([
+                'inmate_id' => $inmate->id,
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $filePath,
+                'file_type' => $file->getClientOriginalExtension(),
+                'category' => $request->category,
+                'file_size' => $file->getSize(),
+                'notes' => $request->notes,
+                'uploaded_by' => auth()->id()
+            ]);
+            
+            $uploadedFiles[] = $medicalFile;
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Files uploaded successfully',
+            'data' => $uploadedFiles
+        ]);
     }
+
+    /**
+     * Get medical file details
+     */
+    public function getMedicalFile(int $fileId): JsonResponse
+    {
+        $file = MedicalFile::with(['inmate', 'uploader'])->findOrFail($fileId);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $file
+        ]);
+    }
+
+    /**
+     * Download medical file
+     */
+    public function downloadMedicalFile(int $fileId)
+    {
+        $file = MedicalFile::findOrFail($fileId);
+        
+        if (!Storage::disk('public')->exists($file->file_path)) {
+            abort(404, 'File not found');
+        }
+        
+        return Storage::disk('public')->download($file->file_path, $file->file_name);
+    }
+
+    /**
+     * Update medical file
+     */
+    public function updateMedicalFile(Request $request, int $fileId): JsonResponse
+    {
+        $validated = $request->validate([
+            'notes' => 'nullable|string|max:200',
+            'category' => 'nullable|string'
+        ]);
+        
+        $file = MedicalFile::findOrFail($fileId);
+        $file->update($validated);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'File updated successfully',
+            'data' => $file
+        ]);
+    }
+
+    /**
+     * Delete medical file
+     */
+    public function deleteMedicalFile(int $fileId): JsonResponse
+    {
+        $file = MedicalFile::findOrFail($fileId);
+        
+        // Delete from storage
+        if (Storage::disk('public')->exists($file->file_path)) {
+            Storage::disk('public')->delete($file->file_path);
+        }
+        
+        // Delete from database
+        $file->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'File deleted successfully'
+        ]);
+    }
+}

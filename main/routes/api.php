@@ -33,6 +33,13 @@ Route::prefix('inmates')->middleware(['web'])->group(function () {
     Route::patch('/{id}/points', [InmateController::class, 'updatePoints'])->name('api.inmates.update-points');
     Route::post('/{id}/points/add', [InmateController::class, 'addPointsEntry'])->name('api.inmates.add-points');
     Route::post('/{id}/medical-records/add', [InmateController::class, 'addMedicalRecord'])->name('api.inmates.add-medical-record');
+    
+    // Medical files endpoints
+    Route::post('/{id}/medical-files/upload', [InmateController::class, 'uploadMedicalFile'])->name('api.inmates.upload-medical-file');
+    Route::get('/medical-files/{fileId}', [InmateController::class, 'getMedicalFile'])->name('api.inmates.get-medical-file');
+    Route::get('/medical-files/{fileId}/download', [InmateController::class, 'downloadMedicalFile'])->name('api.inmates.download-medical-file');
+    Route::patch('/medical-files/{fileId}', [InmateController::class, 'updateMedicalFile'])->name('api.inmates.update-medical-file');
+    Route::delete('/medical-files/{fileId}', [InmateController::class, 'deleteMedicalFile'])->name('api.inmates.delete-medical-file');
 });
 
 // Cells API routes (order matters: static paths before dynamic /{cell})
