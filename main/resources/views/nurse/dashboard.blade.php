@@ -152,8 +152,21 @@
 
                 <!-- Inmate Selection Section -->
                 <div class="mb-6">
-                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                    <!-- Go Back To Search Button (initially hidden) -->
+                    <div id="back-to-search-container" class="hidden mb-6">
+                        <button onclick="window.inmateSelector.clearSelection()" 
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg cursor-pointer transition-colors duration-200 shadow-sm hover:shadow-md">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            Go Back To Search
+                        </button>
+                    </div>
+                    
+                    <!-- Search Section (initially visible) -->
+                    <div id="search-section" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Select Inmate</h2>
+                        
                         <div class="flex flex-col sm:flex-row gap-4">
                             <div class="flex-1">
                                 <div class="relative">
@@ -167,9 +180,6 @@
                             <div id="inmate-search-results" class="hidden w-full sm:w-80">
                                 <!-- Search results will be populated here -->
                             </div>
-                        </div>
-                        <div id="selected-inmate-info" class="hidden mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <!-- Selected inmate info will be displayed here -->
                         </div>
                     </div>
                 </div>

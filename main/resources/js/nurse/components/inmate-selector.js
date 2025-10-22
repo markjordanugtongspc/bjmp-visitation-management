@@ -27,8 +27,12 @@ export class InmateSelectorManager {
         this.searchInput = document.getElementById('inmate-search');
         this.searchResultsContainer = document.getElementById('inmate-search-results');
         this.selectedInmateInfo = document.getElementById('selected-inmate-info');
+        this.backToSearchContainer = document.getElementById('back-to-search-container');
+        this.searchSection = document.getElementById('search-section');
+        this.selectInmateHeading = document.querySelector('h2.text-lg.font-semibold.text-gray-900.dark\\:text-gray-100.mb-4');
         
         this.initializeEventListeners();
+        this.checkUrlForInmate();
     }
 
     /**
@@ -169,6 +173,9 @@ export class InmateSelectorManager {
             // Notify other components about selection
             this.dispatchInmateSelectedEvent(this.selectedInmate);
             
+            // Update URL with inmate ID
+            this.updateUrl(inmateId);
+            
         } catch (error) {
             console.error('Error selecting inmate:', error);
             this.showSearchError('Failed to load inmate details. Please try again.');
@@ -180,46 +187,19 @@ export class InmateSelectorManager {
      * @param {Object} inmate - Selected inmate object with fullName and age from backend
      */
     displaySelectedInmate(inmate) {
-        if (!this.selectedInmateInfo) return;
-
-        // For selected inmate, show full name with middle name (firstName + middleName + lastName)
-        const fullName = [inmate.firstName, inmate.middleName, inmate.lastName].filter(Boolean).join(' ');
+        // Store inmate data for medical card to use
+        this.selectedInmate = inmate;
         
-        // Create responsive card layout with badges for age and status
-        this.selectedInmateInfo.innerHTML = `
-            <div class="flex items-start gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
-                    ${inmate.avatarUrl ? 
-                        `<img src="${inmate.avatarUrl}" alt="${fullName}" class="w-full h-full object-cover">` :
-                        `<svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                        </svg>`
-                    }
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 truncate">${fullName}</h3>
-                    <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md text-xs font-medium">
-                                Age: <span class="ml-1">${inmate.age || 'N/A'}</span>
-                            </span>
-                            <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${this.getStatusClass(inmate.status || 'Active')}">
-                                Status: <span class="ml-1">${inmate.status || 'Active'}</span>
-                            </span>
-                        </div>
-                        <div class="text-xs text-gray-500 dark:text-gray-500">
-                            ID: ${inmate.id.toString().padStart(4, '0')} • ${inmate.gender} • Cell: ${inmate.cell?.name || 'Not Assigned'}
-                        </div>
-                    </div>
-                </div>
-                <button onclick="window.inmateSelector.clearSelection()" 
-                        class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 flex-shrink-0">
-                    Clear
-                </button>
-            </div>
-        `;
+        // Hide the selected inmate info container since we're moving it to medical card
+        if (this.selectedInmateInfo) {
+            this.selectedInmateInfo.classList.add('hidden');
+        }
         
-        this.selectedInmateInfo.classList.remove('hidden');
+        // Toggle UI elements - hide search, show back button
+        this.toggleSearchUI(false);
+        
+        // Dispatch event to notify medical card to show the inmate data
+        this.dispatchInmateSelectedEvent(inmate);
     }
 
     /**
@@ -227,10 +207,24 @@ export class InmateSelectorManager {
      */
     clearSelection() {
         this.selectedInmate = null;
-        this.selectedInmateInfo.classList.add('hidden');
-        this.searchInput.value = '';
         
-        // Trigger custom event
+        // Hide selected inmate info and medical card
+        if (this.selectedInmateInfo) {
+            this.selectedInmateInfo.classList.add('hidden');
+        }
+        
+        // Clear search input
+        if (this.searchInput) {
+            this.searchInput.value = '';
+        }
+        
+        // Toggle UI elements - show search, hide back button
+        this.toggleSearchUI(true);
+        
+        // Remove URL parameter
+        this.removeUrlParameter();
+        
+        // Trigger custom event to hide medical card
         this.dispatchInmateClearedEvent();
     }
 
@@ -362,6 +356,76 @@ export class InmateSelectorManager {
      */
     getSelectedInmate() {
         return this.selectedInmate;
+    }
+
+    /**
+     * Toggle search UI elements based on selection state
+     * @param {boolean} showSearch - Whether to show search elements
+     */
+    toggleSearchUI(showSearch) {
+        if (showSearch) {
+            // Show search section, hide back button
+            if (this.searchSection) {
+                this.searchSection.classList.remove('hidden');
+            }
+            if (this.backToSearchContainer) {
+                this.backToSearchContainer.classList.add('hidden');
+            }
+        } else {
+            // Hide search section, show back button
+            if (this.searchSection) {
+                this.searchSection.classList.add('hidden');
+            }
+            if (this.backToSearchContainer) {
+                this.backToSearchContainer.classList.remove('hidden');
+            }
+        }
+    }
+
+    /**
+     * Update URL with inmate ID parameter
+     * @param {number} inmateId - Inmate ID to add to URL
+     */
+    updateUrl(inmateId) {
+        const url = new URL(window.location);
+        url.searchParams.set('inmate', inmateId);
+        window.history.pushState({}, '', url);
+    }
+
+    /**
+     * Remove inmate parameter from URL
+     */
+    removeUrlParameter() {
+        const url = new URL(window.location);
+        url.searchParams.delete('inmate');
+        window.history.pushState({}, '', url);
+    }
+
+    /**
+     * Get URL parameter value
+     * @param {string} name - Parameter name
+     * @returns {string|null} Parameter value or null
+     */
+    getUrlParameter(name) {
+        const url = new URL(window.location);
+        return url.searchParams.get(name);
+    }
+
+    /**
+     * Check URL for inmate parameter and auto-select if present
+     */
+    async checkUrlForInmate() {
+        const inmateId = this.getUrlParameter('inmate');
+        if (inmateId) {
+            try {
+                // Auto-select the inmate from URL parameter
+                await this.selectInmate(parseInt(inmateId));
+            } catch (error) {
+                console.error('Error auto-selecting inmate from URL:', error);
+                // Remove invalid parameter from URL
+                this.removeUrlParameter();
+            }
+        }
     }
 }
 
