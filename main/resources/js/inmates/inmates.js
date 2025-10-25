@@ -1864,15 +1864,29 @@ document.addEventListener('DOMContentLoaded', () => {
           </select>
         </div>
         
-        <!-- Contact Number Field -->
+        <!-- Phone Field -->
         <div class="sm:col-span-2 lg:col-span-1">
-          <label class="block text-sm text-gray-300 mb-2 font-medium">Contact Number</label>
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Phone</label>
           <div class="relative">
             <input type="tel" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" 
-                   value="${visitor.contactNumber || ''}" data-field="contactNumber" placeholder="+63 9XX XXX XXXX" />
+                   value="${visitor.phone || visitor.contactNumber || ''}" data-field="phone" placeholder="+63 9XX XXX XXXX" />
             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
               <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Email Field -->
+        <div class="sm:col-span-2 lg:col-span-1">
+          <label class="block text-sm text-gray-300 mb-2 font-medium">Email</label>
+          <div class="relative">
+            <input type="email" class="w-full rounded-lg bg-gray-800/60 border border-gray-600 text-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" 
+                   value="${visitor.email || ''}" data-field="email" placeholder="email@example.com" />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
               </svg>
             </div>
           </div>
@@ -1974,14 +1988,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return {
       name: getVal('[data-field="name"]'),
+      phone: getVal('[data-field="phone"]'),
+      email: getVal('[data-field="email"]'),
       relationship: getVal('[data-field\="relationship\"]'),
       idType: getVal('[data-field\="idType\"]'),
       idNumber: getVal('[data-field\="idNumber\"]'),
-      contactNumber: getVal('[data-field\="contactNumber\"]'),
       address: getVal('[data-field\="address\"]'),
       avatarFilename: avatarFilename,
       avatarPath: 'images/visitors/profiles',
-      avatarDisk: 'public',
       avatarDataUrl: avatarDataUrl
     };
   }
@@ -1993,29 +2007,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const visitors = [];
     container.querySelectorAll('.bg-gray-800\\/40').forEach(visitorDiv => {
       const name = visitorDiv.querySelector('[data-field="name"]').value;
+      const phone = visitorDiv.querySelector('[data-field="phone"]').value;
+      const email = visitorDiv.querySelector('[data-field="email"]').value;
       const relationship = visitorDiv.querySelector('[data-field="relationship"]').value;
       const idType = visitorDiv.querySelector('[data-field="idType"]').value;
       const idNumber = visitorDiv.querySelector('[data-field="idNumber"]').value;
-      const contactNumber = visitorDiv.querySelector('[data-field="contactNumber"]').value;
       const address = visitorDiv.querySelector('[data-field="address"]').value;
       const avatarInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="avatar"]'));
       const avatarFilename = avatarInput && avatarInput.files && avatarInput.files[0] ? avatarInput.files[0].name : '';
       const avatarPath = 'images/visitors/profiles';
-      const avatarDisk = 'public';
       const previewEl = /** @type {HTMLImageElement|null} */(visitorDiv.querySelector('[data-field="avatarPreview"]'));
       const avatarDataUrl = previewEl ? String(previewEl.getAttribute('src') || '') : '';
 
       if (name && relationship) {
         visitors.push({
           name: name,
+          phone: phone,
+          email: email,
           relationship: relationship,
           idType: idType,
           idNumber: idNumber,
-          contactNumber: contactNumber,
           address: address,
           avatarFilename: avatarFilename,
           avatarPath: avatarPath,
-          avatarDisk: avatarDisk,
           avatarDataUrl: avatarDataUrl
         });
       }
@@ -3360,7 +3374,8 @@ async function openUnifiedInmateModal(inmate) {
       <div class="min-w-0 flex-1">
         <button type="button" data-open-visitor="${idx}" class="truncate text-left text-sm font-medium text-blue-600 hover:underline dark:text-blue-400 cursor-pointer">${v.name}</button>
         <p class="truncate text-xs text-gray-500 dark:text-gray-400">${v.relationship || '—'}${v.idType ? ` • ${v.idType}` : ''}${v.idNumber ? ` (${v.idNumber})` : ''}</p>
-        ${v.contactNumber ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">📞 ${v.contactNumber}</p>` : ''}
+        ${v.phone ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">📞 ${v.phone}</p>` : ''}
+        ${v.email ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">✉️ ${v.email}</p>` : ''}
         ${v.address ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">📍 ${v.address}</p>` : ''}
       </div>
       <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-green-500/10 text-green-600">Allowed</span>
@@ -3760,7 +3775,8 @@ function openVisitorModal(visitor) {
   const relationship = visitor?.relationship || '—';
   const idType = visitor?.idType || '';
   const idNumber = visitor?.idNumber || '';
-  const contactNumber = visitor?.contactNumber || '';
+  const phone = visitor?.phone || visitor?.contactNumber || '';
+  const email = visitor?.email || '';
   const address = visitor?.address || '';
 
   const headerHTML = `
@@ -3780,7 +3796,8 @@ function openVisitorModal(visitor) {
       <div class="rounded-lg border border-gray-700 bg-gray-800/50 p-3 sm:p-4">
         <h3 class="text-sm font-semibold text-gray-200 mb-2">Contact</h3>
         <div class="text-sm text-gray-300 space-y-1">
-          <div>${contactNumber ? `📞 ${contactNumber}` : '—'}</div>
+          <div>${phone ? `📞 ${phone}` : '—'}</div>
+          <div>${email ? `✉️ ${email}` : '—'}</div>
           <div class="break-words">${address ? `📍 ${address}` : '—'}</div>
         </div>
       </div>

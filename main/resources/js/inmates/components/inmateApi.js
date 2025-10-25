@@ -292,7 +292,17 @@ class InmateApiClient {
             initialPoints: formData.initialPoints || 0,
             currentPoints: formData.currentPoints || 0,
             pointsHistory: formData.pointsHistory || [],
-            allowedVisitors: formData.allowedVisitors || [],
+            allowedVisitors: (formData.allowedVisitors || []).map(visitor => ({
+                name: visitor.name,
+                phone: visitor.phone,
+                email: visitor.email,
+                relationship: visitor.relationship,
+                idType: visitor.idType,
+                idNumber: visitor.idNumber,
+                address: visitor.address,
+                avatarFilename: visitor.avatarFilename,
+                avatarPath: visitor.avatarPath,
+            })),
             recentVisits: formData.recentVisits || []
         };
     }

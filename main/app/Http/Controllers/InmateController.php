@@ -96,7 +96,7 @@ class InmateController extends Controller
         {
             try {
                 $inmate = $this->inmateService->getById($id);
-                $inmate->load(['medicalRecords.createdBy', 'medicalFiles.uploader']);
+                $inmate->load(['medicalRecords.createdBy', 'medicalFiles.uploader', 'visitors']);
 
                 if (!$inmate) {
                     return response()->json([
@@ -471,6 +471,23 @@ class InmateController extends Controller
                         'uploaded_by' => $f->uploader?->full_name,
                         'created_at' => $f->created_at?->format('Y-m-d H:i:s'),
                         'updated_at' => $f->updated_at?->format('Y-m-d H:i:s'),
+                    ])->toArray()
+                    : [],
+                'allowedVisitors' => $inmate->relationLoaded('visitors') 
+                    ? $inmate->visitors->map(fn($v) => [
+                        'id' => $v->id,
+                        'name' => $v->name,
+                        'phone' => $v->phone,
+                        'email' => $v->email,
+                        'relationship' => $v->relationship,
+                        'id_type' => $v->id_type,
+                        'id_number' => $v->id_number,
+                        'address' => $v->address,
+                        'avatar_path' => $v->avatar_path,
+                        'avatar_filename' => $v->avatar_filename,
+                        'avatar_url' => $v->avatar_url,
+                        'created_at' => $v->created_at?->format('Y-m-d H:i:s'),
+                        'updated_at' => $v->updated_at?->format('Y-m-d H:i:s'),
                     ])->toArray()
                     : [],
                 'daysInCustody' => $inmate->days_in_custody,

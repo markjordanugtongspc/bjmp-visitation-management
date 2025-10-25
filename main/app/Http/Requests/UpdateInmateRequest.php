@@ -52,6 +52,14 @@ class UpdateInmateRequest extends FormRequest
             // Additional data (for future use)
             'points_history' => ['nullable', 'array'],
             'allowed_visitors' => ['nullable', 'array'],
+            'allowed_visitors.*.name' => ['required', 'string', 'max:255'],
+            'allowed_visitors.*.phone' => ['nullable', 'string', 'max:20'],
+            'allowed_visitors.*.contact_number' => ['nullable', 'string', 'max:20'], // Support old field name
+            'allowed_visitors.*.email' => ['nullable', 'email', 'max:255'],
+            'allowed_visitors.*.relationship' => ['nullable', 'string', 'max:100'],
+            'allowed_visitors.*.id_type' => ['nullable', 'string', 'max:50'],
+            'allowed_visitors.*.id_number' => ['nullable', 'string', 'max:50'],
+            'allowed_visitors.*.address' => ['nullable', 'string'],
             'recent_visits' => ['nullable', 'array'],
         ];
     }

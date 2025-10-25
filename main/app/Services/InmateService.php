@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Inmate;
 use App\Models\Cell;
+use App\Models\Visitor;
 use App\Http\Requests\StoreInmateRequest;
 use App\Http\Requests\UpdateInmateRequest;
 use Illuminate\Database\Eloquent\Collection;
@@ -327,12 +328,26 @@ class InmateService
 
         // Handle allowed visitors if provided
         if (!empty($data['allowed_visitors'])) {
-            // This would be implemented when we create the InmateAllowedVisitor model
-            // For now, we'll just log it
-            Log::info('Allowed visitors data received', [
-                'inmate_id' => $inmate->id,
-                'allowed_visitors' => $data['allowed_visitors']
-            ]);
+            // Delete existing visitors first
+            Visitor::where('inmate_id', $inmate->id)->delete();
+            
+            // Create new visitors
+            foreach ($data['allowed_visitors'] as $visitorData) {
+                Visitor::create([
+                    'inmate_id' => $inmate->id,
+                    'name' => $visitorData['name'] ?? null,
+                    'phone' => $visitorData['phone'] ?? $visitorData['contact_number'] ?? null, // Support both old and new field names
+                    'email' => $visitorData['email'] ?? null,
+                    'relationship' => $visitorData['relationship'] ?? null,
+                    'id_type' => $visitorData['id_type'] ?? null,
+                    'id_number' => $visitorData['id_number'] ?? null,
+                    'address' => $visitorData['address'] ?? null,
+                    'avatar_path' => $visitorData['avatar_path'] ?? null,
+                    'avatar_filename' => $visitorData['avatar_filename'] ?? null,
+                    'created_by_user_id' => auth()->id(),
+                    'updated_by_user_id' => auth()->id(),
+                ]);
+            }
         }
 
         // Handle recent visits if provided

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Visitor;
 
 class Inmate extends Model
 {
@@ -93,10 +94,10 @@ class Inmate extends Model
     //     return $this->hasMany(VisitationLog::class);
     // }
 
-    // public function allowedVisitors(): HasMany
-    // {
-    //     return $this->hasMany(InmateAllowedVisitor::class);
-    // }
+    public function visitors(): HasMany
+    {
+        return $this->hasMany(Visitor::class);
+    }
 
     public function pointsHistory(): HasMany
     {
