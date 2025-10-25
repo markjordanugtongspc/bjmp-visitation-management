@@ -38,9 +38,13 @@ return new class extends Migration
             $table->date('date_of_admission');
             $table->enum('status', ['Active', 'Released', 'Transferred', 'Medical'])->default('Active')->index();
 
-            // Optional relationships (kept unconstrained for now to avoid cross-migration coupling)
-            $table->foreignId('cell_id')->nullable()->index(); // intended to reference `cells` table later
-            $table->foreignId('admitted_by_user_id')->nullable()->index(); // intended to reference `users` table
+            // Optional relationships (FK will be added in separate migration after cells table exists)
+            $table->foreignId('cell_id')->nullable()->index();
+            $table->foreignId('admitted_by_user_id')
+                ->nullable()
+                ->constrained('users', 'user_id', 'inmates_admitted_by_user_id_foreign')
+                ->nullOnDelete()
+                ->index();
 
             // Medical
             $table->enum('medical_status', ['Healthy', 'Under Treatment', 'Critical', 'Not Assessed'])->default('Not Assessed');

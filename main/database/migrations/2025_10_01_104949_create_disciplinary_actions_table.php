@@ -16,7 +16,7 @@ return new class extends Migration
 
             // Ownership
             $table->foreignId('inmate_id')
-                ->constrained('inmates')
+                ->constrained('inmates', 'id', 'disciplinary_actions_inmate_id_foreign')
                 ->cascadeOnDelete()
                 ->index();
 
@@ -40,17 +40,17 @@ return new class extends Migration
             // Staff
             $table->foreignId('sanctioned_by_user_id')
                 ->nullable()
-                ->constrained('users')
+                ->constrained('users', 'user_id', 'disciplinary_actions_sanctioned_by_user_id_foreign')
                 ->nullOnDelete()
                 ->index();
             $table->foreignId('created_by_user_id')
                 ->nullable()
-                ->constrained('users')
+                ->constrained('users', 'user_id', 'disciplinary_actions_created_by_user_id_foreign')
                 ->nullOnDelete()
                 ->index();
             $table->foreignId('updated_by_user_id')
                 ->nullable()
-                ->constrained('users')
+                ->constrained('users', 'user_id', 'disciplinary_actions_updated_by_user_id_foreign')
                 ->nullOnDelete()
                 ->index();
 

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('points_history', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('inmate_id')->constrained('inmates')->cascadeOnDelete();
+            $table->foreignId('inmate_id')->constrained('inmates', 'id', 'points_history_inmate_id_foreign')->cascadeOnDelete();
             $table->integer('points_delta'); // positive or negative
             $table->integer('points_before');
             $table->integer('points_after');

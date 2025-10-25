@@ -28,7 +28,7 @@ return new class extends Migration
             $table->index('uploaded_by');
             
             // Foreign key constraint
-            $table->foreign('uploaded_by')->references('user_id')->on('users')->onDelete('cascade');
+            $table->foreign('uploaded_by', 'supervision_files_uploaded_by_foreign')->references('user_id')->on('users')->onDelete('cascade');
         });
     }
 

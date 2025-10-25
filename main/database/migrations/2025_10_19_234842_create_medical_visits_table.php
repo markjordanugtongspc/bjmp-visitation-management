@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('medical_visits', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('inmate_id')->constrained()->onDelete('cascade');
+            $table->foreignId('inmate_id')->constrained('inmates', 'id', 'medical_visits_inmate_id_foreign')->onDelete('cascade');
             $table->datetime('scheduled_at');
             $table->enum('visit_type', ['one-time', 'recurring']);
             $table->enum('recurring_frequency', ['daily', 'weekly', 'monthly'])->nullable();
             $table->date('recurring_until')->nullable();
             $table->enum('status', ['scheduled', 'completed', 'missed', 'cancelled'])->default('scheduled');
             $table->text('notes')->nullable();
-            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('created_by')->constrained('users', 'user_id', 'medical_visits_created_by_foreign')->onDelete('cascade');
             $table->timestamps();
             
             // Indexes for better performance
