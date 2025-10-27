@@ -19,9 +19,9 @@
         </aside>
 
         <!-- Main content -->
-        <div class="flex-1 min-h-screen bg-gray-950">
+        <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950">
             <!-- Hope UI–style Header -->
-            <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-gray-900/70 bg-gray-900/95 border-b border-gray-800">
+            <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
                 <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">
                     <!-- Mobile: sidebar toggle (hamburger icon) -->
                     <button data-sidebar-toggle class="sm:hidden inline-flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 h-9 w-9 text-gray-700 dark:text-gray-300">
@@ -49,6 +49,11 @@
 
                     <!-- Actions -->
                     <div class="flex items-center gap-2 ml-auto">
+                        <!-- Dark Mode Toggle - Hidden on Mobile -->
+                        <div class="hidden sm:block">
+                            <x-dark-mode-toggle variant="button" size="sm" :showLabel="false" />
+                        </div>
+                        
                     <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
                         <span class="sr-only">Announcements</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a7.5 7.5 0 00-7.5 7.5V12l-1.5 1.5V15h18v-1.5L19.5 12V9.75a7.5 7.5 0 00-7.5-7.5zM8.25 18a3.75 3.75 0 007.5 0h-7.5z"/></svg>
@@ -93,6 +98,13 @@
                                     <span class="block text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{{ Auth::user()->email }}</span>
                                 </div>
                                 <hr class="border-t border-gray-200 dark:border-gray-700">
+                                
+                                <!-- Dark Mode Toggle - Mobile Only -->
+                                <div class="sm:hidden">
+                                    <x-dark-mode-toggle variant="mobile-dropdown" size="sm" />
+                                    <hr class="border-t border-gray-200 dark:border-gray-700">
+                                </div>
+                                
                                 <button id="edit-profile-btn" class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
@@ -133,11 +145,11 @@
 
             <!-- Officers content -->
             <div class="p-4 sm:p-6">
-                <div class="rounded-xl bg-gray-900 border border-gray-800 shadow">
-                    <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+                <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow">
+                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
                         <div>
-                            <div class="text-sm sm:text-base font-medium text-gray-50">Officers</div>
-                            <div class="text-xs text-gray-400">A list of all officers including their name, title, email and status.</div>
+                            <div class="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-50">Officers</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">A list of all officers including their name, title, email and status.</div>
                         </div>
                         <button type="button" class="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs sm:text-sm cursor-pointer" data-add-officer data-store-url="{{ route('warden.officers.store') }}" data-update-url="{{ route('warden.officers.update', ['user' => 0]) }}" data-list-url="{{ route('warden.officers.list') }}" data-csrf="{{ csrf_token() }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a.75.75 0 01.75.75V12h6.75a.75.75 0 010 1.5H12.75V20a.75.75 0 01-1.5 0v-6.5H4.5a.75.75 0 010-1.5h6.75V5.25A.75.75 0 0112 4.5z"/></svg>
@@ -148,7 +160,7 @@
                     <!-- Desktop Table (hidden on mobile) -->
                     <div class="hidden sm:block overflow-x-auto">
                         <table class="w-full text-sm">
-                            <thead class="bg-gray-800/60 text-gray-300">
+                            <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300">
                                 <tr>
                                     <th class="text-left font-medium px-4 py-3">Name</th>
                                     <th class="text-left font-medium px-4 py-3">Title</th>
@@ -156,7 +168,7 @@
                                     <th class="text-right font-medium px-4 py-3">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="officers-table-body" class="divide-y divide-gray-800 text-gray-200">
+                            <tbody id="officers-table-body" class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-900 dark:text-gray-200">
                                 @php
                                     $officers = [
                                         ['id'=>1,'name'=>'Jail Warden','email'=>'warden@bjmp.gov.ph','title'=>'Warden','subtitle'=>'Jail Management','status'=>'Active'],
@@ -176,14 +188,14 @@
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
                                                 </div>
                                                 <div>
-                                                    <div class="font-medium text-gray-50" data-o-name>{{ $o['name'] }}</div>
-                                                    <div class="text-xs text-gray-400" data-o-email>{{ $o['email'] }}</div>
+                                                    <div class="font-medium text-gray-900 dark:text-gray-50" data-o-name>{{ $o['name'] }}</div>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400" data-o-email>{{ $o['email'] }}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <div class="font-medium text-gray-50" data-o-title>{{ $o['title'] }}</div>
-                                            <div class="text-xs text-gray-400" data-o-subtitle>{{ $o['subtitle'] }}</div>
+                                            <div class="font-medium text-gray-900 dark:text-gray-50" data-o-title>{{ $o['title'] }}</div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400" data-o-subtitle>{{ $o['subtitle'] }}</div>
                                         </td>
                                         <td class="px-4 py-3">
                                             @php $active = strtolower($o['status']) === 'active'; @endphp
@@ -212,7 +224,7 @@
 
                     <!-- Mobile Cards (visible only on mobile) -->
                     <div class="sm:hidden">
-                        <div id="officers-cards-mobile" class="divide-y divide-gray-800">
+                        <div id="officers-cards-mobile" class="divide-y divide-gray-200 dark:divide-gray-800">
                             @foreach($officers as $o)
                                 <div class="p-4 space-y-3" data-card-id="{{ $o['id'] }}">
                                     <div class="flex justify-between items-start">
@@ -221,8 +233,8 @@
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
                                             </div>
                                             <div>
-                                                <div class="font-medium text-gray-50" data-o-name>{{ $o['name'] }}</div>
-                                                <div class="text-xs text-gray-400" data-o-email>{{ $o['email'] }}</div>
+                                                <div class="font-medium text-gray-900 dark:text-gray-50" data-o-name>{{ $o['name'] }}</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400" data-o-email>{{ $o['email'] }}</div>
                                             </div>
                                         </div>
                                         <button type="button" data-edit-officer 
@@ -244,8 +256,8 @@
                                     <div class="mt-2 pl-13">
                                         <div class="flex justify-between items-center">
                                             <div>
-                                                <div class="font-medium text-gray-50" data-o-title>{{ $o['title'] }}</div>
-                                                <div class="text-xs text-gray-400" data-o-subtitle>{{ $o['subtitle'] }}</div>
+                                                <div class="font-medium text-gray-900 dark:text-gray-50" data-o-title>{{ $o['title'] }}</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400" data-o-subtitle>{{ $o['subtitle'] }}</div>
                                             </div>
                                             @php $active = strtolower($o['status']) === 'active'; @endphp
                                             <span data-o-status class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {{ $active ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500' }}">{{ $o['status'] }}</span>

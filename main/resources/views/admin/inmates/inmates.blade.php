@@ -49,6 +49,9 @@
 
                     <!-- Actions -->
                     <div class="flex items-center gap-2 ml-auto">
+                        <!-- Dark Mode Toggle -->
+                        <x-dark-mode-toggle variant="button" size="md" :showLabel="false" class="hidden sm:flex" />
+
                         <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
                             <span class="sr-only">Announcements</span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a7.5 7.5 0 00-7.5 7.5V12l-1.5 1.5V15h18v-1.5L19.5 12V9.75a7.5 7.5 0 00-7.5-7.5zM8.25 18a3.75 3.75 0 007.5 0h-7.5z"/></svg>

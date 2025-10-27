@@ -1,5 +1,6 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
+import flowbite from 'flowbite/plugin'; // 1. ADD THIS LINE
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -8,6 +9,7 @@ export default {
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
         './resources/js/**/*.js',
+        './node_modules/flowbite/**/*.js', // 2. ADD THIS LINE
     ],
     darkMode: 'class',
 
@@ -53,7 +55,8 @@ export default {
         },
     },
 
-    plugins: [forms],
+    plugins: [
+        forms,
+        flowbite // 3. ADD THIS LINE
+    ],
 };
-
-

@@ -7,10 +7,13 @@
         <aside data-sidebar class="fixed z-40 inset-y-0 left-0 w-72 -translate-x-full sm:translate-x-0 sm:static sm:inset-auto bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-transform">
 
             <!-- Mobile Brand -->
-            <div class="sm:hidden flex items-center px-3 py-4 border-b border-gray-200 dark:border-gray-800">
+            <div class="sm:hidden flex items-center justify-between px-3 py-4 border-b border-gray-200 dark:border-gray-800">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
                     <x-application-logo size="sm" :showText="true" heading="BJMP Iligan" subtext="Information & Visitation" />
                 </a>
+                
+                <!-- Mobile Dark Mode Toggle -->
+                <x-dark-mode-toggle variant="button" size="sm" :showLabel="false" />
             </div>
 
             <nav data-sidebar-nav class="p-3 text-sm" data-user-role="{{ Auth::user()->role_id ?? 0 }}">
@@ -50,6 +53,11 @@
                     <!-- Actions -->
                     <div class="flex items-center gap-2 ml-auto">
                         <!-- <a href="#" class="hidden sm:inline-flex items-center gap-1 h-9 px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium">Go Pro</a> -->
+
+                        <!-- Dark Mode Toggle - Hidden on Mobile -->
+                        <div class="hidden sm:block">
+                            <x-dark-mode-toggle variant="button" size="md" :showLabel="false" />
+                        </div>
 
                         <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
                             <span class="sr-only">Announcements</span>
@@ -97,6 +105,12 @@
                                 </div>
                                 
                                 <hr class="border-t border-gray-200 dark:border-gray-700">
+                                
+                                <!-- Dark Mode Toggle - Mobile Only -->
+                                <div class="sm:hidden">
+                                    <x-dark-mode-toggle variant="mobile-dropdown" size="sm" />
+                                    <hr class="border-t border-gray-200 dark:border-gray-700">
+                                </div>
                                 
                                 <button id="edit-profile-btn" class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -430,4 +444,5 @@
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/profile/edit-profile-modal.js')
     @vite('resources/js/dashboard/components/role-based.js')
+    @vite('resources/js/modules/dark-mode-init.js')
 </x-app-layout>
