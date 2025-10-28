@@ -17,7 +17,7 @@ export default defineConfig({
                 'resources/js/inmates/inmates.js',
                 'resources/js/inmates/components/inmates-female.js',
                 'resources/js/inmates/components/points-system.js',
-                'resources/js/modules/dark-mode-init.js'
+                
             ],
             refresh: true,
         }),

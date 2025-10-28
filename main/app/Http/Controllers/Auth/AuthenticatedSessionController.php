@@ -42,6 +42,8 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->intended(route('nurse.dashboard', absolute: false));
             case 7: // Jail Nurse
                 return redirect()->intended(route('nurse.dashboard', absolute: false));
+            case 8: // Searcher (Jail Gate Searcher)
+                return redirect()->intended(route('searcher.dashboard', absolute: false));
             default:
                 // Default to admin dashboard for users without specific role
                 return redirect()->intended(route('admin.dashboard', absolute: false));

@@ -16,8 +16,7 @@ export default function initSupervisionModalInteractions() {
 // Ensure SweetAlert2 modals always use dark mode as the default theme
 function setSweetAlertDarkThemeDefault() {
   if (typeof window !== 'undefined' && window.Swal) {
-    // Override default theme for all modals
-    window.Swal.defaultOptions = window.Swal.defaultOptions || {};
+    return;
     // A wrapper for backward/forward compat: also patch fire to always enforce dark
     const globalDarkDefaults = {
       background: '#172033', // deep dark (e.g. Tailwind's zinc-900/sky-900)
@@ -169,10 +168,8 @@ async function handleRefreshClick(e) {
         showConfirmButton: false,
         timer: 2200,
         icon: 'success',
-        background: '#12202f', // dark default
-        color: '#d1fae5',
         customClass: {
-          popup: 'bg-green-800/90 text-green-100 border border-green-900 shadow rounded-lg text-sm',
+          popup: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-gray-900 dark:text-neutral-100 shadow rounded-lg text-sm',
         },
         title: 'Supervision data refreshed!'
       });
@@ -187,10 +184,8 @@ async function handleRefreshClick(e) {
         showConfirmButton: false,
         timer: 3000,
         icon: 'error',
-        background: '#2e1020',
-        color: '#fecaca',
         customClass: {
-          popup: 'bg-red-900/90 text-red-100 border border-red-800 shadow rounded-lg text-sm'
+          popup: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-gray-900 dark:text-neutral-100 shadow rounded-lg text-sm'
         },
         title: 'Failed to refresh data'
       });
@@ -214,7 +209,7 @@ function exposeSweetAlertHelpers() {
 function showGuidelinesInfoModal() {
   if (typeof window === 'undefined' || !window.Swal) return;
   window.Swal.fire({
-    title: `<span class="text-sky-200 md:text-2xl text-lg font-semibold">Supervision Guidelines</span>`,
+    title: `<span class="text-sky-700 dark:text-sky-200 md:text-2xl text-lg font-semibold">Supervision Guidelines</span>`,
     html: `
       <div class="prose prose-sm md:prose-base max-w-none text-neutral-200">
         <p class="mb-4 text-zinc-200">
@@ -230,16 +225,14 @@ function showGuidelinesInfoModal() {
       </div>
     `,
     icon: 'info',
-    background: '#172033',
-    color: '#e0e6ed',
     confirmButtonText: `<span class="text-brand-text-dark dark:text-brand-text-light">Got it</span>`,
     customClass: {
-      popup: 'bg-zinc-900 border border-sky-900 md:max-w-xl shadow-xl rounded-lg text-neutral-100',
+      popup: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-sky-900 md:max-w-xl shadow-xl rounded-lg text-gray-900 dark:text-neutral-100',
       // Modernize button to match palette: bg-brand-button-primary-dark in dark, bg-brand-button-primary-light in light; text and ring based on palette
       confirmButton:
         'bg-brand-button-primary-light text-white hover:bg-brand-button-hover-light focus:ring-4 focus:ring-brand-button-primary-light focus:outline-none rounded font-semibold px-5 py-2 transition-colors duration-100 ' +
         'dark:bg-brand-button-primary-dark dark:text-brand-text-dark dark:hover:bg-brand-button-hover-dark dark:focus:ring-brand-button-primary-dark',
-      title: 'pt-4 text-sky-200',
+      title: 'pt-4 text-sky-700 dark:text-sky-200',
       htmlContainer: 'pb-2'
     }
   });

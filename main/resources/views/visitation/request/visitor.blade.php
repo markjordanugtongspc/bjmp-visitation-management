@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     
     <!-- Styles / Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/modules/dark-mode-init.js']) <!-- Kani gamiton aron ma import ang tailwind css nga naka built in -->
+    @vite(['resources/css/app.css', 'resources/js/app.js']) <!-- Kani gamiton aron ma import ang tailwind css nga naka built in -->
 </head>
 <body class="dark bg-white dark:bg-slate-900 text-[#1b1b18] min-h-screen"> <!-- Default Bacground - Dark Mode -->
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 font-['Poppins',_sans-serif]">
@@ -27,8 +27,14 @@
                 Back to Home
             </a>
             
-            <!-- Dark Mode Toggle -->
-            <x-dark-mode-toggle variant="button" size="sm" />
+            <!-- Dark Mode Toggle removed; icons preserved
+            <svg data-icon="moon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+            </svg>
+            <svg data-icon="sun" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
+            </svg>
+            -->
         </div>
 
         <!-- Header / Announcement -->
