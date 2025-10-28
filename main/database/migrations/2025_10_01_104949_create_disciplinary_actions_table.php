@@ -15,10 +15,7 @@ return new class extends Migration
             $table->id();
 
             // Ownership
-            $table->foreignId('inmate_id')
-                ->constrained('inmates', 'id', 'disciplinary_actions_inmate_id_foreign')
-                ->cascadeOnDelete()
-                ->index();
+            $table->unsignedBigInteger('inmate_id')->index();
 
             // Action core
             $table->date('action_date');
@@ -38,21 +35,9 @@ return new class extends Migration
             $table->string('attachments_path')->nullable();
 
             // Staff
-            $table->foreignId('sanctioned_by_user_id')
-                ->nullable()
-                ->constrained('users', 'user_id', 'disciplinary_actions_sanctioned_by_user_id_foreign')
-                ->nullOnDelete()
-                ->index();
-            $table->foreignId('created_by_user_id')
-                ->nullable()
-                ->constrained('users', 'user_id', 'disciplinary_actions_created_by_user_id_foreign')
-                ->nullOnDelete()
-                ->index();
-            $table->foreignId('updated_by_user_id')
-                ->nullable()
-                ->constrained('users', 'user_id', 'disciplinary_actions_updated_by_user_id_foreign')
-                ->nullOnDelete()
-                ->index();
+            $table->unsignedBigInteger('sanctioned_by_user_id')->nullable()->index();
+            $table->unsignedBigInteger('created_by_user_id')->nullable()->index();
+            $table->unsignedBigInteger('updated_by_user_id')->nullable()->index();
 
             // Helpful indexes
             $table->index(['inmate_id', 'action_date']);
@@ -60,6 +45,20 @@ return new class extends Migration
             // Soft deletes and timestamps
             $table->softDeletes();
             $table->timestamps();
+
+            // Foreign Keys
+            $table->foreign('inmate_id', 'disciplinary_actions_inmate_id_foreign')
+                ->references('id')->on('inmates')
+                ->onDelete('cascade');
+            $table->foreign('sanctioned_by_user_id', 'disciplinary_actions_sanctioned_by_user_id_foreign')
+                ->references('user_id')->on('users')
+                ->nullOnDelete();
+            $table->foreign('created_by_user_id', 'disciplinary_actions_created_by_user_id_foreign')
+                ->references('user_id')->on('users')
+                ->nullOnDelete();
+            $table->foreign('updated_by_user_id', 'disciplinary_actions_updated_by_user_id_foreign')
+                ->references('user_id')->on('users')
+                ->nullOnDelete();
         });
     }
 

@@ -352,14 +352,29 @@ class InmateController extends Controller
     public function search(Request $request): JsonResponse
     {
         try {
-            $request->validate([
-                'query' => ['required', 'string', 'min:2', 'max:255']
-            ]);
+            $q = $request->input('query', $request->input('q'));
+            if (!is_string($q) || mb_strlen(trim($q)) < 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The query field must be at least 2 characters.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
 
-            $inmates = Inmate::search($request->input('query'))
-                ->with(['admittedBy', 'cell'])
-                ->limit(10)
-                ->get();
+            $q = trim($q);
+
+            if (method_exists(Inmate::class, 'search')) {
+                $inmates = Inmate::search($q)
+                    ->take(10)
+                    ->get();
+                $inmates->load(['admittedBy', 'cell']);
+            } else {
+                // Use model scopeSearch (first/middle/last name, crime, sentence, cell name)
+                $inmates = Inmate::query()
+                    ->with(['admittedBy', 'cell'])
+                    ->search($q)
+                    ->limit(10)
+                    ->get();
+            }
 
             // Transform inmates data to match frontend expectations
             $transformedInmates = $inmates->map(function ($inmate) {
@@ -382,7 +397,7 @@ class InmateController extends Controller
                 'success' => false,
                 'message' => 'Failed to search inmates',
                 'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
-                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
         }
 

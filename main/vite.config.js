@@ -16,7 +16,8 @@ export default defineConfig({
                 'resources/js/profile/edit-profile-modal.js',
                 'resources/js/inmates/inmates.js',
                 'resources/js/inmates/components/inmates-female.js',
-                'resources/js/inmates/components/points-system.js'
+                'resources/js/inmates/components/points-system.js',
+                'resources/js/modules/dark-mode-init.js'
             ],
             refresh: true,
         }),

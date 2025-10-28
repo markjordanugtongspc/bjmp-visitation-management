@@ -13,12 +13,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     
     <!-- Styles / Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js']) <!-- Kani gamiton aron ma import ang tailwind css nga naka built in -->
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/modules/dark-mode-init.js']) <!-- Kani gamiton aron ma import ang tailwind css nga naka built in -->
 </head>
 <body class="dark bg-white dark:bg-slate-900 text-[#1b1b18] min-h-screen"> <!-- Default Bacground - Dark Mode -->
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 font-['Poppins',_sans-serif]">
-        <!-- Home Button -->
-        <div class="mb-6 flex justify-start">
+        <!-- Home Button and Dark Mode Toggle -->
+        <div class="mb-6 flex justify-between items-center">
             <a href="{{ url('/') }}" class="inline-flex items-center gap-2 rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-gray-900 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20">
                 <svg xmlns="http://www.w3.org/2000/svg" class="size-5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
@@ -26,6 +26,9 @@
                 </svg>
                 Back to Home
             </a>
+            
+            <!-- Dark Mode Toggle -->
+            <x-dark-mode-toggle variant="button" size="sm" />
         </div>
 
         <!-- Header / Announcement -->

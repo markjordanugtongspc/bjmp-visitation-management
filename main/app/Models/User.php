@@ -115,6 +115,7 @@ class User extends Authenticatable
         return match($this->role_id) {
             0 => 'Admin',
             1 => 'Warden',
+            8 => 'Searcher',
             6 => 'Jail Head Nurse',
             7 => 'Jail Nurse',
             default => 'User'

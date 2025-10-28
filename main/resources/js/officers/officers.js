@@ -36,34 +36,34 @@ document.addEventListener('DOMContentLoaded', () => {
       title: initial.id ? 'Edit Officer' : 'Add Officer',
       html: `
         <div class="space-y-3 text-left">
-          <label class="block text-xs text-gray-300">Name</label>
-          <input id="o-name" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2" value="${name.replace(/"/g,'&quot;')}" />
-          <label class="block text-xs text-gray-300 mt-2">Email</label>
-          <input id="o-email" type="email" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2" value="${email.replace(/"/g,'&quot;')}" />
-          <label class="block text-xs text-gray-300 mt-2">Title</label>
-          <input id="o-title" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2" value="${title.replace(/"/g,'&quot;')}" />
-          <label class="block text-xs text-gray-300 mt-2">Subtitle</label>
-          <input id="o-subtitle" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2" value="${subtitle.replace(/"/g,'&quot;')}" />
-          <label class="block text-xs text-gray-300 mt-2">Status</label>
+          <label class="block text-xs text-gray-600 dark:text-gray-300">Name</label>
+          <input id="o-name" class="w-full rounded-md bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white px-3 py-2" value="${name.replace(/"/g,'&quot;')}" />
+          <label class="block text-xs text-gray-600 dark:text-gray-300 mt-2">Email</label>
+          <input id="o-email" type="email" class="w-full rounded-md bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white px-3 py-2" value="${email.replace(/"/g,'&quot;')}" />
+          <label class="block text-xs text-gray-600 dark:text-gray-300 mt-2">Title</label>
+          <input id="o-title" class="w-full rounded-md bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white px-3 py-2" value="${title.replace(/"/g,'&quot;')}" />
+          <label class="block text-xs text-gray-600 dark:text-gray-300 mt-2">Subtitle</label>
+          <input id="o-subtitle" class="w-full rounded-md bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white px-3 py-2" value="${subtitle.replace(/"/g,'&quot;')}" />
+          <label class="block text-xs text-gray-600 dark:text-gray-300 mt-2">Status</label>
           ${isMobile() ? `
           <div class="relative overflow-visible">
             <input id="o-status" type="hidden" value="${status==='inactive' ? 'Inactive' : 'Active'}" />
-            <button type="button" id="o-status-btn" class="flex w-full items-center justify-between rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+            <button type="button" id="o-status-btn" class="flex w-full items-center justify-between rounded-md bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white px-3 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
               <span id="o-status-label">${status==='inactive' ? 'Inactive' : 'Active'}</span>
-              <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+              <svg class="h-4 w-4 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
             </button>
             <!-- For mobile, keep the menu in normal flow so modal stretches like elastic -->
-            <div id="o-status-menu" class="mt-1 origin-top w-full rounded-md border border-gray-700 bg-gray-800 shadow-lg ring-1 ring-black/5 overflow-hidden hidden">
-              <button type="button" data-value="Active" class="w-full text-left px-4 py-2 text-white hover:bg-gray-700 cursor-pointer">Active</button>
-              <button type="button" data-value="Inactive" class="w-full text-left px-4 py-2 text-white hover:bg-gray-700 cursor-pointer">Inactive</button>
+            <div id="o-status-menu" class="mt-1 origin-top w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black/5 overflow-hidden hidden">
+              <button type="button" data-value="Active" class="w-full text-left px-4 py-2 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">Active</button>
+              <button type="button" data-value="Inactive" class="w-full text-left px-4 py-2 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">Inactive</button>
             </div>
           </div>` : `
           <div class="relative overflow-visible">
-            <select id="o-status" class="block w-full appearance-none rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 sm:py-2 py-3 sm:text-sm text-base pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+            <select id="o-status" class="block w-full appearance-none rounded-md bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white px-3 sm:py-2 py-3 sm:text-sm text-base pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
               <option ${status==='active'?'selected':''} value="Active">Active</option>
               <option ${status==='inactive'?'selected':''} value="Inactive">Inactive</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
               <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                 <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path>
               </svg>
@@ -77,10 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showCancelButton: true,
       confirmButtonText: 'Save',
       cancelButtonText: 'Cancel',
-      confirmButtonColor: '#3B82F6', // Blue 500
-      cancelButtonColor: '#111827', // Gray 900
-      background: '#111827', // Gray 900
-      color: '#F9FAFB', // Gray 50
       customClass: {
         container: 'swal-responsive-container',
         popup: 'swal-responsive-popup overflow-visible',
@@ -270,8 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
             title: 'Saved',
             timer: 900,
             showConfirmButton: false,
-            background: '#111827',
-            color: '#F9FAFB',
             width: isMobile() ? '90%' : '32rem',
           });
         } catch (e) {
@@ -279,8 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
             icon: 'error',
             title: 'Error',
             text: e.message || 'Unable to update officer',
-            background: '#111827',
-            color: '#F9FAFB',
           });
         }
       }
@@ -391,8 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
             icon: 'error',
             title: 'Error',
             text: e.message || 'Unable to update officer',
-            background: '#111827',
-            color: '#F9FAFB',
           });
         }
       }
@@ -588,8 +578,6 @@ document.addEventListener('DOMContentLoaded', () => {
             title: 'Officer added',
             timer: 900,
             showConfirmButton: false,
-            background: '#111827',
-            color: '#F9FAFB',
             width: isMobile() ? '90%' : '32rem',
           });
         } catch (e) {
@@ -597,8 +585,6 @@ document.addEventListener('DOMContentLoaded', () => {
             icon: 'error',
             title: 'Error',
             text: e.message || 'Unable to add officer',
-            background: '#111827',
-            color: '#F9FAFB',
           });
         }
       }
