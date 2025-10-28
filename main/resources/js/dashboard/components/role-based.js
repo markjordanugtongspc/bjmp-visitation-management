@@ -19,15 +19,16 @@ class NavigationConfig {
                     // Warden sees: Inmates, Supervision
                     dashboard: {
                         title: 'Dashboard',
-                        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a.75.75 0 011.06 0l8.69 8.69a.75.75 0 11-1.06 1.06l-.19-.19V18a2.25 2.25 0 01-2.25 2.25H15a.75.75 0 01-.75-.75v-4.5h-3V19.5a.75.75 0 01-.75.75H6.25A2.25 2.25 0 014 18v-4.69l-.19.19a.75.75 0 11-1.06-1.06l7.75-7.75Z"/></svg>`,
+                        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a.75.75 0 011.06 0l8.69 8.69a.75.75 0 11-1.06 1.06l-.19-.19V18a2.25 2.25 0 01-2.25 2.25H15a.75.75 0 01-.75-.75v-4.5h-3V19.5a.75.75 0 01-.75 0H6.25A2.25 2.25 0 014 18v-4.69l-.19.19a.75.75 0 11-1.06-1.06l7.75-7.75Z"/></svg>`,
                         route: {
                             0: 'admin.dashboard',
                             1: 'warden.dashboard',
                             2: 'warden.dashboard',
+                            8: 'searcher.dashboard',
                             6: 'nurse.dashboard',
                             7: 'nurse.dashboard'
                         },
-                        roles: [0, 1, 2, 6, 7], // Admin, Warden, Assistant Warden, Jail Head Nurse, Jail Nurse
+                        roles: [0, 1, 2, 8, 6, 7], // Admin, Warden, Assistant Warden, Searcher, Jail Head Nurse, Jail Nurse
                         order: 1
                     },
                     inmates: {
@@ -64,8 +65,13 @@ class NavigationConfig {
                     visitors: {
                         title: 'Visitors',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5M4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5S5.5 6.57 5.5 8.5S7.07 12 9 12m0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7m7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44M15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35c.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35" stroke-width="0.3" stroke="currentColor"/></svg>`,
-                        url: '/visitation/request/visitor',
-                        roles: [0, 1, 2], // Admin, Warden, and Assistant Warden
+                        route: {
+                            0: 'visitation.request.visitor',
+                            1: 'visitation.request.visitor',
+                            2: 'visitation.request.visitor',
+                            8: 'searcher.visitors.index'
+                        },
+                        roles: [0, 1, 2, 8], // Admin, Warden, Assistant Warden, Searcher
                         order: 1
                     },
                     requests: {
@@ -80,7 +86,7 @@ class NavigationConfig {
                         title: 'Facial Recognition',
                         icon: `<svg width="16px" height="16px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"><path d="M15.9998 10.5004C15.9998 11.3288 15.5521 12.0004 14.9998 12.0004C14.4475 12.0004 13.9998 11.3288 13.9998 10.5004C13.9998 9.67196 14.4475 9.00039 14.9998 9.00039C15.5521 9.00039 15.9998 9.67196 15.9998 10.5004Z" fill="currentColor"/><path d="M9.99982 10.5004C9.99982 11.3288 9.5521 12.0004 8.99982 12.0004C8.44753 12.0004 7.99982 11.3288 7.99982 10.5004C7.99982 9.67196 8.44753 9.00039 8.99982 9.00039C9.5521 9.00039 9.99982 9.67196 9.99982 10.5004Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M13.2648 2.05116C13.3472 1.64522 13.7431 1.38294 14.149 1.46533C18.3625 2.32056 21.6797 5.63763 22.535 9.85114C22.6173 10.2571 22.3551 10.6529 21.9491 10.7353C21.5432 10.8177 21.1473 10.5555 21.0649 10.1495C20.3295 6.52642 17.4738 3.67075 13.8506 2.93535C13.4447 2.85296 13.1824 2.45709 13.2648 2.05116ZM10.735 2.05121C10.8174 2.45714 10.5551 2.85301 10.1492 2.93541C6.52602 3.6708 3.67032 6.52647 2.93486 10.1496C2.85246 10.5555 2.45659 10.8178 2.05065 10.7354C1.64472 10.653 1.38244 10.2571 1.46484 9.85119C2.32014 5.63769 5.63726 2.32061 9.85079 1.46538C10.2567 1.38299 10.6526 1.64527 10.735 2.05121ZM2.05081 13.2654C2.45675 13.183 2.85262 13.4453 2.93502 13.8512C3.67048 17.4743 6.52618 20.33 10.1493 21.0654C10.5553 21.1478 10.8175 21.5436 10.7351 21.9496C10.6528 22.3555 10.2569 22.6178 9.85095 22.5354C5.63742 21.6802 2.3203 18.3631 1.465 14.1496C1.3826 13.7437 1.64488 13.3478 2.05081 13.2654ZM21.9491 13.2654C22.3551 13.3478 22.6173 13.7437 22.535 14.1496C21.6797 18.3631 18.3625 21.6802 14.149 22.5354C13.7431 22.6178 13.3472 22.3555 13.2648 21.9496C13.1824 21.5436 13.4447 21.1478 13.8506 21.0654C17.4738 20.33 20.3295 17.4743 21.0649 13.8512C21.1473 13.4453 21.5432 13.183 21.9491 13.2654ZM8.39729 15.5538C8.64395 15.221 9.11366 15.1512 9.44643 15.3979C10.1748 15.9377 11.0539 16.2504 11.9998 16.2504C12.9457 16.2504 13.8249 15.9377 14.5532 15.3979C14.886 15.1512 15.3557 15.221 15.6023 15.5538C15.849 15.8865 15.7792 16.3563 15.4464 16.6029C14.474 17.3237 13.2848 17.7504 11.9998 17.7504C10.7148 17.7504 9.52562 17.3237 8.55321 16.6029C8.22044 16.3563 8.15063 15.8865 8.39729 15.5538Z" fill="currentColor"/></svg>`,
                         href: '#',
-                        roles: [0], // Admin only
+                        roles: [0, 8], // Admin and Searcher
                         order: 3,
                         dataNavItem: 'facial-recognition'
                     }
@@ -103,7 +109,7 @@ class NavigationConfig {
                         title: 'Profile',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>`,
                         route: 'profile.edit',
-                        roles: [0, 1, 2, 6, 7], // All roles including nurses and officers
+                        roles: [0, 1, 2, 8, 6, 7], // All roles including Searcher
                         order: 2
                     },
                     officers: {
@@ -207,6 +213,7 @@ class NavigationConfig {
             'dashboard': '/dashboard',
             'admin.dashboard': '/admin/dashboard',
             'warden.dashboard': '/warden/dashboard',
+            'searcher.dashboard': '/searcher/dashboard',
             'nurse.dashboard': '/nurse/dashboard',
             
             // Inmates routes
@@ -228,7 +235,8 @@ class NavigationConfig {
             'warden.supervision': '/warden/supervision',
             
             // Visitation routes
-            'visitation.request.visitor': '/visitation/request/visitor'
+            'visitation.request.visitor': '/visitation/request/visitor',
+            'searcher.visitors.index': '/searcher/visitors'
         };
         
         return routeMap[routeName] || `/${routeName.replace(/\./g, '/')}`;
@@ -255,9 +263,11 @@ class NavigationConfig {
                 case 'dashboard':
                 case 'admin.dashboard':
                 case 'warden.dashboard':
+                case 'searcher.dashboard':
                     return currentPath === '/dashboard' || 
                            currentPath === '/admin/dashboard' || 
-                           currentPath === '/warden/dashboard';
+                           currentPath === '/warden/dashboard' ||
+                           currentPath === '/searcher/dashboard';
                            
                 case 'admin.inmates.index':
                 case 'warden.inmates.index':
@@ -277,6 +287,8 @@ class NavigationConfig {
                     
                 case 'visitation.request.visitor':
                     return currentPath === '/visitation/request/visitor';
+                case 'searcher.visitors.index':
+                    return currentPath === '/searcher/visitors';
             }
         }
         
@@ -597,6 +609,20 @@ class NavigationManager {
                     text: 'Staff Profile: Maintain your staff profile and work schedule preferences.'
                 }
             },
+            8: {
+                dashboard: {
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>`,
+                    text: 'Searcher Dashboard: Manage gate entry, verify visitors, and track visitation activity.'
+                },
+                visitors: {
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5M4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5S5.5 6.57 5.5 8.5S7.07 12 9 12m0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7m7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44M15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35c.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35" stroke-width="0.3" stroke="currentColor"/></svg>`,
+                    text: 'Visitors: Accept/decline requests and record manual registrations at the gate.'
+                },
+                profile: {
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>`,
+                    text: 'Searcher Profile: Maintain your credentials and update account information.'
+                }
+            },
             // Jail Head Nurse role cards (role_id: 6)
             6: {
                 dashboard: {
@@ -714,8 +740,9 @@ export function createRoleBasedAccessControl() {
             const userRoleElement = document.querySelector('[data-user-role]');
             const userRole = userRoleElement ? parseInt(userRoleElement.getAttribute('data-user-role')) : null;
             
-            // Role hierarchy: 0 (Admin) > 1 (Warden) > 2 (Officer) > 3 (Staff)
-            const hierarchy = { 0: 4, 1: 3, 2: 2, 3: 1 };
+            // Role hierarchy: extend to include Searcher (8) and nurses
+            // Higher number = higher privilege
+            const hierarchy = { 0: 8, 1: 7, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 1, 8: 2 };
             return hierarchy[userRole] >= hierarchy[minRoleId];
         },
 

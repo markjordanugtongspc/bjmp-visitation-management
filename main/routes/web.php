@@ -6,6 +6,7 @@ use App\Http\Controllers\NurseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupervisionController;
 use App\Http\Controllers\MedicalVisitController;
+use App\Http\Controllers\SearcherController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -40,6 +41,8 @@ Route::get('/dashboard', function () {
             return redirect()->route('warden.dashboard');
         case 2: // Assistant Warden
             return redirect()->route('warden.dashboard');
+        case 8: // Searcher (Jail Gate Searcher)
+            return redirect()->route('searcher.dashboard');
         case 6: // Jail Head Nurse
             return redirect()->route('nurse.dashboard');
         case 7: // Jail Nurse
@@ -78,6 +81,16 @@ Route::prefix('warden')->middleware(['auth', 'verified'])->group(function () {
         Route::get('/supervision/files/{id}/preview', [SupervisionController::class, 'preview'])->name('warden.supervision.preview');
         Route::get('/supervision/files/{id}/download', [SupervisionController::class, 'download'])->name('warden.supervision.download');
         Route::delete('/supervision/files/{id}', [SupervisionController::class, 'destroy'])->name('warden.supervision.destroy');
+});
+
+// Searcher routes
+Route::get('/searcher/dashboard', [SearcherController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('searcher.dashboard');
+
+Route::prefix('searcher')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/visitors', [SearcherController::class, 'visitors'])
+        ->name('searcher.visitors.index');
 });
 
 // Legacy routes (for backward compatibility)
