@@ -1585,7 +1585,7 @@
     </header>
     <!-- Banner Section -->
     <section class="w-full relative">
-        <img src="{{ asset('images/landing/banner/bjmp-image.jpg') }}" alt="BJMP Banner" class="w-full md:h-68 lg:h-80 object-cover" style="margin-top: 100px; height: 25vh;">
+        <img src="{{ asset('storage/images/landing/banner/bjmp-image.jpg') }}" alt="BJMP Banner" class="w-full md:h-68 lg:h-80 object-cover" style="margin-top: 100px; height: 25vh;">
     </section>
 
     <!-- Hero Section with Background Slideshow -->
