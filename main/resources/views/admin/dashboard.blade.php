@@ -13,7 +13,7 @@
                 </a>
                 
                 <!-- Mobile Dark Mode Toggle -->
-                <x-dark-mode-toggle variant="button" size="sm" :showLabel="false" />
+                <x-dark-mode-toggle variant="button" size="sm" />
             </div>
 
             <nav data-sidebar-nav class="p-3 text-sm" data-user-role="{{ Auth::user()->role_id ?? 0 }}">
@@ -56,7 +56,7 @@
 
                         <!-- Dark Mode Toggle - Hidden on Mobile -->
                         <div class="hidden sm:block">
-                            <x-dark-mode-toggle variant="button" size="md" :showLabel="false" />
+                            <x-dark-mode-toggle variant="button" size="md" />
                         </div>
 
                         <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
@@ -108,7 +108,7 @@
                                 
                                 <!-- Dark Mode Toggle - Mobile Only -->
                                 <div class="sm:hidden">
-                                    <x-dark-mode-toggle variant="mobile-dropdown" size="sm" />
+                                    <x-dark-mode-toggle variant="mobile-dropdown" />
                                     <hr class="border-t border-gray-200 dark:border-gray-700">
                                 </div>
                                 
@@ -444,5 +444,4 @@
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/profile/edit-profile-modal.js')
     @vite('resources/js/dashboard/components/role-based.js')
-    @vite('resources/js/modules/dark-mode-init.js')
 </x-app-layout>

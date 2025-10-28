@@ -23,10 +23,11 @@ class NavigationConfig {
                         route: {
                             0: 'admin.dashboard',
                             1: 'warden.dashboard',
+                            2: 'warden.dashboard',
                             6: 'nurse.dashboard',
                             7: 'nurse.dashboard'
                         },
-                        roles: [0, 1, 6, 7], // Admin, Warden, Jail Head Nurse, Jail Nurse
+                        roles: [0, 1, 2, 6, 7], // Admin, Warden, Assistant Warden, Jail Head Nurse, Jail Nurse
                         order: 1
                     },
                     inmates: {
@@ -35,17 +36,18 @@ class NavigationConfig {
                         route: {
                             0: 'admin.inmates.index', // Admin
                             1: 'warden.inmates.index', // Warden
+                            2: 'warden.inmates.index', // Assistant Warden
                             6: 'nurse.dashboard', // Jail Head Nurse
                             7: 'nurse.dashboard'  // Jail Nurse
                         },
-                        roles: [0, 1], // Admin and Warden only (nurses don't see inmates directly)
+                        roles: [0, 1, 2], // Admin, Warden, and Assistant Warden (nurses don't see inmates directly)
                         order: 2
                     },
                     supervision: {
                         title: 'Supervision',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512"><path fill="currentColor" fill-rule="evenodd" d="M384 319.997V85.331H149.333c-11.782 0-21.333 9.551-21.333 21.333v216.975a63.9 63.9 0 0 1 21.333-3.642zM85.333 106.664v298.667c0 35.346 28.654 64 64 64h277.334v-85.334h-21.334v42.667h-256c-11.782 0-21.333-9.551-21.333-21.333v-21.334c0-11.782 9.551-21.333 21.333-21.333h277.334v-320H149.333c-35.346 0-64 28.654-64 64m149.334 170.667v-85.334h42.666v85.334zM256 170.664c11.782 0 21.333-9.551 21.333-21.333s-9.551-21.334-21.333-21.334s-21.333 9.552-21.333 21.334s9.551 21.333 21.333 21.333M149.333 383.997H384v21.334H149.333z" clip-rule="evenodd" stroke-width="13" stroke="currentColor"/></svg>`,
                         route: 'warden.supervision',
-                        roles: [1], // Only Warden
+                        roles: [1, 2], // Warden and Assistant Warden
                         order: 3,
                         dataNavItem: 'supervision'
                     }
@@ -63,14 +65,14 @@ class NavigationConfig {
                         title: 'Visitors',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5M4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5S5.5 6.57 5.5 8.5S7.07 12 9 12m0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7m7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44M15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35c.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35" stroke-width="0.3" stroke="currentColor"/></svg>`,
                         url: '/visitation/request/visitor',
-                        roles: [0, 1], // Admin and Warden only
+                        roles: [0, 1, 2], // Admin, Warden, and Assistant Warden
                         order: 1
                     },
                     requests: {
                         title: 'Requests',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M2 4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h20a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1zm7 6a1 1 0 1 0-2 0a1 1 0 0 0 2 0m2 0a3 3 0 1 1-6 0a3 3 0 0 1 6 0m-5.473 7.025l-1.414-1.414A5.5 5.5 0 0 1 8.003 14c1.518 0 2.894.617 3.888 1.61l-1.414 1.415A3.5 3.5 0 0 0 8.002 16c-.967 0-1.84.39-2.475 1.025M13 15V9h2v6zm4 0V9h2v6z" stroke-width="0.3" stroke="currentColor"/></svg>`,
                         href: '#',
-                        roles: [1], // Warden only
+                        roles: [1, 2], // Warden and Assistant Warden
                         order: 2,
                         dataNavItem: 'requests'
                     },
@@ -94,14 +96,14 @@ class NavigationConfig {
                         title: 'Reports',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.58 9.902a.41.41 0 0 1-.407.408H5.826a.408.408 0 0 1 0-.816h4.347a.41.41 0 0 1 .408.408m-.407-2.581H5.826a.408.408 0 0 0 0 .815h4.347a.408.408 0 0 0 0-.815m3.668-4.483v11.411a.95.95 0 0 1-.95.951H3.108a.95.95 0 0 1-.95-.95V2.837a.95.95 0 0 1 .95-.951h2.525a3.118 3.118 0 0 1 4.732 0h2.524a.95.95 0 0 1 .951.95M5.69 3.923v.135h4.618v-.135a2.31 2.31 0 1 0-4.619 0m7.335-1.087a.136.136 0 0 0-.136-.136h-2.015c.165.386.25.802.25 1.223v.543a.41.41 0 0 1-.408.408H5.283a.41.41 0 0 1-.408-.408v-.543c0-.42.085-.837.25-1.223H3.108a.136.136 0 0 0-.136.136v11.411a.136.136 0 0 0 .136.136h9.781a.136.136 0 0 0 .136-.136z" stroke-width="0.3" stroke="currentColor"/></svg>`,
                         href: '#',
-                        roles: [0, 1], // Admin and Warden only
+                        roles: [0, 1, 2], // Admin, Warden, and Assistant Warden
                         order: 1
                     },
                     profile: {
                         title: 'Profile',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>`,
                         route: 'profile.edit',
-                        roles: [0, 1, 6, 7], // All roles including nurses
+                        roles: [0, 1, 2, 6, 7], // All roles including nurses and officers
                         order: 2
                     },
                     officers: {
@@ -109,9 +111,10 @@ class NavigationConfig {
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48"><g fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" stroke-width="0.5" stroke="currentColor"><path d="M13.5 10.097C13.5 7.774 24 6 24 6s10.5 1.774 10.5 4.097c0 3.097-1.91 4.403-1.91 4.403H15.41s-1.91-1.306-1.91-4.403m12.5-.53s-1.467-.534-2-1.067c-.533.533-2 1.067-2 1.067s.4 2.933 2 2.933s2-2.933 2-2.933m5.814 8.713c1.39-1.085 1.174-2.28 1.174-2.28H15.012s-.217 1.195 1.174 2.28a8 8 0 1 0 15.629 0M24 20c2.721 0 4.624-.314 5.952-.766q.047.376.048.766a6 6 0 1 1-11.952-.766c1.329.452 3.23.766 5.952.766"/><path d="m16.879 28l6.477 5.457a1 1 0 0 0 1.288 0L31.121 28S42 31.393 42 35.467V42H6v-6.533C6 31.393 16.879 28 16.879 28m-4.154 9.207a1 1 0 0 1-.725-.961V35h7v1.246a1 1 0 0 1-.725.961l-2.5.715a1 1 0 0 1-.55 0zm20.94-4.082a.17.17 0 0 0-.33 0l-.471 1.52a.174.174 0 0 1-.165.126h-1.526c-.167 0-.237.225-.101.328l1.234.94c.06.046.086.128.063.202l-.471 1.52c-.052.168.13.307.266.204l1.234-.94a.166.166 0 0 1 .204 0l1.234.94c.136.103.318-.036.267-.203l-.472-1.52a.19.19 0 0 1 .063-.203l1.234-.94c.136-.103.066-.328-.101-.328H34.3a.174.174 0 0 1-.165-.125z"/></g></svg>`,
                         route: {
                             0: 'admin.officers.index',
-                            1: 'warden.officers.index'
+                            1: 'warden.officers.index',
+                            2: 'warden.officers.index'
                         },
-                        roles: [0, 1], // Admin and Warden only
+                        roles: [0, 1, 2], // Admin, Warden, and Assistant Warden
                         order: 3
                     }
                 }
@@ -435,6 +438,10 @@ class NavigationManager {
                 hide: ['facial-recognition'],
                 show: ['requests', 'supervision']
             },
+            2: { // Assistant Warden
+                hide: ['facial-recognition'],
+                show: ['requests', 'supervision']
+            },
             6: { // Jail Head Nurse
                 hide: ['inmates', 'visitors', 'requests', 'supervision', 'facial-recognition', 'reports', 'officers'],
                 show: []
@@ -548,23 +555,27 @@ class NavigationManager {
                     text: 'Warden Profile: Manage your warden credentials and administrative access levels.'
                 }
             },
-            // Officer role cards (role_id: 2)
+            // Assistant Warden role cards (role_id: 2)
             2: {
                 dashboard: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
-                    text: 'Officer Dashboard: Keep records updated and verified daily for accurate reporting.'
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>`,
+                    text: 'Assistant Warden Dashboard: Assist with facility operations and support the warden in daily tasks.'
                 },
                 inmates: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zM4 19h16v2H4z"/></svg>`,
-                    text: 'Officer Inmates: Document inmate activities and maintain behavioral observation notes.'
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2m0 10c2.7 0 5.8 1.29 6 2H6c.23-.72 3.31-2 6-2m0-12C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 10c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`,
+                    text: 'Assistant Warden Inmates: Help manage inmate classifications and behavioral monitoring.'
+                },
+                supervision: {
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 16H9V7h9v14z"/></svg>`,
+                    text: 'Assistant Warden Supervision: Support supervision reports and assist with incident management.'
                 },
                 officers: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2z"/></svg>`,
-                    text: 'Officer Coordination: Coordinate with fellow officers on duty shifts and protocols.'
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
+                    text: 'Assistant Warden Officers: Assist with officer evaluations and staff coordination.'
                 },
                 profile: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>`,
-                    text: 'Officer Profile: Update your officer profile and emergency contact information.'
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>`,
+                    text: 'Assistant Warden Profile: Manage your profile and administrative credentials.'
                 }
             },
             // Staff role cards (role_id: 3)

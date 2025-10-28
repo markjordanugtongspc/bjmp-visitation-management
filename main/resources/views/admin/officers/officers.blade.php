@@ -7,10 +7,13 @@
         <aside data-sidebar class="fixed z-40 inset-y-0 left-0 w-72 -translate-x-full sm:translate-x-0 sm:static sm:inset-auto bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-transform">
 
             <!-- Mobile Brand -->
-            <div class="sm:hidden flex items-center px-3 py-4 border-b border-gray-200 dark:border-gray-800">
+            <div class="sm:hidden flex items-center justify-between px-3 py-4 border-b border-gray-200 dark:border-gray-800">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
                     <x-application-logo size="sm" :showText="true" heading="BJMP Iligan" subtext="Information & Visitation" />
                 </a>
+                
+                <!-- Mobile Dark Mode Toggle -->
+                <x-dark-mode-toggle variant="button" size="sm" />
             </div>
 
             <nav data-sidebar-nav class="p-3 text-sm" data-user-role="{{ Auth::user()->role_id ?? 0 }}">
@@ -51,7 +54,7 @@
                     <div class="flex items-center gap-2 ml-auto">
                         <!-- Dark Mode Toggle - Hidden on Mobile -->
                         <div class="hidden sm:block">
-                            <x-dark-mode-toggle variant="button" size="sm" :showLabel="false" />
+                            <x-dark-mode-toggle variant="button" size="sm" />
                         </div>
                         
                     <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">

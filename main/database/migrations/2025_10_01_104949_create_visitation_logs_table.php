@@ -15,10 +15,7 @@ return new class extends Migration
             $table->id();
 
             // Ownership
-            $table->foreignId('inmate_id')
-                ->constrained('inmates', 'id', 'visitation_logs_inmate_id_foreign')
-                ->cascadeOnDelete()
-                ->index();
+            $table->unsignedBigInteger('inmate_id')->index();
 
             // Visitor info (denormalized snapshot for audit)
             $table->string('visitor_name');
@@ -48,16 +45,8 @@ return new class extends Migration
             $table->text('notes')->nullable();
 
             // Audit trail
-            $table->foreignId('created_by_user_id')
-                ->nullable()
-                ->constrained('users', 'user_id', 'visitation_logs_created_by_user_id_foreign')
-                ->nullOnDelete()
-                ->index();
-            $table->foreignId('updated_by_user_id')
-                ->nullable()
-                ->constrained('users', 'user_id', 'visitation_logs_updated_by_user_id_foreign')
-                ->nullOnDelete()
-                ->index();
+            $table->unsignedBigInteger('created_by_user_id')->nullable()->index();
+            $table->unsignedBigInteger('updated_by_user_id')->nullable()->index();
 
             // Helpful indexes
             $table->index(['inmate_id', 'visit_date']);
@@ -66,6 +55,17 @@ return new class extends Migration
             // Soft deletes and timestamps
             $table->softDeletes();
             $table->timestamps();
+
+            // Foreign Keys
+            $table->foreign('inmate_id', 'visitation_logs_inmate_id_foreign')
+                ->references('id')->on('inmates')
+                ->onDelete('cascade');
+            $table->foreign('created_by_user_id', 'visitation_logs_created_by_user_id_foreign')
+                ->references('user_id')->on('users')
+                ->nullOnDelete();
+            $table->foreign('updated_by_user_id', 'visitation_logs_updated_by_user_id_foreign')
+                ->references('user_id')->on('users')
+                ->nullOnDelete();
         });
     }
 

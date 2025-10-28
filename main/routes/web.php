@@ -38,6 +38,8 @@ Route::get('/dashboard', function () {
             return redirect()->route('admin.dashboard');
         case 1: // Warden
             return redirect()->route('warden.dashboard');
+        case 2: // Assistant Warden
+            return redirect()->route('warden.dashboard');
         case 6: // Jail Head Nurse
             return redirect()->route('nurse.dashboard');
         case 7: // Jail Nurse

@@ -28,7 +28,7 @@
             </a>
             
             <!-- Dark Mode Toggle -->
-            <x-dark-mode-toggle variant="button" size="sm" :showLabel="false" />
+            <x-dark-mode-toggle variant="button" size="sm" />
         </div>
 
         <!-- Header / Announcement -->

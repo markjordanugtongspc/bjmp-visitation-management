@@ -1,87 +1,93 @@
 /**
  * Dark Mode Initialization
- * Simple initialization script for dark mode functionality
- * Can be included in any view without conflicts
+ * Based on Flowbite official documentation
+ * https://flowbite.com/docs/customize/dark-mode/#dark-mode-switcher
  */
 
-// Import the dark mode components
-import darkModeManager from './dark-mode-manager.js';
-import darkModeToggle from './dark-mode-toggle.js';
-import flowbiteDarkMode from './flowbite-dark-mode.js';
-import sweetAlert2DarkMode from './sweetalert2-dark-mode.js';
+import manager from './dark-mode-manager.js';
+import integrations from './dark-mode-integrations.js';
 
 /**
- * Initialize dark mode for the current page
- * This function can be called multiple times safely
+ * Initialize dark mode system
  */
-export function initDarkMode() {
-    // Initialize the manager
-    darkModeManager.init();
-    
-    // Initialize the toggle UI
-    darkModeToggle.init();
-    
-    // Initialize SweetAlert2 dark mode integration
-    sweetAlert2DarkMode.init();
-    
-    // Initialize Flowbite dark mode integration
-    flowbiteDarkMode.init();
-    
-    // Add some helpful debugging in development
-    if (process.env.NODE_ENV === 'development') {
-        console.log('🌙 Dark Mode initialized');
-        console.log('Current theme:', darkModeManager.getCurrentTheme());
-        console.log('Effective theme:', darkModeManager.getEffectiveTheme());
-        console.log('SweetAlert2 integration:', sweetAlert2DarkMode.isReady());
-        console.log('Flowbite integration:', flowbiteDarkMode.isReady());
+function init() {
+  manager.init();
+  integrations.init();
+  setupToggleButtons();
+}
+
+/**
+ * Setup all toggle buttons
+ * Uses event delegation for all [data-theme-toggle] elements
+ */
+function setupToggleButtons() {
+  // Update icons on page load
+  updateIcons();
+  
+  // Handle toggle button clicks
+  document.addEventListener('click', (e) => {
+    const toggle = e.target.closest('[data-theme-toggle]');
+    if (toggle) {
+      e.preventDefault();
+      handleToggle();
     }
+  });
 }
 
 /**
- * Get the dark mode manager instance
- * @returns {DarkModeManager} - The dark mode manager
+ * Handle toggle click - Flowbite pattern
  */
-export function getDarkModeManager() {
-    return darkModeManager;
+function handleToggle() {
+  manager.toggle();
+  updateIcons();
 }
 
 /**
- * Get the dark mode toggle instance
- * @returns {DarkModeToggle} - The dark mode toggle
+ * Update all toggle button icons based on current theme
+ * Flowbite pattern: toggle 'hidden' class on icons
  */
-export function getDarkModeToggle() {
-    return darkModeToggle;
+function updateIcons() {
+  const isDark = manager.isDark();
+  
+  // Find all toggle buttons
+  document.querySelectorAll('[data-theme-toggle]').forEach(button => {
+    const sunIcon = button.querySelector('[data-icon="sun"]');
+    const moonIcon = button.querySelector('[data-icon="moon"]');
+    
+    if (sunIcon && moonIcon) {
+      // Flowbite pattern: toggle hidden class
+      if (isDark) {
+        // Dark mode: show moon, hide sun
+        moonIcon.classList.remove('hidden');
+        sunIcon.classList.add('hidden');
+      } else {
+        // Light mode: show sun, hide moon
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+      }
+    }
+  });
 }
 
-/**
- * Quick theme toggle function
- * Can be called from anywhere in the application
- */
-export function toggleTheme() {
-    darkModeManager.toggle();
+// Auto-initialize when DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
 }
 
-/**
- * Set theme function
- * @param {string} theme - 'light', 'dark', or 'system'
- */
-export function setTheme(theme) {
-    darkModeManager.setTheme(theme);
-}
+// Global API (optional)
+window.darkMode = {
+  toggle: () => {
+    manager.toggle();
+    updateIcons();
+  },
+  setTheme: (theme) => {
+    manager.setTheme(theme);
+    updateIcons();
+  },
+  isDark: () => manager.isDark(),
+  getTheme: () => manager.getCurrentTheme()
+};
 
-/**
- * Check if dark mode is currently active
- * @returns {boolean} - True if dark mode is active
- */
-export function isDarkMode() {
-    return darkModeManager.isDarkMode();
-}
-
-// Auto-initialize when this module is loaded
-initDarkMode();
-
-// Make functions available globally for non-module usage
-window.initDarkMode = initDarkMode;
-window.toggleTheme = toggleTheme;
-window.setTheme = setTheme;
-window.isDarkMode = isDarkMode;
+export default manager;

@@ -13,7 +13,7 @@
                 </a>
             </div>
 
-            <nav data-sidebar-nav class="p-3 text-sm" data-user-role="{{ Auth::user()->role_id ?? 6 }}">
+            <nav data-sidebar-nav class="p-3 text-sm" data-user-role="{{ Auth::user()->role_id ?? 7 }}">
                 <!-- Dynamic navigation will be populated here by JavaScript -->
             </nav>
         </aside>
@@ -51,7 +51,7 @@
                     <div class="flex items-center gap-2 ml-auto">
                         <!-- Dark Mode Toggle - Hidden on Mobile -->
                         <div class="hidden sm:block">
-                            <x-dark-mode-toggle variant="button" size="sm" :showLabel="false" />
+                            <x-dark-mode-toggle variant="button" size="sm" />
                         </div>
                         
                         <button class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">

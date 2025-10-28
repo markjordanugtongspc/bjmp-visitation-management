@@ -365,3 +365,9 @@ function loadUserDataFromCookies() {
     // Profile image is now loaded from server data via data attributes
     // No need to load from cookies
 }
+
+// Ensure the save handler is available to inline onclick in generated modal HTML
+// This is important when the script is bundled as an ES module
+if (typeof window !== 'undefined') {
+    window.saveProfileChanges = saveProfileChanges;
+}
