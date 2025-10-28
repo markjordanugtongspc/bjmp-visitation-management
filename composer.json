@@ -1,0 +1,12 @@
+{
+  "name": "markjordanugtongspc/bjmp-visitation-management",
+  "description": "Repository root for BJMP visitation management. Primary PHP project lives in ./main.",
+  "type": "project",
+  "license": "proprietary",
+  "require": {},
+  "autoload": {
+    "psr-4": {
+      "App\\": "main/app/"
+    }
+  }
+}
