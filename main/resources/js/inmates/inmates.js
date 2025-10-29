@@ -3367,18 +3367,44 @@ async function openUnifiedInmateModal(inmate) {
     </div>
   `;
 
+// [Romarc Dre 1/2]
   const allowedVisitors = getAllowedVisitors(inmate);
   const visits = getRecentVisits(inmate);
   const allowedList = allowedVisitors.map((v, idx) => `
-    <li class="flex items-center justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-      <div class="min-w-0 flex-1">
-        <button type="button" data-open-visitor="${idx}" class="truncate text-left text-sm font-medium text-blue-600 hover:underline dark:text-blue-400 cursor-pointer">${v.name}</button>
-        <p class="truncate text-xs text-gray-500 dark:text-gray-400">${v.relationship || '—'}${v.idType ? ` • ${v.idType}` : ''}${v.idNumber ? ` (${v.idNumber})` : ''}</p>
-        ${v.phone ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">📞 ${v.phone}</p>` : ''}
-        ${v.email ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">✉️ ${v.email}</p>` : ''}
-        ${v.address ? `<p class="truncate text-xs text-gray-400 dark:text-gray-500">📍 ${v.address}</p>` : ''}
+    <li class="group relative flex items-center gap-4 p-3 md:p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 hover:bg-white dark:hover:bg-gray-900 transition shadow-sm hover:shadow-md">
+      <!-- Left avatar/icon with subtle gradient ring -->
+      <div class="flex-shrink-0">
+        <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/10 dark:to-purple-500/5 ring-2 ring-blue-500/10 dark:ring-blue-500/10 flex items-center justify-center">
+          <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500" src="/docs/images/people/profile-picture-5.jpg" alt="Bordered avatar">
+        </div>
       </div>
-      <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-green-500/10 text-green-600">Allowed</span>
+
+      <!-- Right content: name + meta chips + contact grid -->
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center justify-between gap-3">
+          <button type="button" data-open-visitor="${idx}" class="block truncate text-sm sm:text-base font-semibold text-blue-600 dark:text-blue-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded">
+            ${v.name}
+          </button>
+          <span class="hidden sm:inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Allowed</span>
+        </div>
+
+        <!-- Meta chips: relationship / id info -->
+        <div class="mt-1 flex flex-wrap items-center gap-1">
+          ${v.relationship ? `<span class=\"inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[10px] text-gray-600 dark:text-gray-300\">${v.relationship}</span>` : ''}
+          ${v.idType ? `<span class=\"inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[10px] text-gray-600 dark:text-gray-300\">${v.idType}</span>` : ''}
+          ${v.idNumber ? `<span class=\"inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[10px] text-gray-600 dark:text-gray-300\">${v.idNumber}</span>` : ''}
+        </div>
+
+        <!-- Contact grid -->
+        <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+          ${v.phone ? `<div class=\"flex items-center gap-2 truncate\"><span>📞</span><span class=\"truncate\">${v.phone}</span></div>` : ''}
+          ${v.email ? `<div class=\"flex items-center gap-2 truncate\"><span>✉️</span><span class=\"truncate\">${v.email}</span></div>` : ''}
+          ${v.address ? `<div class=\"flex items-center gap-2 truncate sm:col-span-2\"><span>📍</span><span class=\"truncate\">${v.address}</span></div>` : ''}
+        </div>
+      </div>
+
+      <!-- Status chip (mobile) -->
+      <span class="sm:hidden ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Allowed</span>
     </li>
   `).join('');
   const visitsCards = visits.map(v => `
@@ -3443,6 +3469,7 @@ async function openUnifiedInmateModal(inmate) {
       </div>
     </div>
   `;
+// [Romarc Last Dre 1/2]
 
   function attachAccordionHandlers() {
     const toggles = document.querySelectorAll('[data-accordion-toggle]');
@@ -3790,7 +3817,7 @@ function openVisitorModal(visitor) {
       </div>
     </div>
   `;
-
+// [Romarc Dre 2/2]
   const bodyHTML = `
     <div class="mt-4 grid grid-cols-1 gap-3">
       <div class="rounded-lg border border-gray-700 bg-gray-800/50 p-3 sm:p-4">
@@ -3803,7 +3830,7 @@ function openVisitorModal(visitor) {
       </div>
     </div>
   `;
-
+// [Romarc Last Dre 2/2] 
   const html = `
     <div class="max-h-[70vh] overflow-y-auto space-y-4">
       ${headerHTML}
