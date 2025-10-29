@@ -46,6 +46,15 @@ return new class extends Migration
         } catch (\Exception $e) {
             // Foreign key already exists
         }
+
+        Schema::table('visitation_logs', function (Blueprint $table) {
+            if (!Schema::hasColumn('visitation_logs', 'schedule')) {
+                $table->dateTime('schedule')->nullable()->after('visitor_id');
+            }
+            if (!Schema::hasColumn('visitation_logs', 'status')) {
+                $table->unsignedTinyInteger('status')->default(2)->after('schedule');
+            }
+        });
     }
 
     /**
@@ -59,6 +68,15 @@ return new class extends Migration
                 $table->dropForeign(['visitor_id']);
             } catch (\Exception $e) {
                 // Foreign key doesn't exist, continue
+            }
+        });
+
+        Schema::table('visitation_logs', function (Blueprint $table) {
+            if (Schema::hasColumn('visitation_logs', 'status')) {
+                $table->dropColumn('status');
+            }
+            if (Schema::hasColumn('visitation_logs', 'schedule')) {
+                $table->dropColumn('schedule');
             }
         });
 

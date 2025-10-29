@@ -11,68 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
    * These fields reflect the visitors table (name, phone, email) and
    * include linked PDL basic info (name, birthday, age, kin/spouse where available).
    */
-  let visitors = [
-    {
-      id: 1,
-      visitor: 'Juan Dela Cruz',
-      schedule: '2025-09-02 10:00',
-      status: 'Pending',
-      visitorDetails: {
-        name: 'Juan Dela Cruz',
-        phone: '+63 912 345 6789',
-        email: 'juan.delacruz@example.com',
-        relationship: 'Brother'
-      },
-      pdlDetails: {
-        name: 'R. Santos',
-        birthday: '2000-05-08',
-        age: null, // computed if null
-        parents: { father: 'Jose Santos', mother: 'Maria Santos' },
-        spouse: 'N/A',
-        nextOfKin: 'Ana Santos'
-      }
-    },
-    {
-      id: 2,
-      visitor: 'Maria I.',
-      schedule: '2025-09-02 13:30',
-      status: 'Approved',
-      visitorDetails: {
-        name: 'Maria Isidro',
-        phone: '+63 917 222 3344',
-        email: 'maria.isidro@example.com',
-        relationship: 'Wife'
-      },
-      pdlDetails: {
-        name: 'J. Dizon',
-        birthday: '1998-12-01',
-        age: null,
-        parents: { father: 'N/A', mother: 'N/A' },
-        spouse: 'Maria Isidro',
-        nextOfKin: 'N/A'
-      }
-    },
-    {
-      id: 3,
-      visitor: 'A. Lopez',
-      schedule: '2025-09-03 09:00',
-      status: 'Rejected',
-      visitorDetails: {
-        name: 'Arman Lopez',
-        phone: '+63 926 111 7788',
-        email: 'arman.lopez@example.com',
-        relationship: 'Cousin'
-      },
-      pdlDetails: {
-        name: 'K. Reyes',
-        birthday: '2003-03-15',
-        age: null,
-        parents: { father: 'N/A', mother: 'N/A' },
-        spouse: 'N/A',
-        nextOfKin: 'N/A'
-      }
-    }
-  ];
+  let visitors = [];
 
   const tableBody = document.getElementById('visitors-table-body');
   const mobileCardsContainer = document.getElementById('visitors-cards-mobile');
@@ -101,15 +40,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const pendingEl = document.getElementById('visitors-pending');
     const rejectedEl = document.getElementById('visitors-rejected');
 
+    const normalize = (s) => {
+      if (typeof s === 'number') return s === 1 ? 'Approved' : (s === 0 ? 'Declined' : 'Pending');
+      if (s === 'Rejected' || s === 'Denied') return 'Declined';
+      return s || 'Pending';
+    };
+
     const all = visitors.length;
-    const approved = visitors.filter(v => v.status === 'Approved').length;
-    const pending = visitors.filter(v => v.status === 'Pending').length;
-    const rejected = visitors.filter(v => v.status === 'Rejected').length;
+    const approved = visitors.filter(v => normalize(v.status) === 'Approved').length;
+    const pending = visitors.filter(v => normalize(v.status) === 'Pending').length;
+    const declined = visitors.filter(v => normalize(v.status) === 'Declined').length;
 
     if (totalEl) totalEl.textContent = String(all);
     if (approvedEl) approvedEl.textContent = String(approved);
     if (pendingEl) pendingEl.textContent = String(pending);
-    if (rejectedEl) rejectedEl.textContent = String(rejected);
+    if (rejectedEl) rejectedEl.textContent = String(declined);
   }
 
   function renderTable(list) {
@@ -118,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!list.length) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="5" class="px-4 py-12 text-center text-gray-500 dark:text-gray-400">No visitors found</td>
+          <td colspan="5" class="px-32 py-32 text-center text-gray-500 dark:text-gray-400">No visitors found</td>
         </tr>
       `;
       return;
@@ -153,10 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
           <button type="button" class="js-visitor-link text-blue-600 hover:underline cursor-pointer" data-id="${v.id}">${v.visitor}</button>
         </td>
-        <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">${v.pdlDetails?.name || '—'}</td>
-        <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">${v.schedule}</td>
-        <td class="px-4 py-3">${badge}</td>
-        <td class="px-4 py-3">
+        <td class="px-3 py-3 text-sm text-gray-700 dark:text-gray-200">${v.pdlDetails?.name || '—'}</td>
+        <td class="px-3 py-3 text-sm text-gray-700 dark:text-gray-200">${v.schedule}</td>
+        <td class="px-3 py-3">${badge}</td>
+        <td class="px-3 py-3">
           <div class="flex items-center gap-2 justify-end">
             <button class="px-2 py-1 text-xs rounded bg-green-800 hover:bg-green-900 text-white cursor-pointer" data-action="approve">Approve</button>
             <button class="px-2 py-1 text-xs rounded bg-red-800 hover:bg-red-900 text-white cursor-pointer" data-action="decline">Decline</button>
@@ -186,13 +131,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function statusBadge(status) {
+    let label = status;
+    if (typeof status === 'number') {
+      label = status === 1 ? 'Approved' : (status === 0 ? 'Declined' : 'Pending');
+    }
+    if (label === 'Rejected' || label === 'Denied') label = 'Declined';
     const map = {
       Approved: 'bg-green-500/10 text-green-500',
       Pending: 'bg-blue-500/10 text-blue-500',
-      Rejected: 'bg-red-500/10 text-red-500',
+      Declined: 'bg-red-500/10 text-red-500',
     };
-    const cls = map[status] || 'bg-gray-500/10 text-gray-500';
-    return `<span class="inline-flex items-center rounded-full ${cls} px-2 py-0.5 text-[11px]">${status}</span>`;
+    const cls = map[label] || 'bg-gray-500/10 text-gray-500';
+    return `<span class="inline-flex items-center rounded-full ${cls} px-2 py-0.5 text-[11px]">${label}</span>`;
   }
 
   // Event delegation for actions
@@ -203,47 +153,75 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!window.Swal) {
       // Fallback without SweetAlert2
       if (action === 'approve') item.status = 'Approved';
-      if (action === 'decline') item.status = 'Rejected';
+      if (action === 'decline') item.status = 'Declined';
       render();
       return;
     }
 
     const isApprove = action === 'approve';
     window.Swal.fire({
-      title: isApprove ? 'Approve request?' : 'Decline request?',
-      text: isApprove ? 'This visitor will be marked as Approved.' : 'This visitor will be marked as Rejected.',
+      title: `<span class="text-white">${isApprove ? 'Approve request?' : 'Decline request?'}</span>`,
+      text: isApprove ? 'This visitor will be marked as Approved.' : 'This visitor will be marked as Declined.',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: isApprove ? 'Approve' : 'Decline',
       cancelButtonText: 'Cancel',
       background: '#111827',
-      color: '#F9FAFB',
       heightAuto: false,
       scrollbarPadding: false,
       buttonsStyling: false,
       customClass: {
         popup: 'm-0 w-[96vw] max-w-[96vw] sm:max-w-[32rem] p-5 !rounded-xl',
+        title: 'text-white', // Ensure title text is white
         confirmButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium cursor-pointer',
-        cancelButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-medium ml-2 cursor-pointer'
+        cancelButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-white dark:text-gray-100 text-sm font-medium ml-2 cursor-pointer'
       }
     }).then(res => {
       if (res.isConfirmed) {
-        item.status = isApprove ? 'Approved' : 'Rejected';
-        render();
-        window.Swal.fire({
-          title: 'Updated',
-          text: `Visitor marked as ${item.status}.`,
-          icon: 'success',
-          timer: 1200,
-          showConfirmButton: false,
-          background: '#111827',
-          color: '#F9FAFB',
-          heightAuto: false,
-          scrollbarPadding: false,
-          customClass: {
-            popup: 'm-0 w-[90vw] max-w-[24rem] p-4 !rounded-xl'
+        (async () => {
+          try {
+            let VisitorApiClient;
+            try {
+              ({ default: VisitorApiClient } = await import('./components/visitorClient.js'));
+            } catch (_) {
+              throw new Error('Unable to load API client');
+            }
+            const api = new VisitorApiClient();
+            const newStatus = isApprove ? 1 : 0;
+            await api.updateStatus(item.id, newStatus);
+            item.status = isApprove ? 'Approved' : 'Declined';
+            render();
+            window.Swal.fire({
+              title: '<span class="text-white">Updated</span>',
+              text: `Visitor marked as ${item.status}.`,
+              icon: 'success',
+              timer: 1200,
+              showConfirmButton: false,
+              background: '#111827',
+              color: '#FFFFFF',
+              heightAuto: false,
+              scrollbarPadding: false,
+              customClass: {
+                popup: 'm-0 w-[90vw] max-w-[24rem] p-4 !rounded-xl',
+                title: 'text-white'
+              }
+            });
+          } catch (e) {
+            window.Swal.fire({
+              title: '<span class="text-white">Update failed</span>',
+              text: 'Could not update status. Please try again.',
+              icon: 'error',
+              background: '#111827',
+              color: '#FFFFFF',
+              heightAuto: false,
+              scrollbarPadding: false,
+              customClass: {
+                popup: 'm-0 w-[90vw] max-w-[24rem] p-4 !rounded-xl',
+                title: 'text-white'
+              }
+            });
           }
-        });
+        })();
       }
     });
   }
@@ -287,8 +265,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial render
   render();
+  // Then load backend visitors and merge into the list
+  loadBackendVisitors();
 
   // Utilities and modal implementation
+  async function loadBackendVisitors() {
+    try {
+      const resp = await fetch('/api/visitors?per_page=50', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+      });
+      if (!resp.ok) return;
+      const json = await resp.json();
+      const rows = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
+      if (!rows.length) return;
+
+      const backendItems = rows.map(r => {
+        const inmate = r.inmate || {};
+        const first = inmate.first_name || inmate.firstName || '';
+        const last = inmate.last_name || inmate.lastName || '';
+        const pdlDisplay = (first && last) ? `${first.charAt(0)}. ${last}` : (inmate.full_name || inmate.fullName || inmate.name || 'N/A');
+        const latest = r.latest_log || {};
+        const rawStatus = latest.status ?? r.status;
+        const friendlyStatus = typeof rawStatus === 'number'
+          ? (rawStatus === 1 ? 'Approved' : (rawStatus === 0 ? 'Declined' : 'Pending'))
+          : ((rawStatus === 'Rejected' || rawStatus === 'Denied') ? 'Declined' : (rawStatus || 'Pending'));
+        return {
+          id: r.id,
+          visitor: r.name || 'N/A',
+          schedule: latest.schedule || r.schedule || 'N/A',
+          status: friendlyStatus,
+          visitorDetails: {
+            name: r.name || 'N/A',
+            phone: r.phone || 'N/A',
+            email: r.email || 'N/A',
+            relationship: r.relationship || 'N/A'
+          },
+          pdlDetails: {
+            name: pdlDisplay || 'N/A',
+            birthday: inmate.birthdate || inmate.date_of_birth || inmate.dateOfBirth || null,
+            age: null,
+            parents: { father: 'N/A', mother: 'N/A' },
+            spouse: inmate.civil_status === 'Married' ? 'Married' : 'N/A',
+            nextOfKin: 'N/A'
+          },
+          latest_log: latest
+        };
+      });
+
+      visitors = backendItems;
+      render();
+    } catch (e) {
+      console.warn('Failed to load visitors from backend', e);
+    }
+  }
   function formatDateHuman(isoDate) {
     if (!isoDate) return 'N/A';
     try {
@@ -317,75 +346,159 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (_) { /* fallback to local data */ }
 
-    const v = data.visitorDetails || {};
-    const p = data.pdlDetails || {};
+    // Support both local shape (visitorDetails/pdlDetails) and backend shape (name, inmate)
+    const inmateBk = data.inmate || {};
+    const v = data.visitorDetails || {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      relationship: data.relationship,
+    };
+    const p = data.pdlDetails || {
+      name: (inmateBk.first_name && inmateBk.last_name)
+        ? `${inmateBk.first_name} ${inmateBk.last_name}`
+        : (inmateBk.full_name || inmateBk.fullName || inmateBk.name || 'N/A'),
+      birthday: inmateBk.birthdate || inmateBk.date_of_birth || inmateBk.dateOfBirth || null,
+      age: inmateBk.birthdate ? calcAge(inmateBk.birthdate) : null,
+      parents: { father: 'N/A', mother: 'N/A' },
+      spouse: inmateBk.civil_status === 'Married' ? 'Married' : 'N/A',
+      nextOfKin: 'N/A'
+    };
+    const latest = data.latest_log || {};
+    const scheduleDisp = latest.schedule || data.schedule || 'N/A';
+    const statusRaw = latest.status ?? data.status;
+    const statusLabel = typeof statusRaw === 'number'
+      ? (statusRaw === 1 ? 'Approved' : (statusRaw === 0 ? 'Declined' : 'Pending'))
+      : ((statusRaw === 'Rejected' || statusRaw === 'Denied') ? 'Declined' : (statusRaw || 'Pending'));
     const pAge = p.age ?? calcAge(p.birthday);
 
-    // 
-    // Responsive Tailwind row: label left, value right (on mobile, value right-aligned, and text a bit larger)
-    //
-    const row = (label, value) => `
-      <div class="grid grid-cols-5 gap-2 py-1 items-center">
-        <div class="col-span-2 text-xs sm:text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium">${label}</div>
-        <div class="col-span-3 text-xs sm:text-sm md:text-base text-gray-900 dark:text-gray-100 text-right sm:text-left">
-          ${value || 'N/A'}
+    let fatherVal = p.parents?.father || 'N/A';
+    let motherVal = p.parents?.mother || 'N/A';
+    let spouseVal = p.spouse || 'N/A';
+    if (v.relationship) {
+      const rl = String(v.relationship).toLowerCase();
+      if (rl === 'mother') motherVal = v.name || motherVal;
+      if (rl === 'father') fatherVal = v.name || fatherVal;
+      if (rl === 'wife/husband' || rl === 'wife' || rl === 'husband') spouseVal = v.name || spouseVal;
+    }
+
+    const visitorRows = [
+      { label: 'Name', value: v.name || data.visitor },
+      { label: 'Email', value: v.email || 'N/A' },
+      { label: 'Phone', value: v.phone || 'N/A' },
+      { label: 'Relationship', value: v.relationship || 'N/A' },
+      { label: 'Schedule', value: scheduleDisp },
+      { label: 'Status', value: statusBadge(statusLabel) },
+    ];
+    const pdlRows = [
+      { label: 'Name', value: p.name || 'N/A' },
+      { label: 'Birthday', value: formatDateHuman(p.birthday) },
+      { label: 'Age', value: pAge ? `${pAge} Years Old` : 'N/A' },
+      { label: 'Father', value: fatherVal },
+      { label: 'Mother', value: motherVal },
+      { label: 'Spouse', value: spouseVal },
+      { label: 'Next of Kin', value: p.nextOfKin || 'N/A' },
+    ];
+
+    // Utility to render flowbite desktop-style table, grouped by section [Dre sa Desktop Modal]
+    function flowbiteTable(sectionTitle, rows, valueHeader) {
+      const headerText = valueHeader || 'Information';
+      return `
+        <div class="hidden sm:block w-full">
+          <h3 class="text-lg font-semibold text-white mb-4">${sectionTitle}</h3>
+          <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  <th scope="col" class="px-4 py-3">
+                    Field
+                  </th>
+                  <th scope="col" class="px-4 py-3">
+                    <div class="flex items-center">
+                      ${headerText}
+                      <a href="#"><svg class="w-3 h-3 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>
+                      </svg></a>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map((row, index) => `
+                  <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200${index === rows.length - 1 ? ' dark:bg-gray-800' : ''}">
+                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                      ${row.label}
+                    </th>
+                    <td class="px-2 py-2">
+                      ${row.value}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>`;
+      `;
+    }
+
+    // Mobile rows: fallback to original tailwind grid layout (mobile only)
+    function mobileRows(sectionTitle, rows) {
+      return `
+        <div class="block sm:hidden mb-6">
+          <div class="font-semibold text-gray-900 dark:text-gray-100 mb-2">${sectionTitle}</div>
+          ${rows.map(row => `
+            <div class="grid grid-cols-5 gap-2 py-1 items-center">
+              <div class="col-span-2 text-xs sm:text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium">${row.label}:</div>
+              <div class="col-span-3 text-xs sm:text-sm md:text-base text-gray-900 dark:text-gray-100 text-right sm:text-left">
+                ${row.value || 'N/A'}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
 
     const html = `
       <div class="text-left">
-        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Visitor Information</h3>
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 mb-4 bg-white dark:bg-gray-900">
-          ${row('Name:', v.name || data.visitor)}
-          ${row('Email:', v.email)}
-          ${row('Phone:', v.phone)}
-          ${row('Relationship:', v.relationship)}
-          ${row('Schedule:', data.schedule)}
-          ${row('Status:', data.status)}
+        <!-- Desktop: 2-column grid layout -->
+        <div class="hidden sm:grid sm:grid-cols-2 sm:gap-5">
+          ${flowbiteTable('PDL Information', pdlRows, 'PDL Details')}
+          ${flowbiteTable('Visitor Information', visitorRows, 'Visitor Details')}
         </div>
-        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">PDL Information</h3>
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-900">
-          ${row('Name:', p.name)}
-          ${row('Birthday:', formatDateHuman(p.birthday))}
-          ${row('Age:', pAge ? `${pAge} Years Old` : 'N/A')}
-          ${row('Father:', p.parents?.father || 'N/A')}
-          ${row('Mother:', p.parents?.mother || 'N/A')}
-          ${row('Spouse:', p.spouse || 'N/A')}
-          ${row('Next of Kin:', p.nextOfKin || 'N/A')}
+        
+        <!-- Mobile: Stack layout -->
+        <div class="block sm:hidden">
+          ${mobileRows('PDL Information', pdlRows)}
+          ${mobileRows('Visitor Information', visitorRows)}
         </div>
       </div>
     `;
 
     if (window.Swal) {
-      window.Swal.fire({
-        title: 'Visitor & PDL Details',
+      const swalInstance = window.Swal.fire({
+        title: '<span class="text-white">Visitor & PDL Details</span>',
         html,
         background: '#111827',
         color: '#F9FAFB',
-        showConfirmButton: true,
-        confirmButtonText: 'Close',
-        heightAuto: false,
+        showConfirmButton: false,
+        showCloseButton: true,
+        closeButtonHtml: '<svg class="w-6 h-6 text-red-500 cursor-pointer hover:text-red-600 dark:hover:text-red-400 transition-colors" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z" clip-rule="evenodd"/></svg>',
+        heightAuto: true,
         scrollbarPadding: false,
         buttonsStyling: false,
+        allowOutsideClick: true,
+        width: '64em',
         customClass: {
-          popup: 'm-0 w-[96vw] max-w-[96vw] sm:max-w-[42rem] p-0 !rounded-2xl',
-          // On mobile: scrollable content, but on desktop (sm and up): NO scrolling, fixed height
-          htmlContainer: [
-            // Mobile: allow scroll for tall modals
-            'max-h-[70vh] overflow-y-auto p-5',
-            // Desktop and up: no max height, no scroll
-            'sm:max-h-none sm:overflow-y-visible',
-          ].join(' '),
-          confirmButton: 'mt-4 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium cursor-pointer'
+          htmlContainer: 'p-6 sm:p-8',
+          closeButton: 'hover:bg-transparent',
+          title: 'text-white'
         }
       });
-      // Prevent scrolling in modal on desktop (sm and up)
-      // (SweetAlert2 doesn't expose the dialog element directly, but with customClass the popup/htmlContainer are classed)
+    
       setTimeout(() => {
         const popup = document.querySelector('.swal2-popup');
         const htmlC = popup ? popup.querySelector('.swal2-html-container') : null;
         if (htmlC) {
-          // Remove scroll for desktop, keep mobile scroll
           if (window.innerWidth >= 640) { // sm breakpoint (640px)
             htmlC.style.maxHeight = 'none';
             htmlC.style.overflowY = 'visible';
@@ -407,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const searchStepHtml = `
       <div class="text-left">
-        <h3 class="text-base sm:text-lg font-semibold text-gray-100 mb-3">Select PDL</h3>
+        <h3 class="text-base sm:text-lg font-semibold text-white mb-3">Select PDL</h3>
         <div class="mb-3">
           <input id="mr-search-input" type="text" autocomplete="off" placeholder="Search by name or ID" class="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
@@ -417,21 +530,33 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>`;
 
     const selected = { inmate: null };
+    // Store inmates for lookup
+    const inmateMap = new Map();
 
     await window.Swal.fire({
-      title: 'Manual Registration',
-      html: searchStepHtml,
+      title: '',
+      html: `
+        <div class="absolute top-2 right-2 text-red-500 cursor-pointer hover:text-red-600 dark:hover:text-red-400 transition-colors">
+          <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z" clip-rule="evenodd"/></svg>
+        </div>
+        <div class="text-left">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-100 mb-3">Select PDL</h3>
+          <div class="mb-3">
+            <input id="mr-search-input" type="text" autocomplete="off" placeholder="Search by name or ID" class="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div id="mr-results" class="divide-y divide-gray-700 rounded-lg border border-gray-700 overflow-hidden bg-gray-900/60">
+            <div class="p-4 text-sm text-gray-400">Type to search inmates...</div>
+          </div>
+        </div>`,
       background: '#111827',
       color: '#F9FAFB',
       showConfirmButton: false,
-      showCancelButton: true,
-      cancelButtonText: 'Close',
+      showCancelButton: false,
       heightAuto: false,
       scrollbarPadding: false,
       buttonsStyling: false,
       customClass: {
-        popup: 'm-0 w-[96vw] max-w-[96vw] sm:max-w-[40rem] p-5 !rounded-2xl',
-        cancelButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-medium cursor-pointer'
+        popup: 'm-0 w-[96vw] max-w-[96vw] sm:max-w-[40rem] p-5 !rounded-2xl'
       },
       didOpen: () => {
         const input = document.getElementById('mr-search-input');
@@ -450,6 +575,8 @@ document.addEventListener('DOMContentLoaded', () => {
             results.innerHTML = '<div class="p-4 text-sm text-gray-400">No inmates found</div>';
             return;
           }
+          // Store inmates in map for lookup
+          items.forEach(inm => inmateMap.set(inm.id, inm));
           results.innerHTML = items.map(inm => inmateResultItem(inm)).join('');
         };
 
@@ -462,14 +589,14 @@ document.addEventListener('DOMContentLoaded', () => {
         results?.addEventListener('click', (e) => {
           const btn = e.target.closest('[data-pick-inmate]');
           if (!btn) return;
-          const payload = btn.getAttribute('data-payload');
-          try {
-            const inmate = JSON.parse(payload);
-            selected.inmate = inmate;
-            // Move to step 2
-            window.Swal.close();
-            setTimeout(() => openVisitorFormStep(inmate), 10);
-          } catch (_) {}
+          const inmateId = parseInt(btn.getAttribute('data-inmate-id'));
+          const inmate = inmateMap.get(inmateId);
+          if (!inmate) return;
+          
+          selected.inmate = inmate;
+          // Move to step 2
+          window.Swal.close();
+          setTimeout(() => openVisitorFormStep(inmate), 10);
         });
 
         // Autofocus
@@ -480,14 +607,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function inmateResultItem(inm) {
     const name = getInmateDisplayName(inm);
-    const payload = encodeURIComponent(JSON.stringify({ id: inm.id, name }));
     return `
       <div class="flex items-center justify-between p-3 hover:bg-gray-800/60">
         <div>
           <div class="text-sm text-gray-100 font-medium">${name}</div>
           <div class="text-xs text-gray-400">ID: ${String(inm.id).padStart(4,'0')}</div>
         </div>
-        <button type="button" data-pick-inmate data-payload="${decodeURIComponent(payload)}" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-600 hover:bg-green-700 text-white cursor-pointer" title="Select">
+        <button type="button" data-pick-inmate data-inmate-id="${inm.id}" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-600 hover:bg-green-700 text-white cursor-pointer" title="Select">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
         </button>
       </div>`;
@@ -517,38 +643,101 @@ document.addEventListener('DOMContentLoaded', () => {
   async function openVisitorFormStep(inmate) {
     const html = `
       <div class="text-left">
-        <h3 class="text-base sm:text-lg font-semibold text-gray-100 mb-3">Visitor Details</h3>
+        <h3 class="text-base sm:text-lg font-semibold text-white mb-3">Visitor Details</h3>
         <div class="mb-4 text-sm text-gray-300">Registering visit for <span class="font-semibold text-white">${inmate.name}</span> (ID ${String(inmate.id).padStart(4,'0')})</div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs text-gray-400 mb-1">Full Name</label>
-            <input id="mr-v-name" type="text" class="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Juan Dela Cruz" />
+        <form class="max-w-full mx-auto">
+          <div class="grid md:grid-cols-2 md:gap-6">
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="text" id="mr-v-name" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
+                <label for="mr-v-name" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Name</label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <label for="mr-v-rel"
+                  class="block mb-1 text-xs sm:text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium"
+                  style="z-index:1; position:relative;"
+                >
+                  Relationship
+                </label>
+                <select id="mr-v-rel"
+                  class="block w-full px-2 py-2 text-xs sm:text-sm md:text-base text-gray-900 bg-white border-b-2 border-r border-gray-200 dark:bg-gray-900 dark:text-white dark:border-gray-700 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 dark:focus:border-blue-500 transition-all"
+                  style="z-index:0;"
+                  required
+                >
+                  <option value="" selected disabled class="text-xs sm:text-sm md:text-base">Select Relationship</option>
+                  <option class="text-xs sm:text-sm md:text-base">Mother</option>
+                  <option class="text-xs sm:text-sm md:text-base">Father</option>
+                  <option class="text-xs sm:text-sm md:text-base">Brother</option>
+                  <option class="text-xs sm:text-sm md:text-base">Sister</option>
+                  <option class="text-xs sm:text-sm md:text-base">Wife/Husband</option>
+                </select>
+            </div>
           </div>
-          <div>
-            <label class="block text-xs text-gray-400 mb-1">Relationship</label>
-            <input id="mr-v-rel" type="text" class="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Brother / Wife" />
+          <div class="grid md:grid-cols-2 md:gap-6">
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="email" id="mr-v-email" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                <label for="mr-v-email" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Email</label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+              <span class="absolute left-0 bottom-2.5 text-sm text-gray-500 dark:text-gray-400 select-none">+63</span>
+              <input type="tel" id="mr-v-phone" class="peer block py-2.5 pl-12 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600" placeholder=" " />
+              <label for="mr-v-phone" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 left-12 -z-10 origin-left peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Phone</label>
+            </div>
           </div>
-          <div>
-            <label class="block text-xs text-gray-400 mb-1">Email</label>
-            <input id="mr-v-email" type="email" class="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="name@example.com" />
+          <div class="grid md:grid-cols-2 md:gap-6">
+            <div class="relative z-0 w-full mb-5 group">
+              <div class="relative">
+                <select
+                  id="mr-v-id-type"
+                  data-dropdown-toggle="mr-v-id-type"
+                  class="peer block w-full px-1 py-1.5 text-xs sm:text-sm md:text-base text-gray-900 bg-white border-b-2 border-r border-gray-200 dark:bg-gray-900 dark:text-white dark:border-gray-700 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 dark:focus:border-blue-500 mt-3 transition-all"
+                  required
+                >
+                  <option value="" selected disabled class="text-xs sm:text-sm md:text-base">Select ID Type</option>
+                  <option class="text-xs sm:text-sm md:text-base">Philippine National ID (PhilSys)</option>
+                  <option class="text-xs sm:text-sm md:text-base">Driver's License</option>
+                  <option class="text-xs sm:text-sm md:text-base">Passport</option>
+                  <option class="text-xs sm:text-sm md:text-base">SSS ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">GSIS ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">UMID</option>
+                  <option class="text-xs sm:text-sm md:text-base">PhilHealth ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">Voter's ID (COMELEC)</option>
+                  <option class="text-xs sm:text-sm md:text-base">Postal ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">TIN ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">PRC ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">Senior Citizen ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">PWD ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">Student ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">Company ID</option>
+                  <option class="text-xs sm:text-sm md:text-base">Barangay ID</option>
+                </select>
+                <svg class="absolute top-1/2 right-2 w-4 h-4 text-gray-400 pointer-events-none transform -translate-y-1/2 fill-current" aria-hidden="true" viewBox="0 0 20 20"><path d="M10 12a1 1 0 0 1-.7-.3l-4-4a1 1 0 1 1 1.4-1.4L10 9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-4 4a1 1 0 0 1-.7.3z" /></svg>
+              </div>
+              <label for="mr-v-id-type" class="peer-focus:font-medium absolute text-sm sm:text-base md:text-lg text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">ID Type</label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="text" id="mr-v-id-number" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                <label for="mr-v-id-number" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">ID Number</label>
+            </div>
           </div>
-          <div>
-            <label class="block text-xs text-gray-400 mb-1">Phone</label>
-            <input id="mr-v-phone" type="tel" class="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="+63 ..." />
+          <div class="relative z-0 w-full mb-5 group">
+              <input type="text" id="mr-v-address" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+              <label for="mr-v-address" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Address</label>
           </div>
-          <div>
-            <label class="block text-xs text-gray-400 mb-1">Schedule (optional)</label>
-            <input id="mr-v-sched" type="datetime-local" class="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <div class="grid md:grid-cols-2 md:gap-6">
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="datetime-local" id="mr-v-sched" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                <label for="mr-v-sched" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Schedule (optional)</label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="file" id="mr-v-photo" accept="image/*" class="mt-2 block w-full text-sm text-gray-900 bg-transparent border-0 border-transparent appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-transparent file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
+                <label for="mr-v-photo" class="peer-focus:font-medium absolute text-sm text-gray-900 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Photo</label>
+            </div>
           </div>
-          <div>
-            <label class="block text-xs text-gray-400 mb-1">Photo (optional)</label>
-            <input id="mr-v-photo" type="file" accept="image/*" class="block w-full text-xs text-gray-300 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
-          </div>
-        </div>
+        </form>
       </div>`;
 
     await window.Swal.fire({
-      title: 'Manual Registration',
+      title: '<span class="text-white">Manual Registration</span>',
       html,
       background: '#111827',
       color: '#F9FAFB',
@@ -568,51 +757,67 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = document.getElementById('mr-v-name').value.trim();
         const rel = document.getElementById('mr-v-rel').value.trim();
         const email = document.getElementById('mr-v-email').value.trim();
-        const phone = document.getElementById('mr-v-phone').value.trim();
+        const phoneInput = document.getElementById('mr-v-phone').value.trim();
+        const phoneDigits = phoneInput.replace(/\D+/g, '');
+        const phone = phoneDigits ? `+63 ${phoneDigits}` : '';
+        const idType = document.getElementById('mr-v-id-type').value.trim();
+        const idNumber = document.getElementById('mr-v-id-number').value.trim();
+        const address = document.getElementById('mr-v-address').value.trim();
         const sched = document.getElementById('mr-v-sched').value;
         const photo = document.getElementById('mr-v-photo').files[0] || null;
 
         if (!name) {
-          window.Swal.showValidationMessage('Visitor full name is required');
+          window.Swal.showValidationMessage('Visitor name is required');
           return false;
         }
 
-        // Prepare FormData for backend create; fallback to local state
+        // Prepare FormData for backend create
         const form = new FormData();
         form.append('inmate_id', String(inmate.id));
         form.append('name', name);
         if (rel) form.append('relationship', rel);
         if (email) form.append('email', email);
         if (phone) form.append('phone', phone);
+        if (idType) form.append('id_type', idType);
+        if (idNumber) form.append('id_number', idNumber);
+        if (address) form.append('address', address);
         if (sched) form.append('schedule', sched);
-        if (photo) form.append('photo', photo);
+        if (photo) form.append('avatar', photo);
 
-        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+        // Dynamic import to avoid ad-blockers on top-level module load
+        let VisitorApiClient;
+        try {
+          ({ default: VisitorApiClient } = await import('./components/visitorClient.js'));
+        } catch (e) {
+          window.Swal.showValidationMessage('Unable to load registration module. Please disable blocking extensions and try again.');
+          return false;
+        }
+        const visitorApi = new VisitorApiClient();
         let created = null;
         try {
-          const resp = await fetch('/api/visitors', {
-            method: 'POST',
-            headers: csrf ? { 'X-CSRF-TOKEN': csrf } : undefined,
-            body: form
+          const response = await visitorApi.create(form);
+          created = response.data;
+          
+          // Show success message
+          window.Swal.fire({
+            title: 'Success!',
+            text: 'Visitor registered successfully',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false,
+            background: '#111827',
+            color: '#F9FAFB',
+            heightAuto: false,
+            scrollbarPadding: false,
           });
-          if (resp.ok) {
-            created = await resp.json();
-          }
-        } catch (_) {}
-
-        if (!created) {
-          // Fallback: update UI only
-          const id = Date.now();
-          visitors.push({
-            id,
-            visitor: name,
-            schedule: sched || new Date().toISOString().slice(0,16).replace('T',' '),
-            status: 'Pending',
-            visitorDetails: { name, phone, email, relationship: rel },
-            pdlDetails: { name: inmate.name, birthday: null, age: null, parents: { father: 'N/A', mother: 'N/A' }, spouse: 'N/A', nextOfKin: 'N/A' }
-          });
-          render();
+          
+          // Refresh from backend so the new visitor appears in the list
+          await loadBackendVisitors();
+        } catch (error) {
+          window.Swal.showValidationMessage(`Registration failed: ${error.message}`);
+          return false;
         }
+
         return true;
       }
     });

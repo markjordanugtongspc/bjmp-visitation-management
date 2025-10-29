@@ -3,6 +3,7 @@
 use App\Http\Controllers\InmateController;
 use App\Http\Controllers\CellController;
 use App\Http\Controllers\SupervisionController;
+use App\Http\Controllers\VisitorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -62,4 +63,14 @@ Route::prefix('cells')->middleware(['web'])->group(function () {
 // Supervision API routes
 Route::prefix('supervision')->group(function () {
     Route::get('/', [SupervisionController::class, 'index'])->name('api.supervision.index');
+});
+
+// Visitors API routes
+Route::prefix('visitors')->middleware(['web'])->group(function () {
+    Route::get('/', [VisitorController::class, 'index'])->name('api.visitors.index');
+    Route::post('/', [VisitorController::class, 'store'])->name('api.visitors.store');
+    Route::get('/{id}', [VisitorController::class, 'show'])->name('api.visitors.show');
+    Route::patch('/{id}', [VisitorController::class, 'update'])->name('api.visitors.update');
+    Route::patch('/{id}/status', [VisitorController::class, 'updateStatus'])->name('api.visitors.update-status');
+    Route::delete('/{id}', [VisitorController::class, 'destroy'])->name('api.visitors.destroy');
 });
