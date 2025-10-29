@@ -233,13 +233,30 @@
                                     </div>
                                     <div>
                                         <label for="guideline-summary" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Summary</label>
-                                        <textarea id="guideline-summary" name="summary" rows="3" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Brief summary (minimum 50 characters)..."></textarea>
+                                        <textarea id="guideline-summary" name="summary" rows="3" required class="block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-500 transition" placeholder="Brief summary (minimum 50 characters)..."></textarea>
                                     </div>
                                     <div>
-                                        <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200" for="file_input">Upload file</label>
-                                        <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
-                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">PDF, DOC, or DOCX only (MAX. 10MB).</p>
-                                </div>
+                                        <label for="file_input" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                                            Upload file
+                                        </label>
+                                        <div class="relative">
+                                            <input 
+                                                id="file_input" 
+                                                name="file"
+                                                type="file" 
+                                                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                                required
+                                                class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:border-gray-700 dark:placeholder-gray-200 file:mr-4 file:py-2 file:px-4
+                                                    file:rounded-lg file:border-0 file:text-sm file:font-semibold
+                                                    file:bg-gray-700 file:text-white
+                                                    hover:file:bg-gray-900 transition"
+                                                aria-describedby="file_input_help"
+                                            >
+                                        </div>
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-200" id="file_input_help">
+                                            PDF, DOC, or DOCX only (MAX. 10MB).
+                                        </p>
+                                    </div>
                                     <div class="mt-auto flex items-center justify-end gap-2 pt-2">
                                         <button
                                             type="reset"
