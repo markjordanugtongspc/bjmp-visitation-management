@@ -61,6 +61,9 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::post('/officers', [AdminController::class, 'storeOfficer'])->name('admin.officers.store');
     Route::get('/officers/list', [AdminController::class, 'listOfficers'])->name('admin.officers.list');
     Route::patch('/officers/{user:user_id}', [AdminController::class, 'updateOfficer'])->name('admin.officers.update');
+    
+    // Visitor routes
+    Route::get('/visitors', [AdminController::class, 'visitors'])->name('admin.visitors.index');
 });
 
 // Warden routes
@@ -72,6 +75,10 @@ Route::prefix('warden')->middleware(['auth', 'verified'])->group(function () {
     Route::post('/officers', [WardenController::class, 'storeOfficer'])->name('warden.officers.store');
     Route::get('/officers/list', [WardenController::class, 'listOfficers'])->name('warden.officers.list');
     Route::patch('/officers/{user:user_id}', [WardenController::class, 'updateOfficer'])->name('warden.officers.update');
+    
+    // Visitor routes
+    Route::get('/visitors', [WardenController::class, 'visitors'])->name('warden.visitors.index');
+    Route::get('/visitors/requests', [WardenController::class, 'requests'])->name('warden.visitors.requests');
     
     // Supervision routes
     Route::view('/supervision', 'warden.supervision.supervision')->name('warden.supervision');

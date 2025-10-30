@@ -45,6 +45,8 @@ class VisitorController extends Controller
             if (Schema::hasColumn('visitation_logs', 'schedule')) $select[] = 'schedule';
             if (Schema::hasColumn('visitation_logs', 'visit_date')) $select[] = 'visit_date';
             if (Schema::hasColumn('visitation_logs', 'visit_time')) $select[] = 'visit_time';
+            if (Schema::hasColumn('visitation_logs', 'time_in')) $select[] = 'time_in';
+            if (Schema::hasColumn('visitation_logs', 'time_out')) $select[] = 'time_out';
 
             $logs = DB::table('visitation_logs')
                 ->select($select)
@@ -61,6 +63,8 @@ class VisitorController extends Controller
                     $latestMap[$row->visitor_id] = [
                         'schedule' => $schedule,
                         'status' => $row->status,
+                        'time_in' => property_exists($row, 'time_in') ? $row->time_in : null,
+                        'time_out' => property_exists($row, 'time_out') ? $row->time_out : null,
                     ];
                 }
             }
@@ -179,12 +183,14 @@ class VisitorController extends Controller
             ], 404);
         }
 
-        $visitor->setAttribute('latest_log', null);
+$visitor->setAttribute('latest_log', null);
         if (Schema::hasTable('visitation_logs')) {
             $select = ['status', 'created_at'];
             if (Schema::hasColumn('visitation_logs', 'schedule')) $select[] = 'schedule';
             if (Schema::hasColumn('visitation_logs', 'visit_date')) $select[] = 'visit_date';
             if (Schema::hasColumn('visitation_logs', 'visit_time')) $select[] = 'visit_time';
+            if (Schema::hasColumn('visitation_logs', 'time_in')) $select[] = 'time_in';
+            if (Schema::hasColumn('visitation_logs', 'time_out')) $select[] = 'time_out';
 
             $query = DB::table('visitation_logs')->select($select);
             if (Schema::hasColumn('visitation_logs', 'visitor_id')) {
@@ -200,6 +206,8 @@ class VisitorController extends Controller
                 $visitor->setAttribute('latest_log', [
                     'schedule' => $schedule,
                     'status' => $latest->status,
+                    'time_in' => property_exists($latest, 'time_in') ? $latest->time_in : null,
+                    'time_out' => property_exists($latest, 'time_out') ? $latest->time_out : null,
                 ]);
             }
         }
@@ -403,5 +411,139 @@ class VisitorController extends Controller
             'success' => true,
             'count' => $count,
         ]);
+    }
+
+    /**
+     * Record Time In for a visitor
+     */
+    public function recordTimeIn($id)
+    {
+        try {
+            $visitor = Visitor::find($id);
+            
+            if (!$visitor) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Visitor not found'
+                ], 404);
+            }
+
+            // Get the latest visitation log for this visitor
+            $latestLog = DB::table('visitation_logs')
+                ->where('visitor_id', $id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$latestLog) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No visitation log found for this visitor'
+                ], 404);
+            }
+
+            // Check if time_in is already recorded
+            if ($latestLog->time_in) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Time in already recorded'
+                ], 400);
+            }
+
+            // Update time_in
+            DB::table('visitation_logs')
+                ->where('id', $latestLog->id)
+                ->update([
+                    'time_in' => now(),
+                    'updated_at' => now()
+                ]);
+
+            // Get updated log
+            $updatedLog = DB::table('visitation_logs')
+                ->where('id', $latestLog->id)
+                ->first();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Time in recorded successfully',
+                'data' => $updatedLog
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record time in: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Record Time Out for a visitor
+     */
+    public function recordTimeOut($id)
+    {
+        try {
+            $visitor = Visitor::find($id);
+            
+            if (!$visitor) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Visitor not found'
+                ], 404);
+            }
+
+            // Get the latest visitation log for this visitor
+            $latestLog = DB::table('visitation_logs')
+                ->where('visitor_id', $id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$latestLog) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No visitation log found for this visitor'
+                ], 404);
+            }
+
+            // Check if time_in is recorded
+            if (!$latestLog->time_in) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Time in must be recorded before time out'
+                ], 400);
+            }
+
+            // Check if time_out is already recorded
+            if ($latestLog->time_out) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Time out already recorded'
+                ], 400);
+            }
+
+            // Update time_out
+            DB::table('visitation_logs')
+                ->where('id', $latestLog->id)
+                ->update([
+                    'time_out' => now(),
+                    'updated_at' => now()
+                ]);
+
+            // Get updated log
+            $updatedLog = DB::table('visitation_logs')
+                ->where('id', $latestLog->id)
+                ->first();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Time out recorded successfully',
+                'data' => $updatedLog
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record time out: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -7,56 +7,12 @@
  */
 export default function initSupervisionModalInteractions() {
   if (typeof window === 'undefined') return; // SSR guard
-  setSweetAlertDarkThemeDefault();
   setupModalToggles();
   setupRefreshButton();
   exposeSweetAlertHelpers();
 }
 
-// Ensure SweetAlert2 modals always use dark mode as the default theme
-function setSweetAlertDarkThemeDefault() {
-  if (typeof window !== 'undefined' && window.Swal) {
-    return;
-    // A wrapper for backward/forward compat: also patch fire to always enforce dark
-    const globalDarkDefaults = {
-      background: '#172033', // deep dark (e.g. Tailwind's zinc-900/sky-900)
-      color: '#e0e6ed',
-      customClass: {
-        popup: 'bg-zinc-900 border border-zinc-700 text-neutral-100 shadow-2xl dark', // apply strong dark color
-        confirmButton: 'bg-sky-900 hover:bg-sky-800 text-sky-100 px-5 py-2 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-sky-700',
-        cancelButton: 'bg-zinc-700 hover:bg-zinc-600 text-zinc-300 px-5 py-2 rounded font-semibold',
-        title: 'text-sky-200',
-        htmlContainer: 'text-neutral-200'
-      }
-    };
-    // Set initial defaults (will only override un-set, but user can still override when firing)
-    window.Swal.mixin && (window.Swal.DARK_MODE = window.Swal.mixin(globalDarkDefaults));
-    // Monkeypatch global fire to always merge with dark mode
-    const originalFire = window.Swal.fire;
-    window.Swal.fire = function (opts = {}, ...rest) {
-      // Merge deeply, let per-modal opts override, but always default to dark
-      // Avoid duplicate classes if popup already set
-      let _opts = opts || {};
-      let popup = (_opts.customClass && _opts.customClass.popup) || '';
-      if (!popup.includes('bg-zinc-900')) {
-        _opts = {
-          background: globalDarkDefaults.background,
-          color: globalDarkDefaults.color,
-          ..._opts,
-          customClass: {
-            ...globalDarkDefaults.customClass,
-            ...(opts.customClass || {})
-          }
-        };
-        // Merge popup customClass carefully (do not override if user sets "popup")
-        if (opts.customClass && opts.customClass.popup) {
-          _opts.customClass.popup = opts.customClass.popup;
-        }
-      }
-      return originalFire.call(window.Swal, _opts, ...rest);
-    };
-  }
-}
+// Dark-mode defaults removed intentionally; keeping SweetAlert defaults as-is
 
 // Attach modal togglers with event delegation
 function setupModalToggles() {
@@ -89,7 +45,7 @@ function handleModalToggle(e) {
     );
     // Applying blue-sky palette (like inmates.js "isMale")
     content.classList.add(
-      'bg-sky-50', 'border', 'border-sky-200', 'dark:bg-sky-900/20', 'dark:border-sky-800'
+      'bg-sky-50', 'border', 'border-sky-200'
     );
   }
 
@@ -169,7 +125,7 @@ async function handleRefreshClick(e) {
         timer: 2200,
         icon: 'success',
         customClass: {
-          popup: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-gray-900 dark:text-neutral-100 shadow rounded-lg text-sm',
+          popup: 'bg-white border border-zinc-200 text-gray-900 shadow rounded-lg text-sm',
         },
         title: 'Supervision data refreshed!'
       });
@@ -185,7 +141,7 @@ async function handleRefreshClick(e) {
         timer: 3000,
         icon: 'error',
         customClass: {
-          popup: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-gray-900 dark:text-neutral-100 shadow rounded-lg text-sm'
+          popup: 'bg-white border border-zinc-200 text-gray-900 shadow rounded-lg text-sm'
         },
         title: 'Failed to refresh data'
       });
@@ -225,14 +181,13 @@ function showGuidelinesInfoModal() {
       </div>
     `,
     icon: 'info',
-    confirmButtonText: `<span class="text-brand-text-dark dark:text-brand-text-light">Got it</span>`,
+    confirmButtonText: `<span class="text-brand-text-dark">Got it</span>`,
     customClass: {
-      popup: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-sky-900 md:max-w-xl shadow-xl rounded-lg text-gray-900 dark:text-neutral-100',
+      popup: 'bg-white border border-zinc-200 md:max-w-xl shadow-xl rounded-lg text-gray-900',
       // Modernize button to match palette: bg-brand-button-primary-dark in dark, bg-brand-button-primary-light in light; text and ring based on palette
       confirmButton:
-        'bg-brand-button-primary-light text-white hover:bg-brand-button-hover-light focus:ring-4 focus:ring-brand-button-primary-light focus:outline-none rounded font-semibold px-5 py-2 transition-colors duration-100 ' +
-        'dark:bg-brand-button-primary-dark dark:text-brand-text-dark dark:hover:bg-brand-button-hover-dark dark:focus:ring-brand-button-primary-dark',
-      title: 'pt-4 text-sky-700 dark:text-sky-200',
+        'bg-brand-button-primary-light text-white hover:bg-brand-button-hover-light focus:ring-4 focus:ring-brand-button-primary-light focus:outline-none rounded font-semibold px-5 py-2 transition-colors duration-100',
+      title: 'pt-4 text-sky-700',
       htmlContainer: 'pb-2'
     }
   });

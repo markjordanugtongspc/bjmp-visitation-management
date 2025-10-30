@@ -382,6 +382,83 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rl === 'wife/husband' || rl === 'wife' || rl === 'husband') spouseVal = v.name || spouseVal;
     }
 
+    // Get time in/out data
+    const timeIn = latest.time_in || null;
+    const timeOut = latest.time_out || null;
+    
+    // Format time function
+    const formatTime = (timestamp) => {
+      if (!timestamp) return null;
+      const date = new Date(timestamp);
+      return date.toLocaleString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    };
+    
+    const timeInFormatted = formatTime(timeIn);
+    const timeOutFormatted = formatTime(timeOut);
+    
+    // Time In/Time Out buttons for desktop Actions column
+    const desktopActionButtons = statusLabel === 'Approved' ? `
+      <div class="flex items-center gap-2">
+        <!-- Time In Button -->
+        <button 
+          data-time-in-btn
+          data-visitor-id="${data.id || ''}"
+          class="group relative inline-flex items-center justify-center w-10 h-10 rounded-md bg-green-600/10 hover:bg-green-600/20 border border-green-600/30 transition-colors ${timeIn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+          ${timeIn ? 'disabled' : ''}
+          title="Record Time In"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><rect width="24" height="24" fill="none"/><path fill="#1dca00" d="m12 11.6l2.5 2.5q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.8-2.8q-.15-.15-.225-.337T10 11.975V8q0-.425.288-.712T11 7t.713.288T12 8zM18 6h-2q-.425 0-.712-.287T15 5t.288-.712T16 4h2V2q0-.425.288-.712T19 1t.713.288T20 2v2h2q.425 0 .713.288T23 5t-.288.713T22 6h-2v2q0 .425-.288.713T19 9t-.712-.288T18 8zm-7 15q-1.875 0-3.512-.7t-2.863-1.925T2.7 15.512T2 12t.7-3.512t1.925-2.863T7.488 3.7T11 3q.275 0 .513.013t.512.062q.425 0 .713.288t.287.712t-.288.713t-.712.287q-.275 0-.513-.038T11 5Q8.05 5 6.025 7.025T4 12t2.025 4.975T11 19t4.975-2.025T18 12q0-.425.288-.712T19 11t.713.288T20 12q0 1.875-.7 3.513t-1.925 2.862t-2.863 1.925T11 21" stroke-width="0.3" stroke="#1dca00"/></svg>
+        </button>
+        
+        <!-- Time Out Button -->
+        <button 
+          data-time-out-btn
+          data-visitor-id="${data.id || ''}"
+          class="group relative inline-flex items-center justify-center w-10 h-10 rounded-md bg-red-600/10 hover:bg-red-600/20 border border-red-600/30 transition-colors ${!timeIn || timeOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+          ${!timeIn || timeOut ? 'disabled' : ''}
+          title="Record Time Out"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16"><rect width="16" height="16" fill="none"/><path fill="#ca0000" fill-rule="evenodd" d="M6.229.199a8 8 0 0 1 9.727 6.964a.75.75 0 0 1-1.492.157a6.5 6.5 0 1 0-7.132 7.146a.75.75 0 1 1-.154 1.492a8 8 0 0 1-.95-15.76ZM8 3a.75.75 0 0 1 .75.75V9h-4a.75.75 0 0 1 0-1.5h2.5V3.75A.75.75 0 0 1 8 3m2.22 7.22a.75.75 0 0 1 1.06 0L13 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L14.06 13l1.72 1.72a.75.75 0 1 1-1.06 1.06L13 14.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L11.94 13l-1.72-1.72a.75.75 0 0 1 0-1.06" clip-rule="evenodd" stroke-width="0.3" stroke="#ca0000"/></svg>
+        </button>
+      </div>
+    ` : '—';
+
+    // Large buttons for mobile view
+    const mobileActionButtons = statusLabel === 'Approved' ? `
+      <div class="mt-6 space-y-3">
+        <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Visit Actions</div>
+        <div class="flex flex-col gap-3">
+          <!-- Time In Button (Large) -->
+          <button 
+            data-time-in-btn
+            data-visitor-id="${data.id || ''}"
+            class="group relative inline-flex items-center justify-center w-full h-14 px-4 rounded-md bg-green-600/10 hover:bg-green-600/20 border border-green-600/30 transition-colors ${timeIn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+            ${timeIn ? 'disabled' : ''}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="mr-3"><rect width="24" height="24" fill="none"/><path fill="#1dca00" d="m12 11.6l2.5 2.5q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.8-2.8q-.15-.15-.225-.337T10 11.975V8q0-.425.288-.712T11 7t.713.288T12 8zM18 6h-2q-.425 0-.712-.287T15 5t.288-.712T16 4h2V2q0-.425.288-.712T19 1t.713.288T20 2v2h2q.425 0 .713.288T23 5t-.288.713T22 6h-2v2q0 .425-.288.713T19 9t-.712-.288T18 8zm-7 15q-1.875 0-3.512-.7t-2.863-1.925T2.7 15.512T2 12t.7-3.512t1.925-2.863T7.488 3.7T11 3q.275 0 .513.013t.512.062q.425 0 .713.288t.287.712t-.288.713t-.712.287q-.275 0-.513-.038T11 5Q8.05 5 6.025 7.025T4 12t2.025 4.975T11 19t4.975-2.025T18 12q0-.425.288-.712T19 11t.713.288T20 12q0 1.875-.7 3.513t-1.925 2.862t-2.863 1.925T11 21" stroke-width="0.3" stroke="#1dca00"/></svg>
+            <span class="text-sm font-medium text-green-400">Record Time In</span>
+            <span class="ml-auto text-xs text-gray-400">${timeInFormatted || 'Not recorded'}</span>
+          </button>
+          
+          <!-- Time Out Button (Large) -->
+          <button 
+            data-time-out-btn
+            data-visitor-id="${data.id || ''}"
+            class="group relative inline-flex items-center justify-center w-full h-14 px-4 rounded-md bg-red-600/10 hover:bg-red-600/20 border border-red-600/30 transition-colors ${!timeIn || timeOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+            ${!timeIn || timeOut ? 'disabled' : ''}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16" class="mr-3"><rect width="16" height="16" fill="none"/><path fill="#ca0000" fill-rule="evenodd" d="M6.229.199a8 8 0 0 1 9.727 6.964a.75.75 0 0 1-1.492.157a6.5 6.5 0 1 0-7.132 7.146a.75.75 0 1 1-.154 1.492a8 8 0 0 1-.95-15.76ZM8 3a.75.75 0 0 1 .75.75V9h-4a.75.75 0 0 1 0-1.5h2.5V3.75A.75.75 0 0 1 8 3m2.22 7.22a.75.75 0 0 1 1.06 0L13 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L14.06 13l1.72 1.72a.75.75 0 1 1-1.06 1.06L13 14.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L11.94 13l-1.72-1.72a.75.75 0 0 1 0-1.06" clip-rule="evenodd" stroke-width="0.3" stroke="#ca0000"/></svg>
+            <span class="text-sm font-medium text-red-400">Record Time Out</span>
+            <span class="ml-auto text-xs text-gray-400">${timeOutFormatted || 'Not recorded'}</span>
+          </button>
+        </div>
+      </div>
+    ` : '';
+    
     const visitorRows = [
       { label: 'Name', value: v.name || data.visitor },
       { label: 'Email', value: v.email || 'N/A' },
@@ -389,6 +466,8 @@ document.addEventListener('DOMContentLoaded', () => {
       { label: 'Relationship', value: v.relationship || 'N/A' },
       { label: 'Schedule', value: scheduleDisp },
       { label: 'Status', value: statusBadge(statusLabel) },
+      { label: 'Visit Times', value: `${timeInFormatted ? `Time In: ${timeInFormatted}` : ''}${timeInFormatted && timeOutFormatted ? ' | ' : ''}${timeOutFormatted ? `Time Out: ${timeOutFormatted}` : ''}` || '—' },
+      { label: 'Actions', value: desktopActionButtons },
     ];
     const pdlRows = [
       { label: 'Name', value: p.name || 'N/A' },
@@ -443,10 +522,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mobile rows: fallback to original tailwind grid layout (mobile only)
     function mobileRows(sectionTitle, rows) {
+      // Filter out Actions row for mobile view
+      const mobileRows = rows.filter(row => row.label !== 'Actions');
+      
       return `
         <div class="block sm:hidden mb-6">
           <div class="font-semibold text-gray-900 dark:text-gray-100 mb-2">${sectionTitle}</div>
-          ${rows.map(row => `
+          ${mobileRows.map(row => `
             <div class="grid grid-cols-5 gap-2 py-1 items-center">
               <div class="col-span-2 text-xs sm:text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium">${row.label}:</div>
               <div class="col-span-3 text-xs sm:text-sm md:text-base text-gray-900 dark:text-gray-100 text-right sm:text-left">
@@ -470,6 +552,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="block sm:hidden">
           ${mobileRows('PDL Information', pdlRows)}
           ${mobileRows('Visitor Information', visitorRows)}
+          
+          <!-- Mobile Action Buttons (only for Approved status) -->
+          ${mobileActionButtons}
         </div>
       </div>
     `;
@@ -492,6 +577,141 @@ document.addEventListener('DOMContentLoaded', () => {
           htmlContainer: 'p-6 sm:p-8',
           closeButton: 'hover:bg-transparent',
           title: 'text-white'
+        },
+        didOpen: () => {
+          // Attach Time In button handler
+          const timeInBtn = document.querySelector('[data-time-in-btn]');
+          if (timeInBtn && !timeInBtn.disabled) {
+            timeInBtn.addEventListener('click', async () => {
+              const visitorId = timeInBtn.getAttribute('data-visitor-id');
+              if (!visitorId) return;
+              
+              try {
+                const response = await fetch(`/api/visitors/${visitorId}/time-in`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest'
+                  }
+                });
+                
+                if (!response.ok) throw new Error('Failed to record time in');
+                
+                const result = await response.json();
+                
+                // Format time for success message
+                const timeInTime = new Date(result.data.time_in).toLocaleString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                });
+                
+await Swal.fire({
+                  icon: 'success',
+                  title: 'Time In Recorded!',
+                  text: `Time in recorded at ${timeInTime}`,
+                  timer: 2000,
+                  showConfirmButton: false,
+                  background: '#111827',
+                  color: '#F9FAFB',
+                  iconColor: '#1dca00'
+                });
+                
+                // Reload the modal with updated data
+                if (result.success && result.data) {
+                  // Update the latest_log with new time_in data
+                  if (!data.latest_log) {
+                    data.latest_log = {};
+                  }
+                  data.latest_log.time_in = result.data.time_in;
+                  data.latest_log.time_out = result.data.time_out;
+                  data.latest_log.status = result.data.status;
+                  
+                  // Close current modal and reopen with updated data
+                  Swal.close();
+                  setTimeout(() => openVisitorModal(data), 100);
+                }
+              } catch (error) {
+                console.error('Error recording time in:', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Failed to record time in. Please try again.',
+                  background: '#111827',
+                  color: '#F9FAFB',
+                  confirmButtonColor: '#3B82F6'
+                });
+              }
+            });
+          }
+          
+          // Attach Time Out button handler
+          const timeOutBtn = document.querySelector('[data-time-out-btn]');
+          if (timeOutBtn && !timeOutBtn.disabled) {
+            timeOutBtn.addEventListener('click', async () => {
+              const visitorId = timeOutBtn.getAttribute('data-visitor-id');
+              if (!visitorId) return;
+              
+              try {
+                const response = await fetch(`/api/visitors/${visitorId}/time-out`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest'
+                  }
+                });
+                
+                if (!response.ok) throw new Error('Failed to record time out');
+                
+                const result = await response.json();
+                
+                // Format time for success message
+                const timeOutTime = new Date(result.data.time_out).toLocaleString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                });
+                
+await Swal.fire({
+                  icon: 'success',
+                  title: 'Time Out Recorded!',
+                  text: `Time out recorded at ${timeOutTime}`,
+                  timer: 2000,
+                  showConfirmButton: false,
+                  background: '#111827',
+                  color: '#F9FAFB',
+                  iconColor: '#1dca00'
+                });
+                
+                // Reload the modal with updated data
+                if (result.success && result.data) {
+                  // Update the latest_log with new time_out data
+                  if (!data.latest_log) {
+                    data.latest_log = {};
+                  }
+                  data.latest_log.time_in = result.data.time_in;
+                  data.latest_log.time_out = result.data.time_out;
+                  data.latest_log.status = result.data.status;
+                  
+                  // Close current modal and reopen with updated data
+                  Swal.close();
+                  setTimeout(() => openVisitorModal(data), 100);
+                }
+              } catch (error) {
+                console.error('Error recording time out:', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Failed to record time out. Please try again.',
+                  background: '#111827',
+                  color: '#F9FAFB',
+                  confirmButtonColor: '#3B82F6'
+                });
+              }
+            });
+          }
         }
       });
     

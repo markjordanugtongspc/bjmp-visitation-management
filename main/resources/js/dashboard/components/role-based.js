@@ -66,9 +66,9 @@ class NavigationConfig {
                         title: 'Visitors',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5M4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5S5.5 6.57 5.5 8.5S7.07 12 9 12m0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7m7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44M15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35c.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35" stroke-width="0.3" stroke="currentColor"/></svg>`,
                         route: {
-                            0: 'visitation.request.visitor',
-                            1: 'visitation.request.visitor',
-                            2: 'visitation.request.visitor',
+                            0: 'admin.visitors.index',
+                            1: 'warden.visitors.index',
+                            2: 'warden.visitors.index',
                             8: 'searcher.visitors.index'
                         },
                         roles: [0, 1, 2, 8], // Admin, Warden, Assistant Warden, Searcher
@@ -77,7 +77,11 @@ class NavigationConfig {
                     requests: {
                         title: 'Requests',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><rect width="24" height="24" fill="none"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M13.578 16.775a.97.97 0 0 0-.31-.715L7.3 10.554L1.33 16.06a.97.97 0 0 0-.309.715v5.37a.966.966 0 0 0 .966.966h10.626a.966.966 0 0 0 .966-.966zm3.419-9.049a3.419 3.419 0 1 0 0-6.837a3.419 3.419 0 0 0 0 6.837"/><path d="M16.423 23.111h3.138l.855-6.838h2.564V13.71a5.983 5.983 0 0 0-11.037-3.202m-4.644 5.125v4.834m2.417-2.417H4.88"/></g></svg>`,
-                        href: '/searcher/visitors/requests',
+                        route: {
+                            1: 'warden.visitors.requests',
+                            2: 'warden.visitors.requests',
+                            8: 'searcher.visitors.requests'
+                        },
                         roles: [1, 2, 8], // Warden, Assistant Warden, Searcher
                         order: 2,
                         dataNavItem: 'requests'
@@ -236,7 +240,11 @@ class NavigationConfig {
             
             // Visitation routes
             'visitation.request.visitor': '/visitation/request/visitor',
-            'searcher.visitors.index': '/searcher/visitors'
+            'admin.visitors.index': '/admin/visitors',
+            'warden.visitors.index': '/warden/visitors',
+            'warden.visitors.requests': '/warden/visitors/requests',
+            'searcher.visitors.index': '/searcher/visitors',
+            'searcher.visitors.requests': '/searcher/visitors/requests'
         };
         
         return routeMap[routeName] || `/${routeName.replace(/\./g, '/')}`;
@@ -287,8 +295,16 @@ class NavigationConfig {
                     
                 case 'visitation.request.visitor':
                     return currentPath === '/visitation/request/visitor';
+                case 'admin.visitors.index':
+                    return currentPath === '/admin/visitors';
+                case 'warden.visitors.index':
+                    return currentPath === '/warden/visitors';
+                case 'warden.visitors.requests':
+                    return currentPath === '/warden/visitors/requests';
                 case 'searcher.visitors.index':
                     return currentPath === '/searcher/visitors';
+                case 'searcher.visitors.requests':
+                    return currentPath === '/searcher/visitors/requests';
             }
         }
         

@@ -73,6 +73,10 @@ Route::prefix('visitors')->middleware(['web'])->group(function () {
     Route::patch('/{id}', [VisitorController::class, 'update'])->name('api.visitors.update');
     Route::patch('/{id}/status', [VisitorController::class, 'updateStatus'])->name('api.visitors.update-status');
     Route::delete('/{id}', [VisitorController::class, 'destroy'])->name('api.visitors.destroy');
+    
+    // Time In/Time Out routes
+    Route::post('/{id}/time-in', [VisitorController::class, 'recordTimeIn'])->name('api.visitors.time-in');
+    Route::post('/{id}/time-out', [VisitorController::class, 'recordTimeOut'])->name('api.visitors.time-out');
 });
 
 // Metrics related to visitors/inmates

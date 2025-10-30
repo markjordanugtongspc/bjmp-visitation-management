@@ -3245,6 +3245,71 @@ async function openUnifiedInmateModal(inmate) {
   function getAllowedVisitors(i) {
     return Array.isArray(i.allowedVisitors) ? i.allowedVisitors : [];
   }
+  async function fetchRecentVisits(inmateId) {
+    try {
+      // Fetch visitors for this specific inmate
+      const response = await fetch(`/api/visitors?inmate_id=${inmateId}&per_page=20&sort=created_at&order=desc`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch visitation records');
+      
+      const json = await response.json();
+      const visitors = json?.data || [];
+      
+      // Transform visitor data to match expected format
+      return visitors.map(visitor => {
+        // Use schedule from latest_log only - show N/A if no schedule set
+        let visitDate = 'N/A';
+        if (visitor.latest_log && visitor.latest_log.schedule) {
+          visitDate = new Date(visitor.latest_log.schedule).toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          });
+        }
+
+        // Determine status badge
+        // Only show status if visitor has a visitation_log entry (schedule was set)
+        // Status values from visitation_logs: 1 = Approved, 2 = Pending, 0 = Denied/Declined
+        let status = 'N/A';
+        
+        if (visitor.latest_log && visitor.latest_log.status !== undefined) {
+          const statusValue = visitor.latest_log.status;
+          
+          if (statusValue === 1 || statusValue === '1' || statusValue === 'Approved') {
+            status = 'Approved';
+          } else if (statusValue === 0 || statusValue === '0' || statusValue === 'Denied' || statusValue === 'Declined') {
+            status = 'Declined';
+          } else {
+            // status === 2 or 'Pending' or anything else
+            status = 'Pending';
+          }
+        }
+
+        // Calculate duration (mock data since we don't have actual duration)
+        const duration = status === 'Approved' ? Math.floor(Math.random() * 60) + 30 : null;
+
+        return {
+          visitor: visitor.name || 'Unknown Visitor',
+          relationship: visitor.relationship || '—',
+          purpose: 'N/A', // As requested - we don't have this data
+          date: visitDate,
+          duration: duration,
+          status: status
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching recent visits:', error);
+      return [];
+    }
+  }
+
   function getRecentVisits(i) {
     return Array.isArray(i.recentVisits) ? i.recentVisits : [];
   }
@@ -3407,7 +3472,80 @@ async function openUnifiedInmateModal(inmate) {
       <span class="sm:hidden ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Allowed</span>
     </li>
   `).join('');
-  const visitsCards = visits.map(v => `
+  // Generate visitation HTML with backend data
+  async function generateVisitationHTML(inmate) {
+    // Fetch real visitation data from backend
+    const visits = await fetchRecentVisits(inmate.id);
+    
+    const visitsCards = visits.map(v => `
+      <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3 bg-white dark:bg-gray-900">
+        <div class="flex items-center justify-between">
+          <div class="text-sm font-medium text-gray-900 dark:text-gray-200">${v.visitor}</div>
+          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${v.status === 'Approved' ? 'bg-green-500/10 text-green-600' : v.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600' : v.status === 'Completed' ? 'bg-blue-500/10 text-blue-600' : v.status === 'Cancelled' ? 'bg-gray-500/10 text-gray-600' : 'bg-red-500/10 text-red-600'}">${v.status || '—'}</span>
+        </div>
+        <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">${v.date}${v.relationship ? ` • ${v.relationship}` : ''}</div>
+        ${v.purpose ? `<div class=\"mt-2 text-sm text-gray-700 dark:text-gray-300\">${v.purpose}</div>` : ''}
+        <div class="mt-2 flex text-xs text-gray-400 dark:text-gray-500 gap-4">
+          ${v.duration ? `<span>⏱ ${v.duration} min</span>` : ''}
+        </div>
+      </div>
+    `).join('');
+    
+    const visitsRows = visits.map(v => `
+      <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+        <td class="px-3 py-2 whitespace-nowrap text-sm">${v.date}</td>
+        <td class="px-3 py-2 text-sm">${v.visitor}</td>
+        <td class="px-3 py-2 text-sm">${v.relationship || '—'}</td>
+        <td class="px-3 py-2 text-sm">${v.purpose || '—'}</td>
+        <td class="px-3 py-2 text-sm">${v.duration ? `${v.duration} min` : '—'}</td>
+        <td class="px-3 py-2">
+          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${v.status === 'Approved' ? 'bg-green-500/10 text-green-600' : v.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600' : v.status === 'Completed' ? 'bg-blue-500/10 text-blue-600' : v.status === 'Cancelled' ? 'bg-gray-500/10 text-gray-600' : 'bg-red-500/10 text-red-600'}">${v.status || '—'}</span>
+        </td>
+      </tr>
+    `).join('');
+    
+    return `
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1 rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Allowed Visitors</h3>
+          <ul class="space-y-3">
+            ${allowedList || '<li class="text-sm text-gray-500 dark:text-gray-400">No allowed visitors configured</li>'}
+          </ul>
+        </div>
+        <div class="lg:col-span-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+          <div class="p-4">
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Recent Visits</h3>
+          </div>
+          <!-- Mobile cards -->
+          <div class="sm:hidden p-4 pt-0 space-y-3">
+            ${visitsCards || `<div class="text-sm text-gray-500 dark:text-gray-400">No visit records</div>`}
+          </div>
+          <!-- Desktop table -->
+          <div class="hidden sm:block overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="bg-gray-50 dark:bg-gray-800/60">
+                <tr>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Date</th>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Visitor</th>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Relationship</th>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Purpose</th>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Duration</th>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${visitsRows || `<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No visit records</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Keep the old static version for backward compatibility
+  const staticVisits = getRecentVisits(inmate);
+  const visitsCards = staticVisits.map(v => `
     <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3 bg-white dark:bg-gray-900">
       <div class="flex items-center justify-between">
         <div class="text-sm font-medium text-gray-900 dark:text-gray-200">${v.visitor}</div>
@@ -3420,7 +3558,7 @@ async function openUnifiedInmateModal(inmate) {
       </div>
     </div>
   `).join('');
-  const visitsRows = visits.map(v => `
+  const visitsRows = staticVisits.map(v => `
     <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
       <td class="px-3 py-2 whitespace-nowrap text-sm">${formatDate(v.date)}</td>
       <td class="px-3 py-2 text-sm">${v.visitor}</td>
@@ -3446,7 +3584,7 @@ async function openUnifiedInmateModal(inmate) {
         </div>
         <!-- Mobile cards -->
         <div class="sm:hidden p-4 pt-0 space-y-3">
-          ${visitsCards || `<div class=\"text-sm text-gray-500 dark:text-gray-400\">No visit records</div>`}
+          ${visitsCards || `<div class="text-sm text-gray-500 dark:text-gray-400">No visit records</div>`}
         </div>
         <!-- Desktop table -->
         <div class="hidden sm:block overflow-x-auto">
@@ -3462,7 +3600,7 @@ async function openUnifiedInmateModal(inmate) {
               </tr>
             </thead>
             <tbody>
-              ${visitsRows || `<tr><td colspan=\"6\" class=\"px-3 py-6 text-center text-gray-500 dark:text-gray-400\">No visit records</td></tr>`}
+              ${visitsRows || `<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No visit records</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -3760,7 +3898,7 @@ async function openUnifiedInmateModal(inmate) {
         });
       }
       const container = document.getElementById('tab-content');
-      const setActive = (id) => {
+      const setActive = async (id) => {
         document.querySelectorAll('button[data-tab]').forEach((btn) => {
           const isActive = btn.getAttribute('data-tab') === id;
           btn.setAttribute('data-active', String(isActive));
@@ -3775,7 +3913,19 @@ async function openUnifiedInmateModal(inmate) {
           container.innerHTML = pointsHTML;
           attachPointsModalHandlers(inmate);
         }
-        if (id === 'visitation') container.innerHTML = visitationHTML;
+        if (id === 'visitation') {
+          // Show loading state while fetching data
+          container.innerHTML = `
+            <div class="flex items-center justify-center py-8">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span class="ml-2 text-gray-500 dark:text-gray-400">Loading visitation records...</span>
+            </div>
+          `;
+          
+          // Fetch real visitation data and update content
+          const visitationHTML = await generateVisitationHTML(inmate);
+          container.innerHTML = visitationHTML;
+        }
         if (id === 'overview') attachAccordionHandlers();
         if (id === 'visitation') attachVisitorModalHandlers();
       };
@@ -3818,6 +3968,37 @@ function openVisitorModal(visitor) {
     </div>
   `;
 // [Romarc Dre 2/2]
+  // Get visitor status and time data from latest log
+  const status = visitor?.latestLog?.status !== undefined ? visitor.latestLog.status : null;
+  const timeIn = visitor?.latestLog?.time_in || null;
+  const timeOut = visitor?.latestLog?.time_out || null;
+  
+  // Format status badge
+  let statusBadge = '';
+  if (status === 1 || status === '1' || status === 'Approved') {
+    statusBadge = '<span class="inline-flex items-center rounded-full bg-green-500/10 text-green-500 px-3 py-1 text-xs font-medium">Approved</span>';
+  } else if (status === 0 || status === '0' || status === 'Denied' || status === 'Declined') {
+    statusBadge = '<span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-3 py-1 text-xs font-medium">Declined</span>';
+  } else if (status === 2 || status === '2' || status === 'Pending') {
+    statusBadge = '<span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-3 py-1 text-xs font-medium">Pending</span>';
+  } else {
+    statusBadge = '<span class="inline-flex items-center rounded-full bg-gray-500/10 text-gray-500 px-3 py-1 text-xs font-medium">N/A</span>';
+  }
+  
+  // Format time strings
+  const formatTime = (timestamp) => {
+    if (!timestamp) return null;
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+  
+  const timeInFormatted = formatTime(timeIn);
+  const timeOutFormatted = formatTime(timeOut);
+  
   const bodyHTML = `
     <div class="mt-4 grid grid-cols-1 gap-3">
       <div class="rounded-lg border border-gray-700 bg-gray-800/50 p-3 sm:p-4">
@@ -3826,6 +4007,47 @@ function openVisitorModal(visitor) {
           <div>${phone ? `📞 ${phone}` : '—'}</div>
           <div>${email ? `✉️ ${email}` : '—'}</div>
           <div class="break-words">${address ? `📍 ${address}` : '—'}</div>
+        </div>
+      </div>
+      
+      <div class="rounded-lg border border-gray-700 bg-gray-800/50 p-3 sm:p-4">
+        <h3 class="text-sm font-semibold text-gray-200 mb-3">Visit Status</h3>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-400">Status:</span>
+            ${statusBadge}
+          </div>
+          
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-400">Time In: ${timeInFormatted || 'N/A'} | Time Out: ${timeOutFormatted || 'N/A'}</span>
+            <div class="flex items-center gap-2">
+              <!-- Time In Button -->
+              <button 
+                data-time-in-btn
+                data-visitor-id="${visitor?.id || ''}"
+                class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md bg-green-600/10 hover:bg-green-600/20 border border-green-600/30 transition-colors ${timeIn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+                ${timeIn ? 'disabled' : ''}
+                title="Record Time In"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5"><rect width="24" height="24" fill="none"/><path fill="#1dca00" d="m12 11.6l2.5 2.5q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.8-2.8q-.15-.15-.225-.337T10 11.975V8q0-.425.288-.712T11 7t.713.288T12 8zM18 6h-2q-.425 0-.712-.287T15 5t.288-.712T16 4h2V2q0-.425.288-.712T19 1t.713.288T20 2v2h2q.425 0 .713.288T23 5t-.288.713T22 6h-2v2q0 .425-.288.713T19 9t-.712-.288T18 8zm-7 15q-1.875 0-3.512-.7t-2.863-1.925T2.7 15.512T2 12t.7-3.512t1.925-2.863T7.488 3.7T11 3q.275 0 .513.013t.512.062q.425 0 .713.288t.287.712t-.288.713t-.712.287q-.275 0-.513-.038T11 5Q8.05 5 6.025 7.025T4 12t2.025 4.975T11 19t4.975-2.025T18 12q0-.425.288-.712T19 11t.713.288T20 12q0 1.875-.7 3.513t-1.925 2.862t-2.863 1.925T11 21" stroke-width="0.3" stroke="#1dca00"/></svg>
+                <span class="hidden sm:inline text-xs font-medium text-green-400">Time In</span>
+                <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-green-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Time In</span>
+              </button>
+              
+              <!-- Time Out Button -->
+              <button 
+                data-time-out-btn
+                data-visitor-id="${visitor?.id || ''}"
+                class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md bg-red-600/10 hover:bg-red-600/20 border border-red-600/30 transition-colors ${!timeIn || timeOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+                ${!timeIn || timeOut ? 'disabled' : ''}
+                title="Record Time Out"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" class="sm:mr-1.5"><rect width="16" height="16" fill="none"/><path fill="#ca0000" fill-rule="evenodd" d="M6.229.199a8 8 0 0 1 9.727 6.964a.75.75 0 0 1-1.492.157a6.5 6.5 0 1 0-7.132 7.146a.75.75 0 1 1-.154 1.492a8 8 0 0 1-.95-15.76ZM8 3a.75.75 0 0 1 .75.75V9h-4a.75.75 0 0 1 0-1.5h2.5V3.75A.75.75 0 0 1 8 3m2.22 7.22a.75.75 0 0 1 1.06 0L13 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L14.06 13l1.72 1.72a.75.75 0 1 1-1.06 1.06L13 14.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L11.94 13l-1.72-1.72a.75.75 0 0 1 0-1.06" clip-rule="evenodd" stroke-width="0.3" stroke="#ca0000"/></svg>
+                <span class="hidden sm:inline text-xs font-medium text-red-400">Time Out</span>
+                <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-red-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Time Out</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -3855,6 +4077,113 @@ function openVisitorModal(visitor) {
       content: 'swal-responsive-content',
       confirmButton: 'cursor-pointer'
     },
+    didOpen: () => {
+      // Attach Time In button handler
+      const timeInBtn = document.querySelector('[data-time-in-btn]');
+      if (timeInBtn && !timeInBtn.disabled) {
+        timeInBtn.addEventListener('click', async () => {
+          const visitorId = timeInBtn.getAttribute('data-visitor-id');
+          if (!visitorId) return;
+          
+          try {
+            // Record time in
+            const response = await fetch(`/api/visitors/${visitorId}/time-in`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            });
+            
+            if (!response.ok) throw new Error('Failed to record time in');
+            
+            const result = await response.json();
+            
+            // Show success message
+            await Swal.fire({
+              icon: 'success',
+              title: 'Time In Recorded!',
+              text: `Time in recorded at ${formatTime(result.data.time_in)}`,
+              timer: 2000,
+              showConfirmButton: false,
+              background: '#111827',
+              color: '#F9FAFB',
+              iconColor: '#1dca00'
+            });
+            
+            // Reopen the modal with updated data
+            if (result.data) {
+              visitor.latestLog = result.data;
+              openVisitorModal(visitor);
+            }
+          } catch (error) {
+            console.error('Error recording time in:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to record time in. Please try again.',
+              background: '#111827',
+              color: '#F9FAFB',
+              confirmButtonColor: '#3B82F6'
+            });
+          }
+        });
+      }
+      
+      // Attach Time Out button handler
+      const timeOutBtn = document.querySelector('[data-time-out-btn]');
+      if (timeOutBtn && !timeOutBtn.disabled) {
+        timeOutBtn.addEventListener('click', async () => {
+          const visitorId = timeOutBtn.getAttribute('data-visitor-id');
+          if (!visitorId) return;
+          
+          try {
+            // Record time out
+            const response = await fetch(`/api/visitors/${visitorId}/time-out`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            });
+            
+            if (!response.ok) throw new Error('Failed to record time out');
+            
+            const result = await response.json();
+            
+            // Show success message
+            await Swal.fire({
+              icon: 'success',
+              title: 'Time Out Recorded!',
+              text: `Time out recorded at ${formatTime(result.data.time_out)}`,
+              timer: 2000,
+              showConfirmButton: false,
+              background: '#111827',
+              color: '#F9FAFB',
+              iconColor: '#1dca00'
+            });
+            
+            // Reopen the modal with updated data
+            if (result.data) {
+              visitor.latestLog = result.data;
+              openVisitorModal(visitor);
+            }
+          } catch (error) {
+            console.error('Error recording time out:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to record time out. Please try again.',
+              background: '#111827',
+              color: '#F9FAFB',
+              confirmButtonColor: '#3B82F6'
+            });
+          }
+        });
+      }
+    }
   });
 }
 

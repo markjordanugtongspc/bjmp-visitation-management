@@ -28,11 +28,19 @@ class AdminController extends Controller
     }
     
     /**
-     * Display the officers management page.
+     * Display the officers management page for admin.
      */
     public function officers()
     {
-            return view('admin.officers.officers');
+        return view('admin.officers.officers');
+    }
+    
+    /**
+     * Display the visitors management page for admin.
+     */
+    public function visitors()
+    {
+        return view('admin.visitors.visitors');
     }
 
         /**

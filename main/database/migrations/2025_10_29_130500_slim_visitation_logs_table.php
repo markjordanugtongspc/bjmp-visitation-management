@@ -45,6 +45,12 @@ return new class extends Migration
             if (!Schema::hasColumn('visitation_logs', 'status')) {
                 $table->unsignedTinyInteger('status')->default(2)->after('schedule');
             }
+            if (!Schema::hasColumn('visitation_logs', 'time_in')) {
+                $table->timestamp('time_in')->nullable()->after('status');
+            }
+            if (!Schema::hasColumn('visitation_logs', 'time_out')) {
+                $table->timestamp('time_out')->nullable()->after('time_in');
+            }
         });
 
         try {
@@ -81,6 +87,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('visitation_logs', function (Blueprint $table) {
+            // Drop time_in and time_out columns
+            if (Schema::hasColumn('visitation_logs', 'time_in')) {
+                $table->dropColumn('time_in');
+            }
+            if (Schema::hasColumn('visitation_logs', 'time_out')) {
+                $table->dropColumn('time_out');
+            }
             if (!Schema::hasColumn('visitation_logs', 'deleted_at')) {
                 $table->softDeletes();
             }

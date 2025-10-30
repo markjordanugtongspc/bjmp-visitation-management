@@ -34,6 +34,22 @@ class WardenController extends Controller
     {
         return view('warden.officers.officers');
     }
+    
+    /**
+     * Display the visitors management page for warden.
+     */
+    public function visitors()
+    {
+        return view('warden.visitors.visitors');
+    }
+    
+    /**
+     * Display the visitor requests management page for warden.
+     */
+    public function requests()
+    {
+        return view('warden.visitors.requests');
+    }
 
     /**
      * Store a newly created officer into users table.
