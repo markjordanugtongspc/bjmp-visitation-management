@@ -25,6 +25,14 @@ class VisitorController extends Controller
             $query->byInmate($request->inmate_id);
         }
 
+        if ($request->has('is_allowed') && $request->is_allowed !== null && $request->is_allowed !== '') {
+            $query->where('is_allowed', (int) $request->is_allowed === 1);
+        }
+
+        if ($request->has('life_status') && $request->life_status) {
+            $query->where('life_status', $request->life_status);
+        }
+
         $perPage = $request->get('per_page', 15);
         $visitors = $query->latest()->paginate($perPage);
 
@@ -88,6 +96,8 @@ class VisitorController extends Controller
             'id_number' => 'nullable|string|max:100',
             'address' => 'nullable|string|max:500',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'life_status' => 'nullable|in:alive,deceased,unknown',
+            'is_allowed' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -99,6 +109,8 @@ class VisitorController extends Controller
         }
 
         $data = $validator->validated();
+        $data['life_status'] = $data['life_status'] ?? 'alive';
+        $data['is_allowed'] = array_key_exists('is_allowed', $data) ? (bool) $data['is_allowed'] : true;
         
         if ($request->hasFile('avatar')) {
             $avatar = $request->file('avatar');
@@ -317,6 +329,8 @@ class VisitorController extends Controller
             'id_number' => 'nullable|string|max:100',
             'address' => 'nullable|string|max:500',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'life_status' => 'nullable|in:alive,deceased,unknown',
+            'is_allowed' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -376,6 +390,18 @@ class VisitorController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Visitor deleted successfully'
+        ]);
+    }
+
+    public function inmatesWithoutAllowedVisitorsCount()
+    {
+        $count = Inmate::whereDoesntHave('visitors', function ($q) {
+            $q->where('is_allowed', true);
+        })->count();
+
+        return response()->json([
+            'success' => true,
+            'count' => $count,
         ]);
     }
 }

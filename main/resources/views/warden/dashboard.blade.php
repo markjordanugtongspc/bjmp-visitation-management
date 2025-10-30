@@ -199,15 +199,15 @@
                         <div class="mt-3 flex items-center justify-center">
                             <svg viewBox="0 0 120 120" class="h-40 w-40 -rotate-90">
                                 <circle cx="60" cy="60" r="48" stroke="#e5e7eb" class="dark:stroke-gray-800" stroke-width="16" fill="none" />
-                                <circle cx="60" cy="60" r="48" stroke="#22c55e" stroke-width="16" fill="none" stroke-dasharray="302" stroke-dashoffset="160" />
-                                <circle cx="60" cy="60" r="48" stroke="#f59e0b" stroke-width="16" fill="none" stroke-dasharray="302" stroke-dashoffset="250" />
-                                <circle cx="60" cy="60" r="48" stroke="#ef4444" stroke-width="16" fill="none" stroke-dasharray="302" stroke-dashoffset="285" />
+                                <circle cx="60" cy="60" r="48" stroke="#22c55e" stroke-width="16" fill="none" stroke-dasharray="0" stroke-dashoffset="0" />
+                                <circle cx="60" cy="60" r="48" stroke="#f59e0b" stroke-width="16" fill="none" stroke-dasharray="0" stroke-dashoffset="0" />
+                                <circle cx="60" cy="60" r="48" stroke="#ef4444" stroke-width="16" fill="none" stroke-dasharray="0" stroke-dashoffset="0" />
                             </svg>
                         </div>
                         <div class="mt-2 grid grid-cols-3 gap-2 text-[11px] text-gray-600 dark:text-gray-300">
-                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-green-500"></span>Approved</div>
-                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-amber-500"></span>Pending</div>
-                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-red-500"></span>Rejected</div>
+                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-green-500"></span><span>Approved (0)</span></div>
+                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-amber-500"></span><span>Pending (0)</span></div>
+                            <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-red-500"></span><span>Rejected (0)</span></div>
                         </div>
                     </div>
                 </div>
@@ -222,11 +222,25 @@
                     </div>
                     <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
                         <div class="text-sm text-gray-600 dark:text-gray-300">Approved Visits</div>
-                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">0</div>
+                        <div id="stat-approved-visits" class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">
+                            <div class="inline-flex items-center">
+                                <svg class="animate-spin h-5 w-5 text-gray-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                     <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
                         <div class="text-sm text-gray-600 dark:text-gray-300">Pending Requests</div>
-                        <div class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">0</div>
+                        <div id="stat-pending-requests" class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50">
+                            <div class="inline-flex items-center">
+                                <svg class="animate-spin h-5 w-5 text-gray-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                     <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
                         <div class="text-sm text-gray-600 dark:text-gray-300">Today's Visits</div>
@@ -236,6 +250,17 @@
 
                 <!-- Quick Actions -->
                 <div class="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <a href="#" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M6.75 5.25A2.25 2.25 0 019 3h6a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0115 21H9a2.25 2.25 0 01-2.25-2.25V5.25zM9 6h6v12H9V6z"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Register Inmate</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400">Add new record</div>
+                            </div>
+                        </div>
+                    </a>
                     <a href="{{ url('/visitation/request/visitor') }}" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
                         <div class="flex items-center gap-3">
                             <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
@@ -261,17 +286,6 @@
                     <a href="#" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
                         <div class="flex items-center gap-3">
                             <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M6.75 5.25A2.25 2.25 0 019 3h6a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0115 21H9a2.25 2.25 0 01-2.25-2.25V5.25zM9 6h6v12H9V6z"/></svg>
-                            </div>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Register Inmate</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400">Add new record</div>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="#" class="group rounded-xl bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 hover:border-blue-500">
-                        <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5a7.5 7.5 0 100 15 7.5 7.5 0 000-15zm0 3a4.5 4.5 0 013.89 2.25H8.11A4.5 4.5 0 0112 7.5z"/></svg>
                             </div>
                             <div>
@@ -286,38 +300,31 @@
                 <div class="mt-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
                     <!-- Recent Requests -->
                     <div class="xl:col-span-2 rounded-xl bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800">
-                        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                            <div class="text-sm font-medium text-gray-900 dark:text-gray-50">Recent Visitation Requests</div>
-                            <a href="#" class="text-xs text-blue-500 hover:underline">View all</a>
+                        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-center">
+                            <div class="text-sm font-medium text-gray-900 dark:text-gray-50 text-center">Recent Visitation Requests</div>
+                            <a href="#" class="text-xs text-blue-500 hover:underline hidden">View all</a>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm">
                                 <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-600 dark:text-gray-300">
                                     <tr>
-                                        <th class="text-left font-medium px-4 py-2">Visitor</th>
-                                        <th class="text-left font-medium px-4 py-2">Inmate</th>
-                                        <th class="text-left font-medium px-4 py-2">Date</th>
-                                        <th class="text-left font-medium px-4 py-2">Status</th>
+                                        <th class="text-left font-medium px-3 py-2 w-[25%]">Visitor</th>
+                                        <th class="text-left font-medium px-3 py-2 w-[25%]">Inmate</th>
+                                        <th class="text-left font-medium px-3 py-2 w-[30%]">Date</th>
+                                        <th class="text-left font-medium px-3 py-2 w-[20%]">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200">
+                                <tbody id="recent-requests-tbody" class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200">
                                     <tr>
-                                        <td class="px-4 py-2">Juan Dela Cruz</td>
-                                        <td class="px-4 py-2">R. Santos</td>
-                                        <td class="px-4 py-2">2025-09-02 10:00</td>
-                                        <td class="px-4 py-2"><span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Pending</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2">Maria I.</td>
-                                        <td class="px-4 py-2">J. Dizon</td>
-                                        <td class="px-4 py-2">2025-09-02 13:30</td>
-                                        <td class="px-4 py-2"><span class="inline-flex items-center rounded-full bg-green-500/10 text-green-500 px-2 py-0.5 text-[11px]">Approved</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2">A. Lopez</td>
-                                        <td class="px-4 py-2">K. Reyes</td>
-                                        <td class="px-4 py-2">2025-09-03 09:00</td>
-                                        <td class="px-4 py-2"><span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-2 py-0.5 text-[11px]">Rejected</span></td>
+                                        <td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+                                            <div class="flex items-center justify-center">
+                                                <svg class="animate-spin h-5 w-5 text-gray-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Loading visitor requests...
+                                            </div>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -325,7 +332,7 @@
                     </div>
 
                     <!-- Upcoming Schedules -->
-                    <div class="rounded-xl bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800">
+                    <div class="xl:col-span-1 rounded-xl bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800">
                         <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 text-sm font-medium text-gray-900 dark:text-gray-50">Upcoming Schedules</div>
                         <div class="p-4 space-y-3 text-sm text-gray-700 dark:text-gray-200">
                             <div class="flex items-center justify-between">
@@ -449,4 +456,7 @@
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/profile/edit-profile-modal.js')
     @vite('resources/js/dashboard/components/role-based.js')
+    @vite('resources/js/dashboard/components/recent-visitor-requests.js')
+    @vite('resources/js/dashboard/components/visitor-statistics.js')
+    @vite('resources/js/dashboard/components/chart.js')
 </x-app-layout>

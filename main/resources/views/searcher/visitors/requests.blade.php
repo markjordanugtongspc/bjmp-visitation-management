@@ -38,14 +38,6 @@
                     </div>
 
                     <div class="flex items-center gap-2 ml-auto">
-                        <!-- Dark Mode Toggle removed; icons preserved
-                        <svg data-icon="moon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                        </svg>
-                        <svg data-icon="sun" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
-                        </svg>
-                        -->
                         <div class="relative">
                             <button data-user-menu
                               data-user-name="{{ Auth::user()->full_name ?? 'User' }}"
@@ -83,7 +75,7 @@
                                 <hr class="border-t border-gray-200 dark:border-gray-700">
                                 <a href="{{ route('profile.edit') }}" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 gap-2" aria-label="{{ __('Account Settings') }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                      <path fill="currentColor" d="M14.654 21.846q-.529 0-.9-.37t-.37-.899v-5.923q0-.529.37-.9t.9-.37h5.923q.529 0 .899.37t.37.9v5.923q 0 .529-.37.899t-.899.37zM11 17.386V21h-.098q-.348 0-.576-.229t-.29-.571l-.263-2.092q-.479-.145-1.036-.454q-.556-.31-.947-.664l-1.915.824q-.317.14-.644.03t-.504-.415L3.648 15.57q-.177-.305-.104-.638t.348-.546l1.672-1.25q-.045-.272-.073-.559q-.03-.288-.03-.559q0-.252.03-.53q.028-.278.073-.626l-1.672-1.25q-.275-.213-.338-.555t.113-.648l1.06-1.8q.177-.287.504-.406t.644.021l1.896.804q.448-.373.97-.673q.52-.3 1.013-.464l.283-2.092q.061-.342.318-.571T10.96 3h2.08q.349 0 .605.229q.257.229.319.571l.263 2.112q.575.202 1.016.463t.909.654l1.992-.804q.318-.14.645-.021t.503.406l1.06 1.819q.177.306.104.641q-.073.336-.348.544l-1.216.911q-.176.135-.362.133t-.346-.173t-.148-.38t.183-.347l1.225-.908l-.994-1.7l-2.552 1.07q-.454-.499-1.193-.935q-.74-.435-1.4-.577L13 4h-1.994l-.312 2.689q-.756.161-1.39.52q-.633.358-1.26.985L5.55 7.15l-.994 1.7l2.169 1.62q-.125.336-.175.73t-.05.82q0 .38.05.755t.156.73l-2.15 1.645l.994 1.7l2.475-1.05q.6.606 1.363.999t1.612.588m.973-7.887q-1.046 0-1.773.724T9.473 12q0 .467.16.89t.479.777q.16.183.366.206q.207.023.384-.136q.177-.154.181-.355t-.154-.347q-.208-.2-.312-.47T10.473 12q0-.625.438-1.063t1.062-.437q.289 0 .565.116q.276.117.476.324q.146.148.338.134q.192-.015.346-.191q.154-.177.134-.381t-.198-.364q-.311-.3-.753-.469t-.908-.169m5.643 8.962q-.625 0-1.197.191q-.571.191-1.057.56q-.287.22-.44.445t-.153.456q0 .136.106.242t.242.105h5.097q.105 0 .177-.095q.07-.097.07-.252q0-.231-.152-.456q-.153-.225-.44-.444q-.486-.37-1.057-.561t-1.196-.191m0-.846q.528 0 .899-.37q.37-.371.37-.9t-.37-.899t-.9-.37q-.528 0-.899.37q-.37.37-.37.9q0 .528.37.898t.9.37" />
+                                      <path fill="currentColor" d="M14.654 21.846q-.529 0-.9-.37t-.37-.899v-5.923q0-.529.37-.9t.9-.37h5.923q.529 0 .899.37t.37.9v5.923q 0 .529-.37.899t-.899.37zM11 17.386V21h-.098q-.348 0-.576-.229t-.29-.571l-.263-2.092q-.479-.145-1.036-.454q-.556-.31-.947-.664l-1.915.824q-.317.14-.644.03t-.504-.415L3.648 15.57q-.177-.305-.104-.638t.348-.546l1.672-1.25q-.045-.272-.073-.559q-.03-.288-.03-.559q0-.252.03-.53q.028-.278.73-.626l-1.672-1.25q-.275-.213-.338-.555t.113-.648l1.06-1.8q.177-.287.504-.406t.644.021l1.896.804q.448-.373.97-.673q.52-.3 1.013-.464l.283-2.092q.061-.342.318-.571T10.96 3h2.08q.349 0 .605.229q.257.229.319.571l.263 2.112q.575.202 1.016.463t.909.654l1.992-.804q.318-.14.645-.021t.503.406l1.06 1.819q.177.306.104.641q-.073.336-.348.544l-1.216.911q-.176.135-.362.133t-.346-.173t-.148-.38t.183-.347l1.225-.908l-.994-1.7l-2.552 1.07q-.454-.499-1.193-.935q-.74-.435-1.4-.577L13 4h-1.994l-.312 2.689q-.756.161-1.39.52q-.633.358-1.26.985L5.55 7.15l-.994 1.7l2.169 1.62q-.125.336-.175.73t-.05.82q0 .38.05.755t.156.73l-2.15 1.645l.994 1.7l2.475-1.05q.6.606 1.363.999t1.612.588" />
                                     </svg>
                                     <span>{{ __('Account Settings') }}</span>
                                 </a>
@@ -104,13 +96,13 @@
                 <div class="mb-6">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div class="flex-1">
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Visitor Registration</h1>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Assign and register an inmate’s valid visitor</p>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Visitors Management</h1>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Handle manual registrations, approvals, and logs</p>
                         </div>
                         <div class="flex gap-2">
                             <button type="button" id="open-manual-registration" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
-                                Register Inmate Visitor
+                                New Manual Registration
                             </button>
                         </div>
                     </div>
@@ -118,20 +110,23 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Registered Allowed Visitors</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="allowed-visitors-total">0</p>
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Visitors</p>
+                            <span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Live</span>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="visitors-total">0</p>
                     </div>
                     <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Inmates with No Allowed Visitor Yet</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="inmates-without-allowed">0</p>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Approved</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="visitors-approved">0</p>
                     </div>
                     <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Inmates</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="inmates-total">0</p>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="visitors-pending">0</p>
                     </div>
                     <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Recently Added (7 days)</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="recently-added">0</p>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Rejected</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="visitors-rejected">0</p>
                     </div>
                 </div>
 
@@ -156,8 +151,8 @@
                                 <tr>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Visitor</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PDL</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Relationship</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Life Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Schedule</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
@@ -200,7 +195,9 @@
 
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/profile/edit-profile-modal.js')
-    @vite('resources/js/visitors/allowed-visitors.js')
+    @vite('resources/js/visitors/visitors.js')
     @vite('resources/js/dashboard/components/role-based.js')
     @vite('resources/js/dashboard/components/quick-action-modals.js')
 </x-app-layout>
+
+

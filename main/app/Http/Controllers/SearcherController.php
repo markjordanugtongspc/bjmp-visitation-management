@@ -21,4 +21,12 @@ class SearcherController extends Controller
     {
         return view('searcher.visitors.visitors');
     }
+
+    /**
+     * Display the requests page (legacy approve/decline flow).
+     */
+    public function requests()
+    {
+        return view('searcher.visitors.requests');
+    }
 }

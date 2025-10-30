@@ -76,9 +76,9 @@ class NavigationConfig {
                     },
                     requests: {
                         title: 'Requests',
-                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M2 4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h20a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1zm7 6a1 1 0 1 0-2 0a1 1 0 0 0 2 0m2 0a3 3 0 1 1-6 0a3 3 0 0 1 6 0m-5.473 7.025l-1.414-1.414A5.5 5.5 0 0 1 8.003 14c1.518 0 2.894.617 3.888 1.61l-1.414 1.415A3.5 3.5 0 0 0 8.002 16c-.967 0-1.84.39-2.475 1.025M13 15V9h2v6zm4 0V9h2v6z" stroke-width="0.3" stroke="currentColor"/></svg>`,
-                        href: '#',
-                        roles: [1, 2], // Warden and Assistant Warden
+                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><rect width="24" height="24" fill="none"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M13.578 16.775a.97.97 0 0 0-.31-.715L7.3 10.554L1.33 16.06a.97.97 0 0 0-.309.715v5.37a.966.966 0 0 0 .966.966h10.626a.966.966 0 0 0 .966-.966zm3.419-9.049a3.419 3.419 0 1 0 0-6.837a3.419 3.419 0 0 0 0 6.837"/><path d="M16.423 23.111h3.138l.855-6.838h2.564V13.71a5.983 5.983 0 0 0-11.037-3.202m-4.644 5.125v4.834m2.417-2.417H4.88"/></g></svg>`,
+                        href: '/searcher/visitors/requests',
+                        roles: [1, 2, 8], // Warden, Assistant Warden, Searcher
                         order: 2,
                         dataNavItem: 'requests'
                     },

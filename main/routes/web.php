@@ -91,6 +91,8 @@ Route::get('/searcher/dashboard', [SearcherController::class, 'dashboard'])
 Route::prefix('searcher')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/visitors', [SearcherController::class, 'visitors'])
         ->name('searcher.visitors.index');
+    Route::get('/visitors/requests', [SearcherController::class, 'requests'])
+        ->name('searcher.visitors.requests');
 });
 
 // Legacy routes (for backward compatibility)

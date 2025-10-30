@@ -63,6 +63,10 @@ class VisitorApiClient {
         }
     }
 
+    async listAllowed(filters = {}, page = 1, perPage = 15) {
+        return this.getAll({ ...filters, is_allowed: 1 }, page, perPage);
+    }
+
     async getById(id) {
         try {
             const response = await fetch(`${this.baseUrl}/${id}`, {

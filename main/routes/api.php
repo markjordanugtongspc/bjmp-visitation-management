@@ -74,3 +74,8 @@ Route::prefix('visitors')->middleware(['web'])->group(function () {
     Route::patch('/{id}/status', [VisitorController::class, 'updateStatus'])->name('api.visitors.update-status');
     Route::delete('/{id}', [VisitorController::class, 'destroy'])->name('api.visitors.destroy');
 });
+
+// Metrics related to visitors/inmates
+Route::get('/inmates/without-allowed-visitors/count', [VisitorController::class, 'inmatesWithoutAllowedVisitorsCount'])
+    ->middleware(['web'])
+    ->name('api.inmates.without-allowed-visitors.count');

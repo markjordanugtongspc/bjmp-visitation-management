@@ -28,11 +28,14 @@ class Visitor extends Model
         'address',
         'avatar_path',
         'avatar_filename',
+        'life_status',
+        'is_allowed',
         'created_by_user_id',
         'updated_by_user_id',
     ];
 
     protected $casts = [
+        'is_allowed' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
