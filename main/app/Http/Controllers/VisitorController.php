@@ -640,7 +640,10 @@ $visitor->setAttribute('latest_log', null);
                             'mother' => $this->extractFamilyMember($allVisitors, $log->inmate_id, 'mother')
                         ],
                         'spouse' => $inmate->civil_status === 'Married' ? 'Married' : 'N/A',
-                        'nextOfKin' => $this->extractFamilyMembers($allVisitors, $log->inmate_id, ['sister', 'brother', 'sibling'])
+                        'nextOfKin' => $this->extractFamilyMembers($allVisitors, $log->inmate_id, ['sister', 'brother', 'sibling']),
+                        'avatar_path' => $inmate->avatar_path,
+                        'avatar_filename' => $inmate->avatar_filename,
+                        'id' => $inmate->id
                     ],
                     'inmate' => [
                         'id' => $log->inmate_id,
@@ -650,7 +653,9 @@ $visitor->setAttribute('latest_log', null);
                         'name' => $inmateName,
                         'birthdate' => $inmate->birthdate ?? null,
                         'date_of_birth' => $inmate->date_of_birth ?? null,
-                        'civil_status' => $inmate->civil_status ?? null
+                        'civil_status' => $inmate->civil_status ?? null,
+                        'avatar_path' => $inmate->avatar_path,
+                        'avatar_filename' => $inmate->avatar_filename
                     ]
                 ];
             });
