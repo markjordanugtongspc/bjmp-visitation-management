@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark bg-white dark:bg-slate-900">
+<html lang="en" class="bg-white dark:bg-slate-900">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,18 +8,18 @@
   <!-- Favicon -->
   <link rel="icon" href="{{ asset('images/logo/bjmp_logo.png') }}" type="image/png">
     
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/auth/slideshow.js']) <!--- Kani gamiton aron ma import ang tailwind css nga naka built in -->
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/auth/slideshow.js', 'resources/js/auth/terms-consent.js']) <!--- Kani gamiton aron ma import ang tailwind css nga naka built in -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
 </head>
-<body>
+<body class="bg-gray-100 dark:bg-gray-900">
  <a href="{{ url('/') }}" aria-label="Close overlay" class="fixed inset-0 z-10 block bg-transparent"></a> <!-- Clickable aron mo adtog home -->
-  <div class="min-h-screen flex items-center justify-center py-10 px-4">
-    <div class="relative z-20 w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-5xl xl:max-w-6xl grid grid-cols-1 lg:grid-cols-2 rounded-2xl bg-gray-100 dark:bg-gray-900 shadow-xl overflow-hidden lg:min-h-[34rem]">
+  <div class="min-h-screen flex items-center justify-center py-10 px-4 bg-gray-100 dark:bg-gray-900">
+    <div class="relative z-20 w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-5xl xl:max-w-6xl grid grid-cols-1 lg:grid-cols-2 rounded-2xl bg-white dark:bg-gray-800 shadow-xl overflow-hidden lg:min-h-[34rem]">
       
       <!-- Left Side Form -->
-      <div class="p-8 lg:p-12 flex flex-col justify-center items-center h-full min-h-[500px]">
+      <div class="p-8 lg:p-12 flex flex-col justify-center items-center h-full min-h-[500px] bg-white dark:bg-gray-800">
         <div class="w-full max-w-sm mx-auto text-center">
-          <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-50">Log In</h2>
+          <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-4">Log In</h2>
 
           <!-- Session Status -->
           @if (session('status'))
