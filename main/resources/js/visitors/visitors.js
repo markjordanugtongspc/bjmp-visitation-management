@@ -209,6 +209,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = visitors.find(v => v.id === id);
     if (!item) return;
 
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+
     if (!window.Swal) {
       // Fallback without SweetAlert2
       if (action === 'approve') item.status = 'Approved';
@@ -219,21 +222,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isApprove = action === 'approve';
     window.Swal.fire({
-      title: `<span class="text-white">${isApprove ? 'Approve request?' : 'Decline request?'}</span>`,
+      title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">${isApprove ? 'Approve request?' : 'Decline request?'}</span>`,
       text: isApprove ? 'This visitor will be marked as Approved.' : 'This visitor will be marked as Declined.',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: isApprove ? 'Approve' : 'Decline',
       cancelButtonText: 'Cancel',
-      background: '#111827',
+      background: isDarkMode ? '#1F2937' : '#FFFFFF',
+      color: isDarkMode ? '#F9FAFB' : '#111827',
       heightAuto: false,
       scrollbarPadding: false,
       buttonsStyling: false,
       customClass: {
         popup: 'm-0 w-[96vw] max-w-[96vw] sm:max-w-[32rem] p-5 !rounded-xl',
-        title: 'text-white', // Ensure title text is white
+        title: isDarkMode ? 'text-white' : 'text-black', // Ensure title text is theme-aware
         confirmButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium cursor-pointer',
-        cancelButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-white dark:text-gray-100 text-sm font-medium ml-2 cursor-pointer'
+        cancelButton: `inline-flex items-center justify-center px-4 py-2 rounded-lg ${isApprove ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-200 hover:bg-gray-300'} ${isApprove ? 'text-white' : 'text-gray-900'} ${isDarkMode && !isApprove ? 'dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100' : ''} text-sm font-medium ml-2 cursor-pointer`
       }
     }).then(res => {
       if (res.isConfirmed) {
@@ -251,32 +255,32 @@ document.addEventListener('DOMContentLoaded', () => {
             item.status = isApprove ? 'Approved' : 'Declined';
             render();
             window.Swal.fire({
-              title: '<span class="text-white">Updated</span>',
+              title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Updated</span>`,
               text: `Visitor marked as ${item.status}.`,
               icon: 'success',
               timer: 1200,
               showConfirmButton: false,
-              background: '#111827',
-              color: '#FFFFFF',
+              background: isDarkMode ? '#1F2937' : '#FFFFFF',
+              color: isDarkMode ? '#F9FAFB' : '#111827',
               heightAuto: false,
               scrollbarPadding: false,
               customClass: {
                 popup: 'm-0 w-[90vw] max-w-[24rem] p-4 !rounded-xl',
-                title: 'text-white'
+                title: isDarkMode ? 'text-white' : 'text-black'
               }
             });
           } catch (e) {
             window.Swal.fire({
-              title: '<span class="text-white">Update failed</span>',
+              title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Update failed</span>`,
               text: 'Could not update status. Please try again.',
               icon: 'error',
-              background: '#111827',
-              color: '#FFFFFF',
+              background: isDarkMode ? '#1F2937' : '#FFFFFF',
+              color: isDarkMode ? '#F9FAFB' : '#111827',
               heightAuto: false,
               scrollbarPadding: false,
               customClass: {
                 popup: 'm-0 w-[90vw] max-w-[24rem] p-4 !rounded-xl',
-                title: 'text-white'
+                title: isDarkMode ? 'text-white' : 'text-black'
               }
             });
           }
@@ -411,6 +415,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function openVisitorModal(item) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     let data = item;
     // Since we're working with visitation requests, use the local data directly
     // No need to fetch from /api/visitors/ as we already have all the data from visitation_logs
@@ -656,10 +663,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.Swal) {
       const swalInstance = window.Swal.fire({
-        title: '<span class="text-white">Visitor & PDL Details</span>',
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Visitor & PDL Details</span>`,
         html,
-        background: '#111827',
-        color: '#F9FAFB',
+        background: isDarkMode ? '#1F2937' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827',
         showConfirmButton: false,
         showCloseButton: true,
         closeButtonHtml: '<svg class="w-6 h-6 text-red-500 cursor-pointer hover:text-red-600 dark:hover:text-red-400 transition-colors" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z" clip-rule="evenodd"/></svg>',
@@ -671,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
         customClass: {
           htmlContainer: 'p-6 sm:p-8',
           closeButton: 'hover:bg-transparent',
-          title: 'text-white'
+          title: isDarkMode ? 'text-white' : 'text-black'
         },
         didOpen: () => {
           // Attach Time In button handler
@@ -702,14 +709,15 @@ document.addEventListener('DOMContentLoaded', () => {
                   hour12: true
                 });
                 
-await Swal.fire({
+                const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+                Swal.fire({
                   icon: 'success',
                   title: 'Time In Recorded!',
                   text: `Time in recorded at ${timeInTime}`,
                   timer: 2000,
                   showConfirmButton: false,
-                  background: '#111827',
-                  color: '#F9FAFB',
+                  background: isDarkMode ? '#1F2937' : '#FFFFFF',
+                  color: isDarkMode ? '#F9FAFB' : '#111827',
                   iconColor: '#1dca00'
                 });
                 
@@ -726,12 +734,13 @@ await Swal.fire({
                 }
               } catch (error) {
                 console.error('Error recording time in:', error);
+                const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
                 Swal.fire({
                   icon: 'error',
                   title: 'Error',
                   text: 'Failed to record time in. Please try again.',
-                  background: '#111827',
-                  color: '#F9FAFB',
+                  background: isDarkMode ? '#1F2937' : '#FFFFFF',
+                  color: isDarkMode ? '#F9FAFB' : '#111827',
                   confirmButtonColor: '#3B82F6'
                 });
               }
@@ -766,14 +775,15 @@ await Swal.fire({
                   hour12: true
                 });
                 
-await Swal.fire({
+                const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+                Swal.fire({
                   icon: 'success',
                   title: 'Time Out Recorded!',
                   text: `Time out recorded at ${timeOutTime}`,
                   timer: 2000,
                   showConfirmButton: false,
-                  background: '#111827',
-                  color: '#F9FAFB',
+                  background: isDarkMode ? '#1F2937' : '#FFFFFF',
+                  color: isDarkMode ? '#F9FAFB' : '#111827',
                   iconColor: '#1dca00'
                 });
                 
@@ -794,8 +804,8 @@ await Swal.fire({
                   icon: 'error',
                   title: 'Error',
                   text: 'Failed to record time out. Please try again.',
-                  background: '#111827',
-                  color: '#F9FAFB',
+                  background: isDarkMode ? '#1F2937' : '#FFFFFF',
+                  color: isDarkMode ? '#F9FAFB' : '#111827',
                   confirmButtonColor: '#3B82F6'
                 });
               }
@@ -825,6 +835,9 @@ await Swal.fire({
   // Step 2: Fill visitor details + upload photo
   // ================================
   async function openManualRegistrationModal() {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     if (!window.Swal) return;
 
     const searchStepHtml = `
@@ -850,16 +863,16 @@ await Swal.fire({
             <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z" clip-rule="evenodd"/></svg>
           </div>
           <div class="text-left">
-          <h3 class="text-base sm:text-lg font-semibold text-gray-100 mb-3">Select PDL</h3>
+          <h3 class="text-base sm:text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} mb-3">Select PDL</h3>
           <div class="mb-3">
-            <input id="mr-search-input" type="text" autocomplete="off" placeholder="Search by name or ID" class="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="mr-search-input" type="text" autocomplete="off" placeholder="Search by name or ID" class="w-full px-3 py-2 rounded-lg ${isDarkMode ? 'bg-gray-800/60 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500'} border focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
-          <div id="mr-results" class="divide-y divide-gray-700 rounded-lg border border-gray-700 overflow-hidden bg-gray-900/60">
-            <div class="p-4 text-sm text-gray-400">Type to search inmates...</div>
+          <div id="mr-results" class="divide-y ${isDarkMode ? 'divide-gray-700 border-gray-700 bg-gray-900/60' : 'divide-gray-200 border-gray-200 bg-white'} rounded-lg border overflow-hidden">
+            <div class="p-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Type to search inmates...</div>
           </div>
         </div>`,
-      background: '#111827',
-      color: '#F9FAFB',
+      background: isDarkMode ? '#1F2937' : '#FFFFFF',
+      color: isDarkMode ? '#F9FAFB' : '#111827',
       showConfirmButton: false,
       showCancelButton: false,
       heightAuto: false,
@@ -876,13 +889,13 @@ await Swal.fire({
         const doSearch = async (q) => {
           q = (q || '').trim();
           if (!q) {
-            results.innerHTML = '<div class="p-4 text-sm text-gray-400">Type to search inmates...</div>';
+            results.innerHTML = `<div class="p-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Type to search inmates...</div>`;
             return;
           }
-          results.innerHTML = '<div class="p-4 text-sm text-gray-400">Searching...</div>';
+          results.innerHTML = `<div class="p-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Searching...</div>`;
           const items = await searchInmates(q);
           if (!items.length) {
-            results.innerHTML = '<div class="p-4 text-sm text-gray-400">No inmates found</div>';
+            results.innerHTML = `<div class="p-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">No inmates found</div>`;
             return;
           }
           // Store inmates in map for lookup
@@ -916,12 +929,15 @@ await Swal.fire({
   }
 
   function inmateResultItem(inm) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     const name = getInmateDisplayName(inm);
     return `
-      <div class="flex items-center justify-between p-3 hover:bg-gray-800/60">
+      <div class="flex items-center justify-between p-3 ${isDarkMode ? 'hover:bg-gray-800/60' : 'hover:bg-gray-100'}">
         <div>
-          <div class="text-sm text-gray-100 font-medium">${name}</div>
-          <div class="text-xs text-gray-400">ID: ${String(inm.id).padStart(4,'0')}</div>
+          <div class="text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} font-medium">${name}</div>
+          <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">ID: ${String(inm.id).padStart(4,'0')}</div>
         </div>
         <button type="button" data-pick-inmate data-inmate-id="${inm.id}" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-600 hover:bg-green-700 text-white cursor-pointer" title="Select">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
@@ -957,10 +973,13 @@ await Swal.fire({
 
   // Legacy function kept for compatibility
   async function openVisitorFormStepOld(inmate) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     const html = `
       <div class="text-left">
-        <h3 class="text-base sm:text-lg font-semibold text-white mb-3">Visitor Details</h3>
-        <div class="mb-4 text-sm text-gray-300">Registering visit for <span class="font-semibold text-white">${inmate.name}</span> (ID ${String(inmate.id).padStart(4,'0')})</div>
+        <h3 class="text-base sm:text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-3">Visitor Details</h3>
+        <div class="mb-4 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}">Registering visit for <span class="font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}">${inmate.name}</span> (ID ${String(inmate.id).padStart(4,'0')})</div>
         <form class="max-w-full mx-auto">
           <div class="grid md:grid-cols-2 md:gap-6">
             <div class="relative z-0 w-full mb-5 group">
@@ -1053,10 +1072,10 @@ await Swal.fire({
       </div>`;
 
     await window.Swal.fire({
-      title: '<span class="text-white">Manual Registration</span>',
+      title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Manual Registration</span>`,
       html,
-      background: '#111827',
-      color: '#F9FAFB',
+      background: isDarkMode ? '#1F2937' : '#FFFFFF',
+      color: isDarkMode ? '#F9FAFB' : '#111827',
       showCancelButton: true,
       showConfirmButton: true,
       confirmButtonText: 'Register',
@@ -1067,7 +1086,7 @@ await Swal.fire({
       customClass: {
         popup: 'm-0 w-[96vw] max-w-[96vw] sm:max-w-[42rem] p-5 !rounded-2xl',
         confirmButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium cursor-pointer',
-        cancelButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-medium ml-2 cursor-pointer'
+        cancelButton: `inline-flex items-center justify-center px-4 py-2 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-red-600 text-white'} text-sm font-medium ml-2 cursor-pointer`
       },
       preConfirm: async () => {
         const name = document.getElementById('mr-v-name').value.trim();
@@ -1121,8 +1140,8 @@ await Swal.fire({
             icon: 'success',
             timer: 2000,
             showConfirmButton: false,
-            background: '#111827',
-            color: '#F9FAFB',
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
             heightAuto: false,
             scrollbarPadding: false,
           });

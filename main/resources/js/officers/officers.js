@@ -1,4 +1,24 @@
 // Officers page interactions: SweetAlert2 modal for edit/create
+// Ensure SweetAlert2 is available (fallback dynamic import if missing)
+async function ensureSwal() {
+  if (window.Swal) return window.Swal;
+  try {
+    const mod = await import(/* @vite-ignore */ 'sweetalert2');
+    window.Swal = mod.default || mod;
+    return window.Swal;
+  } catch (_) {
+    // Last resort: try CDN
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    return window.Swal;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Get both desktop and mobile containers
   const tableBody = document.querySelector('#officers-table-body');
@@ -22,7 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return officers.find(o => Number(o.id) === Number(id));
   }
 
-  function openOfficerModal(initial = {}) {
+  async function openOfficerModal(initial = {}) {
+    await ensureSwal();
     const name = initial.name || '';
     const email = initial.email || '';
     const title = initial.title || '';
@@ -261,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const updated = await resp.json();
           Object.assign(data, updated);
           renderOrUpdateViews(data);
+          await ensureSwal();
           window.Swal.fire({
             icon: 'success',
             title: 'Saved',
@@ -269,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             width: isMobile() ? '90%' : '32rem',
           });
         } catch (e) {
+          await ensureSwal();
           window.Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -369,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const updated = await resp.json();
           Object.assign(data, updated);
           renderOrUpdateViews(data);
+          await ensureSwal();
           window.Swal.fire({
             icon: 'success',
             title: 'Saved',
@@ -379,6 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
             width: isMobile() ? '90%' : '32rem',
           });
         } catch (e) {
+          await ensureSwal();
           window.Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -573,6 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
           renderOrUpdateViews(created);
           // Update nextId to be at least created.id + 1
           nextId = Math.max(nextId, Number(created.id) + 1, 8);
+          await ensureSwal();
           window.Swal.fire({
             icon: 'success',
             title: 'Officer added',
@@ -581,6 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
             width: isMobile() ? '90%' : '32rem',
           });
         } catch (e) {
+          await ensureSwal();
           window.Swal.fire({
             icon: 'error',
             title: 'Error',

@@ -15,4 +15,8 @@ window.Swal = Swal;
 import * as CommonUtils from './common';
 window.CommonUtils = CommonUtils;
 
+// Import theme manager for dark/light mode
+import ThemeManager from './theme-manager';
+window.ThemeManager = ThemeManager;
+
 // Slideshow is loaded only on pages that include it explicitly

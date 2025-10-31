@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     '</div>' +
                     '<div class="p-4 border-t border-gray-200 dark:border-gray-700 mx-0 sm:mx-4 mt-2 flex flex-col sm:flex-row gap-3">' +
                         '<button type="button" id="save-profile-btn" onclick="saveProfileChanges()" class="w-full sm:flex-1 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium py-2.5 px-5 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg cursor-pointer">Save Changes</button>' +
-                        '<button type="button" id="cancel-profile-btn" onclick="Swal.close()" class="w-full sm:flex-1 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2.5 px-5 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg cursor-pointer">Cancel</button>' +
+                        '<button type="button" id="cancel-profile-btn" onclick="Swal.close()" class="w-full sm:flex-1 rounded-lg bg-red-600 hover:bg-red-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white dark:text-gray-200 font-medium py-2.5 px-5 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg cursor-pointer">Cancel</button>' +
                     '</div>' +
                 '</div>',
             showCancelButton: false,

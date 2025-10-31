@@ -345,43 +345,8 @@ function attachModalInteractions() {
     return;
   }
 
-  // Shared SweetAlert2 color palette (aligned with supervision-modal.js)
-  const PALETTE = {
-    primary: '#3B82F6',
-    danger: '#EF4444',
-    darkBg: '#111827',
-  };
-
-  function isDarkMode() {
-    return document.documentElement.classList.contains('dark')
-      || window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }
-
-  function themedConfirm(options = {}) {
-    const base = {
-      showCancelButton: true,
-      confirmButtonColor: options.variant === 'danger' ? PALETTE.danger : PALETTE.primary,
-      cancelButtonColor: PALETTE.darkBg,
-    };
-    if (isDarkMode()) {
-      base.background = PALETTE.darkBg;
-      base.color = '#E5E7EB'; // gray-200 for text on dark
-    }
-    return window.Swal.fire({
-      ...base,
-      ...options,
-    });
-  }
-
-  function themedToast(options = {}) {
-    const mixin = window.Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 1600,
-    });
-    return mixin.fire(options);
-  }
+  // Use centralized theme manager for consistent theming
+  const themeManager = window.ThemeManager;
 
   // Download confirmation for supervision manuals
   document.querySelectorAll('[data-action="download"]').forEach((btn) => {
@@ -397,25 +362,19 @@ function attachModalInteractions() {
     const downloadUrl = e.target.dataset.downloadUrl;
     
     if (!downloadUrl) {
-      themedToast({
-        icon: 'error',
-        title: 'Download failed',
-        text: 'Download URL not available',
-        background: isDarkMode() ? PALETTE.darkBg : '#fff',
-        color: isDarkMode() ? '#E5E7EB' : '#111827',
-        iconColor: PALETTE.danger,
-      });
+      themeManager.showError('Download URL not available', 'Download failed');
+      console.warn('Download URL not available for:', title);
       return;
     }
     
-    themedConfirm({
+    themeManager.showConfirm({
       title: 'Start download?',
       text: `You are about to download "${title}".`,
       icon: 'question',
       confirmButtonText: 'Download',
     }).then((result) => {
       if (result.isConfirmed) {
-        // Create a temporary link to trigger download
+        // Trigger download
         const link = document.createElement('a');
         link.href = downloadUrl;
         link.download = title;
@@ -423,13 +382,7 @@ function attachModalInteractions() {
         link.click();
         document.body.removeChild(link);
         
-        themedToast({
-          icon: 'success',
-          title: 'Download started!',
-          background: isDarkMode() ? PALETTE.darkBg : '#fff',
-          color: isDarkMode() ? '#E5E7EB' : '#111827',
-          iconColor: PALETTE.primary,
-        });
+        themeManager.showSuccess('Download started!');
       }
     });
   }
@@ -491,28 +444,14 @@ function attachModalInteractions() {
         card.remove();
         
         // Show success message
-        themedToast({
-          icon: 'success',
-          title: 'File deleted',
-          text: `"${title}" has been deleted successfully`,
-          background: isDarkMode() ? PALETTE.darkBg : '#fff',
-          color: isDarkMode() ? '#E5E7EB' : '#111827',
-          iconColor: PALETTE.primary,
-        });
-
-        // Refresh the data to update pagination
-        await refreshSupervisionData();
+        themeManager.showSuccess(`"${title}" has been deleted successfully`, 'File deleted');
+        
+        // Optionally reload or update the list
+        // location.reload();
         
       } catch (error) {
         console.error('Error deleting file:', error);
-        themedToast({
-          icon: 'error',
-          title: 'Delete failed',
-          text: error.message || 'Failed to delete file',
-          background: isDarkMode() ? PALETTE.darkBg : '#fff',
-          color: isDarkMode() ? '#E5E7EB' : '#111827',
-          iconColor: PALETTE.danger,
-        });
+        themeManager.showError(error.message || 'Failed to delete file', 'Delete failed');
       }
     }
   }
@@ -525,13 +464,7 @@ function attachModalInteractions() {
   }
 
   function handleCreateManualClick() {
-    themedToast({
-      icon: 'info',
-      title: 'Open the form to create a manual',
-      background: isDarkMode() ? PALETTE.darkBg : '#fff',
-      color: isDarkMode() ? '#E5E7EB' : '#111827',
-      iconColor: PALETTE.primary,
-    });
+    themeManager.showInfo('Open the form to create a manual');
   }
 
 

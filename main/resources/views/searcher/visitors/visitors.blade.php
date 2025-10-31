@@ -14,7 +14,7 @@
         </aside>
 
         <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950">
-            <header class="sticky top-0 z-30 backdrop-blur supports-backdrop-filter:bg-white/70 dark:supports-backdrop-filter:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
+            <header>
                 <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">
                     <button data-sidebar-toggle class="sm:hidden inline-flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 h-9 w-9 text-gray-700 dark:text-gray-300 cursor-pointer">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-label="Menu" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -21,7 +21,7 @@
         <!-- Main content -->
         <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950" data-route-admin-inmates-male="{{ route('warden.inmates.index') }}" data-route-admin-inmates-female="{{ url('/warden/inmates/female') }}" data-current-gender="female">
             <!-- Hope UI–style Header -->
-            <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
+            <header>
                 <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">
                  <!-- Mobile: sidebar toggle (hamburger icon) -->
                     <button data-sidebar-toggle class="sm:hidden inline-flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 h-9 w-9 text-gray-700 dark:text-gray-300">
@@ -228,11 +228,11 @@
 
                 <!-- Statistics Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" viewBox="0 0 512 512">
-	                            <path fill="currentColor" d="M185 25v14h142V25zm0 32v14h142V57zm2.512 32c-1.626 7.3-2.512 15-2.512 23c0 48.966 32.654 87 71 87s71-38.034 71-87c0-8-.886-15.7-2.512-23zm21.027 118.72c-22.123 6.853-39.915 18.596-54.614 33.583l-.422.44c30.324 4.354 58.944 6.987 86.484 7.907l-31.45-41.93zm94.92 0l-31.667 42.223c29.804-.46 58.58-3.033 87.186-7.697c-.304-.314-.6-.633-.906-.943c-14.7-14.987-32.49-26.73-54.613-33.584zm-67.437 6.645L256 241.002l19.977-26.637A76.8 76.8 0 0 1 256 217a76.8 76.8 0 0 1-19.977-2.635zm-106.914 60.05c-3.84 6.633-7.324 13.557-10.493 20.685l28.81 7.203c110.47 15.786 106.675 15.786 217.147 0l28.81-7.203c-3.15-7.085-6.61-13.97-10.423-20.565c-79.61 15.326-159.822 15.182-253.85-.12zm-22.905 54.69a326 326 0 0 0-1.533 5.303a363 363 0 0 0-4.926 19.975L135 363.195v-26.89l-28.795-7.2zm299.59 0l-28.795 7.2v26.37l34.857-10.048a360 360 0 0 0-4.53-18.22a326 326 0  0 0-1.532-5.302M153 339.46v27.95c73.738 14.2 132.264 14.196 206-.004V339.46c-96.875 13.752-109.125 13.752-206 0m265.188 48.806L377 400.14v27.055l44.227-11.056a529 529 0 0 0-3.04-27.874zM93.59 389.95a532 532 0 0 0-2.817 26.19L135 427.194v-26.89zM153 404.04v27.173c88.597 14.452 132.463 14.508 206 .205v-27.38c-72.118 13.164-133.882 13.164-206 0zm-64.152 48.726c-.356 14.784-.125 26.056.027 34.234H135v-22.695l-46.152-11.54zm334.304 0L377 464.306V487h46.125c.152-8.178.383-19.45.027-34.234M153 467.696V487h206v-18.94c-71.098 13.194-121.477 13.04-206-.365z" stroke-width="13" stroke="currentColor" />
+	                            <path fill="currentColor" d="M185 25v14h142V25zm0 32v14h142V57zm2.512 32c-1.626 7.3-2.512 15-2.512 23c0 48.966 32.654 87 71 87s71-38.034 71-87c0-8-.886-15.7-2.512-23zm21.027 118.72c-22.123 6.853-39.915 18.596-54.614 33.583l-.422.44c30.324 4.354 58.944 6.987 86.484 7.907l-31.45-41.93zm94.92 0l-31.667 42.223c29.804-.46 58.58-3.033 87.186-7.697c-.304-.314-.6-.633-.906-.943c-14.7-14.987-32.49-26.73-54.613-33.584zm-67.437 6.645L256 241.002l19.977-26.637A76.8 76.8 0 0 1 256 217a76.8 76.8 0 0 1-19.977-2.635zm-106.914 60.05c-3.84 6.633-7.324 13.557-10.493 20.685l28.81 7.203c110.47 15.786 106.675 15.786 217.147 0l28.81-7.203c-3.15-7.085-6.61-13.97-10.423-20.565c-79.61 15.326-159.822 15.182-253.85-.12zm-22.905 54.69a326 326 0 0 0-1.533 5.303a363 363 0 0 0-4.926 19.975L135 363.195v-26.89l-28.795-7.2zm299.59 0l-28.795 7.2v26.37l34.857-10.048a360 360 0 0 0-4.53-18.22a326 326 0 0 0-1.532-5.302M153 339.46v27.95c73.738 14.2 132.264 14.196 206-.004V339.46c-96.875 13.752-109.125 13.752-206 0m265.188 48.806L377 400.14v27.055l44.227-11.056a529 529 0 0 0-3.04-27.874zM93.59 389.95a532 532 0 0 0-2.817 26.19L135 427.194v-26.89zM153 404.04v27.173c88.597 14.452 132.463 14.508 206 .205v-27.38c-72.118 13.164-133.882 13.164-206 0zm-64.152 48.726c-.356 14.784-.125 26.056.027 34.234H135v-22.695l-46.152-11.54zm334.304 0L377 464.306V487h46.125c.152-8.178.383-19.45.027-34.234M153 467.696V487h206v-18.94c-71.098 13.194-121.477 13.04-206-.365z" stroke-width="13" stroke="currentColor" />
                             </svg>
                             </div>
                             <div class="ml-4">
@@ -242,7 +242,7 @@
                         </div>
                     </div>
                     
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="currentColor">
@@ -256,7 +256,7 @@
                         </div>
                     </div>
                     
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600 dark:text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
@@ -270,7 +270,7 @@
                         </div>
                     </div>
                     
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600 dark:text-red-400" viewBox="0 0 48 48">
@@ -334,7 +334,7 @@
                 <div class="hidden sm:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                            <thead class="bg-gray-50 dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Inmate</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Crime & Sentence</th>
@@ -343,9 +343,9 @@
                                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="inmates-table-body" class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody id="inmates-table-body" class="bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 <!-- Empty state by default -->
-                                <tr>
+                                <tr class="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                     <td colspan="5" class="px-4 py-12 text-center">
                                         <div class="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
                                             <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">

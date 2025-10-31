@@ -154,13 +154,16 @@ function handleDateSelection(event) {
     const isOpen = button.getAttribute('data-is-open') === 'true';
     
     if (!isOpen) {
+        // Get theme-aware colors from ThemeManager
+        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+        
         window.Swal.fire({
-            title: 'Date Not Available',
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Date Not Available</span>`,
             text: 'This date is not available for visitation. Please select Tuesday to Sunday.',
             icon: 'warning',
             confirmButtonText: 'OK',
-            background: '#111827',
-            color: '#F9FAFB',
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
             confirmButtonColor: '#3B82F6'
         });
         return;
@@ -171,13 +174,16 @@ function handleDateSelection(event) {
     
     // Check if date is blocked
     if (!CalendarConfig.isDateAllowed(dateString)) {
+        // Get theme-aware colors from ThemeManager
+        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+        
         window.Swal.fire({
-            title: 'Date Blocked',
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Date Blocked</span>`,
             text: 'This date is currently unavailable due to maintenance or special circumstances.',
             icon: 'error',
             confirmButtonText: 'OK',
-            background: '#111827',
-            color: '#F9FAFB',
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
             confirmButtonColor: '#3B82F6'
         });
         return;
@@ -198,14 +204,17 @@ function handleDateSelection(event) {
         day: 'numeric'
     });
     
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     window.Swal.fire({
-        title: 'Date Selected',
-        html: `<p class="text-sm text-gray-300">You have selected:</p><p class="text-lg font-semibold text-white mt-2">${formattedDate}</p><p class="text-xs text-gray-400 mt-3">You can now proceed with your visitation request.</p>`,
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Date Selected</span>`,
+        html: `<p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">You have selected:</p><p class="text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mt-2">${formattedDate}</p><p class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-3">You can now proceed with your visitation request.</p>`,
         icon: 'success',
         timer: 2000,
         showConfirmButton: false,
-        background: '#111827',
-        color: '#F9FAFB'
+        background: isDarkMode ? '#111827' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827'
     });
 }
 
@@ -213,10 +222,16 @@ function handleDateSelection(event) {
  * Highlight the selected date on calendar
  */
 function highlightSelectedDate(dateString) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     // Remove previous selection
     document.querySelectorAll('[data-calendar-day]').forEach(btn => {
         btn.classList.remove('ring-4', 'ring-blue-500', 'ring-offset-2', 'ring-offset-gray-900');
+        btn.classList.remove('ring-offset-white');
         btn.classList.remove('bg-blue-500', '!text-white');
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.remove('!text-gray-900');
     });
     
     // Add selection to new date
@@ -226,8 +241,24 @@ function highlightSelectedDate(dateString) {
     );
     
     if (button) {
-        button.classList.add('ring-4', 'ring-blue-500', 'ring-offset-2', 'ring-offset-gray-900');
-        button.classList.add('bg-blue-500', '!text-white');
+        // Apply theme-aware selection styling
+        button.classList.add('ring-4', 'ring-blue-500', 'ring-offset-2');
+        
+        // Theme-aware ring offset
+        if (isDarkMode) {
+            button.classList.add('ring-offset-gray-900');
+        } else {
+            button.classList.add('ring-offset-white');
+        }
+        
+        // Theme-aware text color for selected date
+        if (isDarkMode) {
+            // Dark mode: white text on blue background
+            button.classList.add('bg-blue-500', '!text-white');
+        } else {
+            // Light mode: black text on blue background
+            button.classList.add('bg-blue-500', '!text-gray-900');
+        }
     }
 }
 
@@ -239,50 +270,72 @@ export function getSelectedDate() {
 }
 
 /**
+ * Generate time slots from 8:00 AM to 5:00 PM with 30-minute intervals
+ */
+function generateTimeSlots() {
+    const slots = [];
+    const startHour = 8; // 8:00 AM
+    const endHour = 17;  // 5:00 PM
+    
+    for (let hour = startHour; hour <= endHour; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+            if (hour === endHour && minute > 0) break; // Don't go beyond 5:00 PM
+            
+            const time = hour <= 12 
+                ? `${hour === 12 ? 12 : hour}:${minute.toString().padStart(2, '0')} ${minute === 0 ? 'PM' : 'PM'}`
+                : `${hour - 12}:${minute.toString().padStart(2, '0')} PM`;
+            
+            slots.push(`<option value="${time}">${time}</option>`);
+        }
+    }
+    
+    return slots.join('');
+}
+
+/**
  * Open Manual Request Modal
  */
 export async function openManualRequestModal() {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     const selectedVisitDate = getSelectedDate();
     
     if (!selectedVisitDate) {
         await window.Swal.fire({
-            title: 'No Date Selected',
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">No Date Selected</span>`,
             text: 'Please select a visitation date from the calendar first.',
             icon: 'warning',
-            confirmButtonText: 'OK',
-            background: '#111827',
-            color: '#F9FAFB',
-            confirmButtonColor: '#3B82F6'
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827'
         });
         return;
     }
-    
+
     const formattedDate = new Date(selectedVisitDate).toLocaleDateString('en-US', {
-        weekday: 'long',
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        weekday: 'long'
     });
-    
-    // Generate time slot options
-    const timeOptions = CalendarConfig.timeSlots.map(slot => 
-        `<option value="${slot.value}">${slot.label}</option>`
-    ).join('');
-    
+
+    // Generate time slots from 8:00 AM to 5:00 PM with 30-minute intervals
+    const timeOptions = generateTimeSlots();
+
     const html = `
         <div class="text-left">
-            <h3 class="text-base sm:text-lg font-semibold text-white mb-3">Manual Visitation Request</h3>
-            <div class="mb-3 p-2 bg-blue-600/10 border border-blue-500/30 rounded-lg">
-                <p class="text-xs sm:text-sm text-gray-300">
-                    <span class="font-semibold text-blue-400">Selected Date:</span> ${formattedDate}
+            <h3 class="text-base sm:text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-3">Manual Visitation Request</h3>
+            <div class="mb-3 p-2 ${isDarkMode ? 'bg-blue-600/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'} border rounded-lg">
+                <p class="text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">
+                    <span class="font-semibold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}">Selected Date:</span> ${formattedDate}
                 </p>
             </div>
             
             <form class="max-w-full mx-auto" id="manual-request-form">
                 <!-- ID Type Selection -->
                 <div class="mb-3">
-                    <label for="visitor-id-type" class="block mb-1 text-xs sm:text-sm font-medium text-gray-400">ID Type</label>
-                    <select id="visitor-id-type" class="block w-full px-2 py-2 text-xs sm:text-sm text-gray-900 bg-white border border-gray-300 rounded-lg dark:bg-gray-900 dark:text-white dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
+                    <label for="visitor-id-type" class="block mb-1 text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">ID Type</label>
+                    <select id="visitor-id-type" class="block w-full px-2 py-2 text-xs sm:text-sm ${isDarkMode ? 'text-gray-900 bg-white border-gray-300' : 'text-gray-900 bg-white border-gray-300'} rounded-lg ${isDarkMode ? 'dark:bg-gray-900 dark:text-white dark:border-gray-600' : ''} focus:ring-blue-500 focus:border-blue-500">
                         <option value="" selected disabled>Select ID Type</option>
                         <option value="Philippine National ID (PhilSys)">Philippine National ID (PhilSys)</option>
                         <option value="Driver's License">Driver's License</option>
@@ -305,16 +358,16 @@ export async function openManualRequestModal() {
                 
                 <!-- ID Number -->
                 <div class="mb-3">
-                    <label for="visitor-id-number" class="block mb-1 text-xs sm:text-sm font-medium text-gray-400">ID Number</label>
+                    <label for="visitor-id-number" class="block mb-1 text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">ID Number</label>
                     <input type="text" id="visitor-id-number" 
-                        class="block w-full px-2 py-2 text-xs sm:text-sm text-gray-900 bg-white border border-gray-300 rounded-lg dark:bg-gray-900 dark:text-white dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500" 
+                        class="block w-full px-2 py-2 text-xs sm:text-sm ${isDarkMode ? 'text-gray-900 bg-white border-gray-300' : 'text-gray-900 bg-white border-gray-300'} rounded-lg ${isDarkMode ? 'dark:bg-gray-900 dark:text-white dark:border-gray-600' : ''} focus:ring-blue-500 focus:border-blue-500" 
                         placeholder="Enter ID number" />
                 </div>
                 
                 <!-- Time Selection -->
                 <div class="mb-3">
-                    <label for="visit-time" class="block mb-1 text-xs sm:text-sm font-medium text-gray-400">Preferred Time</label>
-                    <select id="visit-time" class="block w-full px-2 py-2 text-xs sm:text-sm text-gray-900 bg-white border border-gray-300 rounded-lg dark:bg-gray-900 dark:text-white dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
+                    <label for="visit-time" class="block mb-1 text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">Preferred Time</label>
+                    <select id="visit-time" class="block w-full px-2 py-2 text-xs sm:text-sm ${isDarkMode ? 'text-gray-900 bg-white border-gray-300' : 'text-gray-900 bg-white border-gray-300'} rounded-lg ${isDarkMode ? 'dark:bg-gray-900 dark:text-white dark:border-gray-600' : ''} focus:ring-blue-500 focus:border-blue-500">
                         <option value="" selected disabled>Select time slot</option>
                         ${timeOptions}
                     </select>
@@ -322,21 +375,21 @@ export async function openManualRequestModal() {
                 
                 <!-- Reason for Visit -->
                 <div class="mb-3">
-                    <label for="reason-visit" class="block mb-1 text-xs sm:text-sm font-medium text-gray-400">Reason for Visit</label>
+                    <label for="reason-visit" class="block mb-1 text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">Reason for Visit</label>
                     <textarea id="reason-visit" rows="2" 
-                        class="block w-full px-2 py-2 text-xs sm:text-sm text-gray-900 bg-white border border-gray-300 rounded-lg dark:bg-gray-900 dark:text-white dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500" 
+                        class="block w-full px-2 py-2 text-xs sm:text-sm ${isDarkMode ? 'text-gray-900 bg-white border-gray-300' : 'text-gray-900 bg-white border-gray-300'} rounded-lg ${isDarkMode ? 'dark:bg-gray-900 dark:text-white dark:border-gray-600' : ''} focus:ring-blue-500 focus:border-blue-500" 
                         placeholder="Please provide a brief reason for your visit..." maxlength="500"></textarea>
-                    <p class="text-xs text-gray-500 mt-1">Maximum 500 characters</p>
+                    <p class="text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} mt-1">Maximum 500 characters</p>
                 </div>
                 
                 <!-- PDL Info Display (Initially Hidden) -->
-                <div id="pdl-info-section" class="hidden mt-4 p-3 bg-green-600/10 border border-green-500/30 rounded-lg">
-                    <h4 class="text-xs sm:text-sm font-semibold text-green-400 mb-2">Person Deprived of Liberty Information</h4>
+                <div id="pdl-info-section" class="hidden mt-4 p-3 ${isDarkMode ? 'bg-green-600/10 border-green-500/30' : 'bg-green-50 border-green-200'} rounded-lg">
+                    <h4 class="text-xs sm:text-sm font-semibold ${isDarkMode ? 'text-green-400' : 'text-green-600'} mb-2">Person Deprived of Liberty Information</h4>
                     <div class="flex items-start gap-3">
                         <div id="pdl-avatar" class="shrink-0">
                             <!-- Avatar will be inserted here -->
                         </div>
-                        <div id="pdl-details" class="flex-1 text-xs sm:text-sm text-gray-300 space-y-1">
+                        <div id="pdl-details" class="flex-1 text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} space-y-1">
                             <!-- PDL details will be inserted here -->
                         </div>
                     </div>
@@ -346,10 +399,10 @@ export async function openManualRequestModal() {
     `;
     
     const result = await window.Swal.fire({
-        title: '<span class="text-white">Manual Visitation Request</span>',
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Manual Visitation Request</span>`,
         html,
-        background: '#111827',
-        color: '#F9FAFB',
+        background: isDarkMode ? '#111827' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827',
         showCancelButton: true,
         showConfirmButton: true,
         confirmButtonText: 'Continue',
@@ -360,7 +413,7 @@ export async function openManualRequestModal() {
         customClass: {
             popup: 'm-0 w-[95vw] max-w-lg sm:max-w-xl md:max-w-2xl p-3 sm:p-4 !rounded-2xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500',
             confirmButton: 'inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium cursor-pointer',
-            cancelButton: 'inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs sm:text-sm font-medium ml-2 cursor-pointer'
+            cancelButton: `inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-200 text-gray-900'} text-xs sm:text-sm font-medium ml-2 cursor-pointer`
         },
         didOpen: () => {
             setupIDVerification(selectedVisitDate);
@@ -453,11 +506,14 @@ function displayPDLInfo(inmate, visitorId) {
     `;
     
     // Display details
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     pdlDetails.innerHTML = `
-        <p><span class="font-semibold text-white">Name:</span> ${inmate.first_name} ${inmate.last_name}</p>
-        <p><span class="font-semibold text-white">ID:</span> ${String(inmate.id).padStart(4, '0')}</p>
-        <p><span class="font-semibold text-white">Cell:</span> ${inmate.cell?.name || 'N/A'}</p>
-        <p><span class="font-semibold text-white">Status:</span> ${inmate.status || 'N/A'}</p>
+        <p><span class="font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}">Name:</span> <span class="${isDarkMode ? 'text-gray-200' : 'text-gray-700'}">${inmate.first_name} ${inmate.last_name}</span></p>
+        <p><span class="font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}">ID:</span> <span class="${isDarkMode ? 'text-gray-200' : 'text-gray-700'}">${String(inmate.id).padStart(4, '0')}</span></p>
+        <p><span class="font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}">Cell:</span> <span class="${isDarkMode ? 'text-gray-200' : 'text-gray-700'}">${inmate.cell?.name || 'N/A'}</span></p>
+        <p><span class="font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}">Status:</span> <span class="${isDarkMode ? 'text-gray-200' : 'text-gray-700'}">${inmate.status || 'N/A'}</span></p>
     `;
     
     // Store inmate and visitor data for submission
@@ -605,21 +661,24 @@ async function submitVisitationRequest(requestData) {
         await sendVisitationReminder(requestData);
         
         // Show success message
+        // Get theme-aware colors from ThemeManager
+        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+        
         await window.Swal.fire({
-            title: 'Request Submitted!',
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Request Submitted!</span>`,
             html: `
-                <p class="text-sm text-gray-300 mb-3">Your visitation request has been submitted successfully.</p>
-                <div class="p-3 bg-blue-600/10 border border-blue-500/30 rounded-lg text-left">
-                    <p class="text-xs text-gray-400 mb-1">Reference Number:</p>
-                    <p class="text-lg font-bold text-blue-400 font-mono tracking-wider">${referenceNumber}</p>
+                <p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-3">Your visitation request has been submitted successfully.</p>
+                <div class="p-3 ${isDarkMode ? 'bg-blue-600/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'} border rounded-lg text-left">
+                    <p class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-1">Reference Number:</p>
+                    <p class="text-lg font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} font-mono tracking-wider">${referenceNumber}</p>
                 </div>
-                <p class="text-xs text-gray-400 mt-3">Please save this reference number. You will need it for verification at the facility.</p>
-                <p class="text-xs text-gray-500 mt-1">Please wait for approval from the facility warden.</p>
+                <p class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-3">Please save this reference number. You will need it for verification at the facility.</p>
+                <p class="text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-600'} mt-1">Please wait for approval from the facility warden.</p>
             `,
             icon: 'success',
             confirmButtonText: 'OK',
-            background: '#111827',
-            color: '#F9FAFB',
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
             confirmButtonColor: '#10B981'
         });
         
@@ -631,13 +690,16 @@ async function submitVisitationRequest(requestData) {
     } catch (error) {
         console.error('Error submitting visitation request:', error);
         
+        // Get theme-aware colors from ThemeManager
+        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+        
         await window.Swal.fire({
-            title: 'Submission Failed',
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Submission Failed</span>`,
             text: error.message || 'An error occurred while submitting your request. Please try again.',
             icon: 'error',
             confirmButtonText: 'OK',
-            background: '#111827',
-            color: '#F9FAFB',
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
             confirmButtonColor: '#EF4444'
         });
     }

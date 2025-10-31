@@ -6,6 +6,9 @@
 export function createMedicalRecordsManager() {
   
   function renderAddRecordButton() {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     return `
       <button type="button" id="add-medical-record" class="inline-flex items-center px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-md cursor-pointer transition-colors">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,21 +20,24 @@ export function createMedicalRecordsManager() {
   }
 
   function renderMedicalRecordsHistory(records = []) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     if (!records || records.length === 0) {
-      return '<div class="text-sm text-gray-400">No medical records yet</div>';
+      return `<div class="text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">No medical records yet</div>`;
     }
 
     return records.map(record => `
-      <div class="p-3 bg-gray-800/40 rounded border border-gray-600">
+      <div class="p-3 ${isDarkMode ? 'bg-gray-800/40 border-gray-600' : 'bg-gray-50 border-gray-200'} rounded border">
         <div class="flex justify-between items-start">
           <div class="flex-1">
-            <span class="text-sm font-semibold text-teal-400">${record.diagnosis}</span>
-            <div class="text-xs text-gray-400 mt-1">${record.date}</div>
+            <span class="text-sm font-semibold ${isDarkMode ? 'text-teal-400' : 'text-teal-600'}">${record.diagnosis}</span>
+            <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1">${record.date}</div>
           </div>
         </div>
-        <div class="text-sm text-gray-300 mt-2">Treatment: ${record.treatment}</div>
-        ${record.notes ? `<div class="text-xs text-gray-400 mt-1 italic">Notes: ${record.notes}</div>` : ''}
-        ${record.recordedBy ? `<div class="text-xs text-gray-500 mt-1">By: ${record.recordedBy}</div>` : '<div class="text-xs text-gray-500 mt-1">By: System</div>'}
+        <div class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mt-2">Treatment: ${record.treatment}</div>
+        ${record.notes ? `<div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1 italic">Notes: ${record.notes}</div>` : ''}
+        ${record.recordedBy ? `<div class="text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} mt-1">By: ${record.recordedBy}</div>` : `<div class="text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} mt-1">By: System</div>`}
       </div>
     `).join('');
   }
@@ -39,61 +45,64 @@ export function createMedicalRecordsManager() {
   function renderMedicalRecordForm(inmateId, medicalStatus = '') {
     const isMobile = () => window.innerWidth < 640;
     
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     return `
       <div class="space-y-3 text-left max-h-96 overflow-y-auto pr-2">
         <div>
-          <label class="block text-sm text-gray-300 mb-1">Record Date *</label>
-          <input id="med-date" type="date" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2" 
+          <label class="block text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1">Record Date *</label>
+          <input id="med-date" type="date" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                  value="${new Date().toISOString().split('T')[0]}" />
         </div>
         <div>
-          <label class="block text-sm text-gray-300 mb-1">Diagnosis *</label>
-          <input id="med-diagnosis" type="text" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2" 
+          <label class="block text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1">Diagnosis *</label>
+          <input id="med-diagnosis" type="text" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                  placeholder="e.g., Common Cold, Hypertension" />
         </div>
         <div>
-          <label class="block text-sm text-gray-300 mb-1">Treatment *</label>
-          <textarea id="med-treatment" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2" 
+          <label class="block text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1">Treatment *</label>
+          <textarea id="med-treatment" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                     rows="2" placeholder="Treatment provided..."></textarea>
         </div>
         <div>
-          <label class="block text-sm text-gray-300 mb-1">Nurse Notes</label>
-          <textarea id="med-notes" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2" 
+          <label class="block text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1">Nurse Notes</label>
+          <textarea id="med-notes" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                     rows="2" placeholder="Additional observations..."></textarea>
         </div>
 
         <!-- Vitals -->
-        <div class="border-t border-gray-700 pt-3">
-          <label class="block text-sm mb-2 text-gray-300 font-semibold">Vitals</label>
+        <div class="border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} pt-3">
+          <label class="block text-sm mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-semibold">Vitals</label>
           <div class="grid grid-cols-2 gap-2">
-            <input type="text" id="med-bp" class="w-full rounded border border-gray-600 bg-gray-800/60 text-white px-2 py-1.5 text-sm" 
+            <input type="text" id="med-bp" class="w-full rounded ${isDarkMode ? 'border-gray-600 bg-gray-800/60 text-white' : 'border-gray-300 bg-white text-gray-900'} px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                    placeholder="BP (e.g., 120/80)" />
-            <input type="text" id="med-hr" class="w-full rounded border border-gray-600 bg-gray-800/60 text-white px-2 py-1.5 text-sm" 
+            <input type="text" id="med-hr" class="w-full rounded ${isDarkMode ? 'border-gray-600 bg-gray-800/60 text-white' : 'border-gray-300 bg-white text-gray-900'} px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                    placeholder="HR (bpm)" />
-            <input type="text" id="med-temp" class="w-full rounded border border-gray-600 bg-gray-800/60 text-white px-2 py-1.5 text-sm" 
+            <input type="text" id="med-temp" class="w-full rounded ${isDarkMode ? 'border-gray-600 bg-gray-800/60 text-white' : 'border-gray-300 bg-white text-gray-900'} px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                    placeholder="Temp (°C)" />
-            <input type="text" id="med-weight" class="w-full rounded border border-gray-600 bg-gray-800/60 text-white px-2 py-1.5 text-sm" 
+            <input type="text" id="med-weight" class="w-full rounded ${isDarkMode ? 'border-gray-600 bg-gray-800/60 text-white' : 'border-gray-300 bg-white text-gray-900'} px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                    placeholder="Weight (kg)" />
           </div>
         </div>
 
         <!-- Allergies -->
-        <div class="border-t border-gray-700 pt-3">
-          <label class="block text-sm mb-1 text-gray-300 font-semibold">Allergies <span class="text-xs text-gray-500">(comma-separated)</span></label>
-          <input type="text" id="med-allergies" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2" 
+        <div class="border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} pt-3">
+          <label class="block text-sm mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-semibold">Allergies <span class="text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}">(comma-separated)</span></label>
+          <input type="text" id="med-allergies" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                  placeholder="e.g., Penicillin, Peanuts" />
         </div>
 
         <!-- Medications -->
-        <div class="border-t border-gray-700 pt-3">
-          <label class="block text-sm mb-1 text-gray-300 font-semibold">Medications <span class="text-xs text-gray-500">(comma-separated)</span></label>
-          <input type="text" id="med-medications" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2" 
+        <div class="border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} pt-3">
+          <label class="block text-sm mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-semibold">Medications <span class="text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}">(comma-separated)</span></label>
+          <input type="text" id="med-medications" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                  placeholder="e.g., Aspirin 100mg, Amoxicillin" />
         </div>
 
-        <div class="border-t border-gray-700 pt-3">
-          <label class="block text-sm text-gray-300 mb-1">Update Medical Status</label>
-          <select id="med-status-update" class="w-full rounded-md bg-gray-800/60 border border-gray-600 text-white px-3 py-2">
+        <div class="border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} pt-3">
+          <label class="block text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1">Update Medical Status</label>
+          <select id="med-status-update" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <option value="">Keep current status</option>
             <option value="Healthy">Healthy</option>
             <option value="Under Treatment">Under Treatment</option>
@@ -108,6 +117,9 @@ export function createMedicalRecordsManager() {
   function openAddMedicalRecordModal(inmateId, currentStatus, onSuccess) {
     const isMobile = () => window.innerWidth < 640;
     
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     return window.Swal.fire({
       title: 'Add Medical Record',
       html: renderMedicalRecordForm(inmateId, currentStatus),
@@ -116,9 +128,9 @@ export function createMedicalRecordsManager() {
       confirmButtonText: 'Add Record',
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#14B8A6',
-      cancelButtonColor: '#111827',
-      background: '#111827',
-      color: '#F9FAFB',
+      cancelButtonColor: '#DC2626',
+      background: isDarkMode ? '#1F2937' : '#FFFFFF',
+      color: isDarkMode ? '#F9FAFB' : '#111827',
       preConfirm: () => {
         const date = document.getElementById('med-date').value;
         const diagnosis = document.getElementById('med-diagnosis').value;
@@ -183,8 +195,8 @@ export function createMedicalRecordsManager() {
               text: 'Medical record saved successfully',
               timer: 1500,
               showConfirmButton: false,
-              background: '#111827',
-              color: '#F9FAFB'
+              background: isDarkMode ? '#1F2937' : '#FFFFFF',
+              color: isDarkMode ? '#F9FAFB' : '#111827'
             });
             
             // Call success callback with updated data
@@ -199,8 +211,8 @@ export function createMedicalRecordsManager() {
             icon: 'error',
             title: 'Error',
             text: error.message || 'Failed to add medical record',
-            background: '#111827',
-            color: '#F9FAFB'
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827'
           });
         }
       }

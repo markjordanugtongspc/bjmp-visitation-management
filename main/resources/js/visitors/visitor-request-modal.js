@@ -1,5 +1,8 @@
 // New Visitation Request Modal with Visitor Selection
 export async function openVisitationRequestModal(inmate) {
+  // Get theme-aware colors from ThemeManager
+  const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+  
   // Fetch registered visitors for this inmate
   let registeredVisitors = [];
   try {
@@ -18,21 +21,21 @@ export async function openVisitationRequestModal(inmate) {
 
   const html = `
     <div class="text-left">
-      <h3 class="text-base sm:text-lg font-semibold text-white mb-3">New Visitation Request</h3>
-      <div class="mb-4 text-xs sm:text-sm text-gray-300">Creating visit request for <span class="font-semibold text-white">${inmate.name}</span> (ID ${String(inmate.id).padStart(4,'0')})</div>
+      <h3 class="text-base sm:text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-3">New Visitation Request</h3>
+      <div class="mb-4 text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}">Creating visit request for <span class="font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}">${inmate.name}</span> (ID ${String(inmate.id).padStart(4,'0')})</div>
       
       <form class="max-w-full mx-auto">
         <!-- Visitor Selection Type -->
         <div class="mb-6">
-          <label class="block mb-2 text-sm font-medium text-gray-400">Select Visitor Type</label>
+          <label class="block mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">Select Visitor Type</label>
           <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <label class="inline-flex items-center cursor-pointer">
-              <input type="radio" name="visitor-type" value="existing" id="visitor-type-existing" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500" ${registeredVisitors.length > 0 ? 'checked' : 'disabled'}>
-              <span class="ml-2 text-xs sm:text-sm text-gray-300">Select Registered Visitor</span>
+              <input type="radio" name="visitor-type" value="existing" id="visitor-type-existing" class="w-4 h-4 text-blue-600 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'} focus:ring-blue-500" ${registeredVisitors.length > 0 ? 'checked' : 'disabled'}>
+              <span class="ml-2 text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">Select Registered Visitor</span>
             </label>
             <label class="inline-flex items-center cursor-pointer">
-              <input type="radio" name="visitor-type" value="new" id="visitor-type-new" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500" ${registeredVisitors.length === 0 ? 'checked' : ''}>
-              <span class="ml-2 text-xs sm:text-sm text-gray-300">Register New Visitor</span>
+              <input type="radio" name="visitor-type" value="new" id="visitor-type-new" class="w-4 h-4 text-blue-600 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'} focus:ring-blue-500" ${registeredVisitors.length === 0 ? 'checked' : ''}>
+              <span class="ml-2 text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">Register New Visitor</span>
             </label>
           </div>
         </div>
@@ -40,8 +43,8 @@ export async function openVisitationRequestModal(inmate) {
         <!-- Existing Visitor Selection -->
         <div id="existing-visitor-section" class="${registeredVisitors.length === 0 ? 'hidden' : ''}">
           <div class="relative z-0 w-full mb-5 group">
-            <label for="select-visitor" class="block mb-2 text-sm font-medium text-gray-400">Registered Visitors</label>
-            <select id="select-visitor" class="block w-full px-3 py-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg dark:bg-gray-900 dark:text-white dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
+            <label for="select-visitor" class="block mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">Registered Visitors</label>
+            <select id="select-visitor" class="block w-full px-3 py-2.5 text-sm ${isDarkMode ? 'text-gray-900 bg-white border-gray-300' : 'text-gray-900 bg-white border-gray-300'} rounded-lg ${isDarkMode ? 'dark:bg-gray-900 dark:text-white dark:border-gray-600' : ''} focus:ring-blue-500 focus:border-blue-500">
               <option value="" selected>Choose a visitor...</option>
               ${visitorOptions}
             </select>
@@ -58,8 +61,8 @@ export async function openVisitationRequestModal(inmate) {
                   <label for="mr-v-name" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left">Name</label>
               </div>
               <div class="relative z-0 w-full mb-5 group">
-                  <label for="mr-v-rel" class="block mb-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Relationship</label>
-                  <select id="mr-v-rel" class="block w-full px-2 py-2 text-xs sm:text-sm text-gray-900 bg-white border-b-2 border-r border-gray-200 dark:bg-gray-900 dark:text-white dark:border-gray-700">
+                  <label for="mr-v-rel" class="block mb-1 text-xs sm:text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-600'} font-medium">Relationship</label>
+                  <select id="mr-v-rel" class="block w-full px-2 py-2 text-xs sm:text-sm text-gray-900 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'} border-b-2 border-r ${isDarkMode ? 'dark:bg-gray-900 dark:text-white dark:border-gray-700' : ''}">
                     <option value="" selected disabled>Select Relationship</option>
                     <option>Mother</option>
                     <option>Father</option>
@@ -77,17 +80,17 @@ export async function openVisitationRequestModal(inmate) {
                   <label for="mr-v-email" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left">Email</label>
               </div>
               <div class="relative z-0 w-full mb-5 group">
-                <span class="absolute left-0 bottom-2.5 text-sm text-gray-500 dark:text-gray-400 select-none">+63</span>
-                <input type="tel" id="mr-v-phone" class="peer block py-2.5 pl-12 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600" placeholder=" " />
-                <label for="mr-v-phone" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 left-12 -z-10 origin-left">Phone</label>
+                <span class="absolute left-0 bottom-2.5 text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-600'} select-none">+63</span>
+                <input type="tel" id="mr-v-phone" class="peer block py-2.5 pl-12 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} appearance-none ${isDarkMode ? 'dark:text-white dark:border-gray-600' : ''} focus:outline-none focus:ring-0 focus:border-blue-600" placeholder=" " />
+                <label for="mr-v-phone" class="peer-focus:font-medium absolute text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-600'} duration-300 transform -translate-y-6 scale-75 top-3 left-12 -z-10 origin-left">Phone</label>
               </div>
             </div>
             
             <!-- ID Type & ID Number -->
             <div class="grid md:grid-cols-2 md:gap-6">
               <div class="relative z-0 w-full mb-5 group">
-                <label for="mr-v-id-type" class="block mb-2 text-sm font-medium text-gray-400">ID Type</label>
-                <select id="mr-v-id-type" class="block w-full px-3 py-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg dark:bg-gray-900 dark:text-white dark:border-gray-600">
+                <label for="mr-v-id-type" class="block mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">ID Type</label>
+                <select id="mr-v-id-type" class="block w-full px-3 py-2.5 text-sm text-gray-900 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} rounded-lg ${isDarkMode ? 'dark:bg-gray-900 dark:text-white dark:border-gray-600' : ''}">
                   <option value="" selected disabled>Select ID Type</option>
                   <option>Philippine National ID (PhilSys)</option>
                   <option>Driver's License</option>
@@ -121,15 +124,15 @@ export async function openVisitationRequestModal(inmate) {
             
             <!-- Photo -->
             <div class="relative z-0 w-full mb-5 group">
-                <input type="file" id="mr-v-photo" accept="image/*" class="mt-2 block w-full text-sm text-gray-900 bg-transparent border-0 border-transparent appearance-none dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-transparent file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
-                <label for="mr-v-photo" class="block mb-2 text-sm font-medium text-gray-400">Photo</label>
+                <input type="file" id="mr-v-photo" accept="image/*" class="mt-2 block w-full text-sm text-gray-900 bg-transparent border-0 border-transparent appearance-none ${isDarkMode ? 'dark:text-white' : ''} file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-transparent file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
+                <label for="mr-v-photo" class="block mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">Photo</label>
             </div>
           </div>
         </div>
 
         <!-- Visit Details (Always Visible) -->
-        <div class="border-t border-gray-700 pt-5 mt-5">
-          <h4 class="text-sm font-semibold text-white mb-4">Visit Details</h4>
+        <div class="border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} pt-5 mt-5">
+          <h4 class="text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4">Visit Details</h4>
           <div class="grid md:grid-cols-2 md:gap-6">
             <div class="relative z-0 w-full mb-5 group">
                 <input type="datetime-local" id="mr-v-sched" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
@@ -145,10 +148,10 @@ export async function openVisitationRequestModal(inmate) {
     </div>`;
 
   const swalInstance = await window.Swal.fire({
-    title: '<span class="text-white">New Visitation Request</span>',
+    title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">New Visitation Request</span>`,
     html,
-    background: '#111827',
-    color: '#F9FAFB',
+    background: isDarkMode ? '#1F2937' : '#FFFFFF',
+    color: isDarkMode ? '#F9FAFB' : '#111827',
     showCancelButton: true,
     showConfirmButton: true,
     confirmButtonText: 'Submit Request',
@@ -159,7 +162,7 @@ export async function openVisitationRequestModal(inmate) {
     customClass: {
       popup: 'm-0 w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[70vw] xl:w-[56rem] p-4 sm:p-5 !rounded-2xl',
       confirmButton: 'inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm font-medium cursor-pointer',
-      cancelButton: 'inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs sm:text-sm font-medium ml-2 cursor-pointer'
+      cancelButton: `inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-red-600 text-white'} text-xs sm:text-sm font-medium ml-2 cursor-pointer`
     },
     didOpen: () => {
       // Toggle sections based on visitor type selection
@@ -247,8 +250,8 @@ export async function openVisitationRequestModal(inmate) {
             icon: 'success',
             timer: 2000,
             showConfirmButton: false,
-            background: '#111827',
-            color: '#F9FAFB',
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
           }).then(() => {
             // After success modal closes, reload the entire page
             setTimeout(() => {
@@ -296,8 +299,8 @@ export async function openVisitationRequestModal(inmate) {
             icon: 'success',
             timer: 2000,
             showConfirmButton: false,
-            background: '#111827',
-            color: '#F9FAFB',
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
           }).then(() => {
             // After success modal closes, reload the entire page
             setTimeout(() => {

@@ -126,6 +126,10 @@ export function initializeInmateCells() {
 async function openCellsManagementModal() {
   const isMobile = () => window.innerWidth < 640; // sm breakpoint in Tailwind
   const width = isMobile() ? '95vw' : '80rem'; // Wider modal for better content display
+  
+  // Get theme-aware colors from ThemeManager
+  const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+  
   // Scope by current page gender
   const genderRoot = document.querySelector('[data-current-gender]');
   const genderValue = (genderRoot?.getAttribute('data-current-gender') || '').toLowerCase();
@@ -154,7 +158,7 @@ async function openCellsManagementModal() {
     <div class="space-y-4 sm:space-y-6">
       <!-- Mobile Close Button (only visible on mobile) -->
       <div class="sm:hidden flex justify-end mb-2">
-        <button id="mobile-close-btn" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors cursor-pointer">
+        <button id="mobile-close-btn" class="inline-flex items-center justify-center w-8 h-8 rounded-full ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'} transition-colors cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
@@ -165,8 +169,8 @@ async function openCellsManagementModal() {
       <div class="flex flex-col gap-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div class="flex-1">
-            <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 text-center sm:text-left">Cell Management</h2>
-            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 text-center sm:text-left">Manage cell assignments, capacity, and occupancy</p>
+            <h2 class="text-lg sm:text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} text-center sm:text-left">Cell Management</h2>
+            <p class="text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-1 text-center sm:text-left">Manage cell assignments, capacity, and occupancy</p>
           </div>
           <div class="flex flex-col sm:flex-row gap-2">
             <button id="add-cell-btn" class="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer">
@@ -191,7 +195,7 @@ async function openCellsManagementModal() {
 
       <!-- Statistics Cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
-        <div class="bg-white dark:bg-gray-800 p-2 sm:p-3 lg:p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-2 sm:p-3 lg:p-4 rounded-lg border">
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10 rounded-lg bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center flex-shrink-0">
               <svg class="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -200,13 +204,13 @@ async function openCellsManagementModal() {
               </svg>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Cells</p>
-              <p class="text-sm sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-gray-100" id="total-cells">${cells.length}</p>
+              <p class="text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} truncate">Total Cells</p>
+              <p class="text-sm sm:text-lg lg:text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}" id="total-cells">${cells.length}</p>
             </div>
           </div>
         </div>
         
-        <div class="bg-white dark:bg-gray-800 p-2 sm:p-3 lg:p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-2 sm:p-3 lg:p-4 rounded-lg border">
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10 rounded-lg bg-green-500/10 text-green-500 ring-2 ring-green-500/20 flex items-center justify-center flex-shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="currentColor">
@@ -214,13 +218,13 @@ async function openCellsManagementModal() {
               </svg>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Active Cells</p>
-              <p class="text-sm sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-gray-100" id="active-cells">${cells.filter(c => c.status === 'Active').length}</p>
+              <p class="text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} truncate">Active Cells</p>
+              <p class="text-sm sm:text-lg lg:text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}" id="active-cells">${cells.filter(c => c.status === 'Active').length}</p>
             </div>
           </div>
         </div>
         
-        <div class="bg-white dark:bg-gray-800 p-2 sm:p-3 lg:p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-2 sm:p-3 lg:p-4 rounded-lg border">
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10 rounded-lg bg-yellow-500/10 text-yellow-500 ring-2 ring-yellow-500/20 flex items-center justify-center flex-shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-yellow-600 dark:text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
@@ -228,13 +232,13 @@ async function openCellsManagementModal() {
               </svg>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Capacity</p>
-              <p class="text-sm sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-gray-100" id="total-capacity">${cells.reduce((sum, cell) => sum + cell.capacity, 0)}</p>
+              <p class="text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} truncate">Total Capacity</p>
+              <p class="text-sm sm:text-lg lg:text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}" id="total-capacity">${cells.reduce((sum, cell) => sum + cell.capacity, 0)}</p>
             </div>
           </div>
         </div>
         
-        <div class="bg-white dark:bg-gray-800 p-2 sm:p-3 lg:p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-2 sm:p-3 lg:p-4 rounded-lg border">
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10 rounded-lg bg-red-500/10 text-red-500 ring-2 ring-red-500/20 flex items-center justify-center flex-shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-red-600 dark:text-red-400" viewBox="0 0 90 84" fill="currentColor">
@@ -242,8 +246,8 @@ async function openCellsManagementModal() {
               </svg>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Current Occupancy</p>
-              <p class="text-sm sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-gray-100" id="current-occupancy">${cells.reduce((sum, cell) => sum + (cell.currentCount || 0), 0)}</p>
+              <p class="text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} truncate">Current Occupancy</p>
+              <p class="text-sm sm:text-lg lg:text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}" id="current-occupancy">${cells.reduce((sum, cell) => sum + (cell.currentCount || 0), 0)}</p>
             </div>
           </div>
         </div>
@@ -253,16 +257,16 @@ async function openCellsManagementModal() {
       <div id="cells-search-sort-filter"></div>
 
       <!-- Desktop Table View -->
-      <div class="hidden sm:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div class="hidden sm:block ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg border overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-900">
+          <table class="min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}">
+            <thead class="${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}">
               <tr>
-                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cell Info</th>
-                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Capacity & Occupancy</th>
-                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type & Location</th>
-                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                <th class="px-5 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                <th class="px-5 py-3 text-left text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider">Cell Info</th>
+                <th class="px-5 py-3 text-left text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider">Capacity & Occupancy</th>
+                <th class="px-5 py-3 text-left text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider">Type & Location</th>
+                <th class="px-5 py-3 text-left text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider">Status</th>
+                <th class="px-5 py-3 text-right text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody id="cells-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -279,18 +283,18 @@ async function openCellsManagementModal() {
 
       <!-- Pagination -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div id="pagination-info" class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
+        <div id="pagination-info" class="text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-center sm:text-left">
           Showing <span class="font-medium">1</span> to <span class="font-medium">${cells.length}</span> of <span class="font-medium">${cells.length}</span> results
         </div>
         <div class="flex items-center justify-center gap-1 sm:gap-2">
-          <button class="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <button class="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400 bg-gray-800 border-gray-600 hover:bg-gray-700' : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'} rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             <span class="hidden sm:inline">Previous</span>
             <span class="sm:hidden">Prev</span>
           </button>
           <button class="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
             1
           </button>
-          <button class="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+          <button class="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400 bg-gray-800 border-gray-600 hover:bg-gray-700' : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'} rounded-lg cursor-pointer transition-colors">
             <span class="hidden sm:inline">Next</span>
             <span class="sm:hidden">Next</span>
           </button>
@@ -299,15 +303,13 @@ async function openCellsManagementModal() {
     </div>
   `;
 
-  return window.Swal.fire({
+  return window.ThemeManager.showAlert({
     title: `<span class="hidden">Cell Management</span>`,
     html: modalHTML,
     width: width,
     padding: isMobile() ? '0.75rem' : '1.5rem',
     showCancelButton: false,
     showConfirmButton: false,
-    background: '#111827',
-    color: '#F9FAFB',
     customClass: {
       container: 'swal-responsive-container',
       popup: 'swal-responsive-popup',
@@ -795,17 +797,13 @@ function attachCellActionListeners(cells) {
       const cell = cells.find(c => c.id == cellId);
       if (cell) {
         try {
-          const result = await window.Swal.fire({
+          const result = await window.ThemeManager.showConfirm({
             title: 'Delete Cell',
             text: `Are you sure you want to delete ${cell.name}?`,
             icon: 'warning',
-            showCancelButton: true,
             confirmButtonText: 'Yes, delete',
             cancelButtonText: 'Cancel',
-            confirmButtonColor: '#EF4444',
-            cancelButtonColor: '#111827',
-            background: '#111827',
-            color: '#F9FAFB'
+            variant: 'danger'
           });
           
           if (result.isConfirmed) {
@@ -846,6 +844,9 @@ function openAddEditCellModal(cell = null) {
   const isMobile = () => window.innerWidth < 640;
   const width = isMobile() ? '95%' : '42rem';
   
+  // Get theme-aware colors from ThemeManager
+  const isDark = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+  
   // Get current page gender for cell type
   const genderRoot = document.querySelector('[data-current-gender]');
   const genderValue = (genderRoot?.getAttribute('data-current-gender') || '').toLowerCase();
@@ -858,7 +859,7 @@ function openAddEditCellModal(cell = null) {
     <div class="space-y-3 sm:space-y-4 text-left">
       <!-- Mobile Close Button (only visible on mobile) -->
       <div class="sm:hidden flex justify-end mb-2">
-        <button id="mobile-close-add-edit-btn" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors cursor-pointer">
+        <button id="mobile-close-add-edit-btn" class="inline-flex items-center justify-center w-8 h-8 rounded-full ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'} transition-colors cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
@@ -867,39 +868,39 @@ function openAddEditCellModal(cell = null) {
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-1.5 sm:mb-2">Cell Name *</label>
-          <input id="cell-name" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+          <label class="block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1.5 sm:mb-2">Cell Name *</label>
+          <input id="cell-name" class="w-full rounded-md ${isDark ? 'bg-gray-800/60 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                  value="${draft?.name || ''}" placeholder="e.g., Cell 1" list="cell-name-suggestions" />
           <datalist id="cell-name-suggestions">
             ${generateCellNameSuggestions(cell)}
           </datalist>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-1.5 sm:mb-2">Capacity *</label>
-          <input id="cell-capacity" type="number" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+          <label class="block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1.5 sm:mb-2">Capacity *</label>
+          <input id="cell-capacity" type="number" class="w-full rounded-md ${isDark ? 'bg-gray-800/60 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                  value="${draft?.capacity || ''}" placeholder="e.g., 20" min="1" max="50" />
         </div>
       </div>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-1.5 sm:mb-2">Cell Type *</label>
-          <select id="cell-type" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <label class="block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1.5 sm:mb-2">Cell Type *</label>
+          <select id="cell-type" class="w-full rounded-md ${isDark ? 'bg-gray-800/60 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <option value="">Select Type</option>
             <option value="Male" ${draft?.type === 'Male' ? 'selected' : ''}>Male</option>
             <option value="Female" ${draft?.type === 'Female' ? 'selected' : ''}>Female</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-1.5 sm:mb-2">Location *</label>
-          <input id="cell-location" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+          <label class="block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1.5 sm:mb-2">Location *</label>
+          <input id="cell-location" class="w-full rounded-md ${isDark ? 'bg-gray-800/60 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                  value="${draft?.location || ''}" placeholder="e.g., Block A" />
         </div>
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1.5 sm:mb-2">Status *</label>
-        <select id="cell-status" class="w-full rounded-md bg-gray-800/60 border border-gray-700 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <label class="block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1.5 sm:mb-2">Status *</label>
+        <select id="cell-status" class="w-full rounded-md ${isDark ? 'bg-gray-800/60 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           <option value="">Select Status</option>
           <option value="Active" ${draft?.status === 'Active' ? 'selected' : ''}>Active</option>
           <option value="Maintenance" ${draft?.status === 'Maintenance' ? 'selected' : ''}>Maintenance</option>
@@ -909,7 +910,7 @@ function openAddEditCellModal(cell = null) {
     </div>
   `;
 
-  return window.Swal.fire({
+  return window.ThemeManager.showAlert({
     title: title,
     html: modalHTML,
     width: width,
@@ -918,10 +919,9 @@ function openAddEditCellModal(cell = null) {
     showCancelButton: true,
     confirmButtonText: isEdit ? 'Update Cell' : 'Add Cell',
     cancelButtonText: 'Cancel',
-    confirmButtonColor: '#3B82F6',
-    cancelButtonColor: '#111827',
-    background: '#111827',
-    color: '#F9FAFB',
+    cancelButtonColor: '#FF0000',
+    cancelButtonAriaLabel: 'Cancel',
+    cancelButtonTextColor: '#FFFFFF',
     customClass: {
       container: 'swal-responsive-container',
       popup: 'swal-responsive-popup',
@@ -1065,15 +1065,10 @@ function openAddEditCellModal(cell = null) {
  * TODO: Integrate with main notification system
  */
 function showSuccessMessage(message) {
-  return window.Swal.fire({
+  return window.ThemeManager.showToast({
     icon: 'success',
     title: 'Success',
-    text: message,
-    timer: 1500,
-    timerProgressBar: true,
-    showConfirmButton: false,
-    background: '#111827',
-    color: '#F9FAFB'
+    text: message
   });
 }
 
@@ -1082,13 +1077,10 @@ function showSuccessMessage(message) {
  * TODO: Integrate with main notification system
  */
 function showErrorMessage(message) {
-  return window.Swal.fire({
+  return window.ThemeManager.showAlert({
     icon: 'error',
     title: 'Error',
-    text: message,
-    confirmButtonColor: '#EF4444',
-    background: '#111827',
-    color: '#F9FAFB'
+    text: message
   });
 }
 

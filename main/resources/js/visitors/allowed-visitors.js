@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function lifeStatusBadge(status) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     const map = {
       alive: 'bg-green-500/10 text-green-500',
       deceased: 'bg-red-500/10 text-red-500',
@@ -32,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function actionButtons(id) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     return `
       <div class="flex items-center gap-2 justify-end">
         <button class="px-2 py-1 text-xs rounded bg-orange-600 hover:bg-orange-700 text-white cursor-pointer" data-action="edit" data-id="${id}">Edit</button>
@@ -41,11 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderTable(list) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     if (!tableBody) return;
     if (!list.length) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="5" class="px-32 py-32 text-center text-gray-500 dark:text-gray-400">No allowed visitors found</td>
+          <td colspan="5" class="px-32 py-32 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">No allowed visitors found</td>
         </tr>
       `;
       return;
@@ -72,17 +81,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderMobileCards(list) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     if (!mobileCards) return;
     if (!list.length) {
       mobileCards.innerHTML = `
         <div class="text-center py-8 sm:py-12">
           <div class="flex flex-col items-center justify-center space-y-6 px-4 sm:px-0">
-            <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div class="w-16 h-16 rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
             <div class="text-center">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No Visitors Yet</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">Use "Register Inmate Visitor" to add the first visitor.</p>
+              <h3 class="text-lg font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">No Visitors Yet</h3>
+              <p class="text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1 max-w-sm mx-auto">Use "Register Inmate Visitor" to add the first visitor.</p>
             </div>
           </div>
         </div>
@@ -99,32 +111,32 @@ document.addEventListener('DOMContentLoaded', () => {
         : null;
       
       mobileCards.insertAdjacentHTML('beforeend', `
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3" data-id="${v.id}">
+        <div class="${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} p-4 space-y-3" data-id="${v.id}">
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-3 flex-1">
               ${avatarUrl ? `
-                <img src="${avatarUrl}" alt="${v.name}" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-semibold text-lg" style="display:none;">${v.name.charAt(0).toUpperCase()}</div>
+                <img src="${avatarUrl}" alt="${v.name}" class="w-12 h-12 rounded-full object-cover border-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="w-12 h-12 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} flex items-center justify-center ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} font-semibold text-lg" style="display:none;">${v.name.charAt(0).toUpperCase()}</div>
               ` : `
-                <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-semibold text-lg">${v.name.charAt(0).toUpperCase()}</div>
+                <div class="w-12 h-12 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} flex items-center justify-center ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} font-semibold text-lg">${v.name.charAt(0).toUpperCase()}</div>
               `}
               <div class="flex-1 min-w-0">
-                <button type="button" class="js-visitor-link text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium text-sm" data-id="${v.id}">${v.name}</button>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">PDL: ${inmateName}</p>
+                <button type="button" class="js-visitor-link text-blue-600 ${isDarkMode ? 'dark:text-blue-400' : ''} hover:underline cursor-pointer font-medium text-sm" data-id="${v.id}">${v.name}</button>
+                <p class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-0.5">PDL: ${inmateName}</p>
               </div>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Relationship:</span>
-              <p class="text-gray-900 dark:text-gray-100 font-medium">${v.relationship || '—'}</p>
+              <span class="${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Relationship:</span>
+              <p class="${isDarkMode ? 'text-gray-100' : 'text-gray-900'} font-medium">${v.relationship || '—'}</p>
             </div>
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Status:</span>
+              <span class="${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Status:</span>
               <div class="mt-1">${lifeStatusBadge(v.life_status)}</div>
             </div>
           </div>
-          <div class="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex gap-2 pt-2 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}">
             <button class="flex-1 px-3 py-1.5 text-xs rounded bg-orange-600 hover:bg-orange-700 text-white cursor-pointer font-medium" data-action="edit" data-id="${v.id}">Edit</button>
             <button class="flex-1 px-3 py-1.5 text-xs rounded bg-red-800 hover:bg-red-900 text-white cursor-pointer font-medium" data-action="delete" data-id="${v.id}">Delete</button>
           </div>
@@ -202,6 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   async function openDetailsModal(item) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     // Extract inmate name - handle both full_name and first_name/last_name
     const inmateName = item.inmate?.full_name || 
                       (item.inmate?.first_name && item.inmate?.last_name ? `${item.inmate.first_name} ${item.inmate.last_name}` : '') ||
@@ -220,58 +235,58 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="shrink-0 flex justify-center">
             ${avatarUrl ? `
               <div class="relative">
-                <img src="${avatarUrl}" alt="${item.name}" class="w-32 h-32 rounded-full object-cover border-4 border-gray-700 shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700" style="display:none;">${item.name.charAt(0).toUpperCase()}</div>
+                <img src="${avatarUrl}" alt="${item.name}" class="w-32 h-32 rounded-full object-cover border-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}" style="display:none;">${item.name.charAt(0).toUpperCase()}</div>
               </div>
             ` : `
-              <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700">${item.name.charAt(0).toUpperCase()}</div>
+              <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}">${item.name.charAt(0).toUpperCase()}</div>
             `}
           </div>
           
           <!-- Details Section -->
           <div class="space-y-3 text-left">
             <div class="flex justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Visitor Name</div>
-              <div class="text-sm font-semibold text-gray-100 text-right flex-1">${item.name}</div>
+              <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider min-w-[100px]">Visitor Name</div>
+              <div class="text-sm font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} text-right flex-1">${item.name}</div>
             </div>
             
             <div class="flex justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Inmate (PDL)</div>
-              <div class="text-sm text-gray-100 text-right flex-1">${inmateName}</div>
+              <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider min-w-[100px]">Inmate (PDL)</div>
+              <div class="text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} text-right flex-1">${inmateName}</div>
             </div>
             
             <div class="flex justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Relationship</div>
-              <div class="text-sm text-gray-100 text-right flex-1">${item.relationship || '—'}</div>
+              <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider min-w-[100px]">Relationship</div>
+              <div class="text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} text-right flex-1">${item.relationship || '—'}</div>
             </div>
             
             <div class="flex justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Phone</div>
-              <div class="text-sm text-gray-100 text-right flex-1">${item.phone || '—'}</div>
+              <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider min-w-[100px]">Phone</div>
+              <div class="text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} text-right flex-1">${item.phone || '—'}</div>
             </div>
             
             <div class="flex justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Email</div>
-              <div class="text-sm text-gray-100 text-right flex-1">${item.email || '—'}</div>
+              <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider min-w-[100px]">Email</div>
+              <div class="text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} text-right flex-1">${item.email || '—'}</div>
             </div>
             
             <div class="flex justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">ID Type</div>
-              <div class="text-sm text-gray-100 text-right flex-1">${item.id_type || '—'}</div>
+              <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider min-w-[100px]">ID Type</div>
+              <div class="text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} text-right flex-1">${item.id_type || '—'}</div>
             </div>
             
             <div class="flex justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">ID Number</div>
-              <div class="text-sm text-gray-100 text-right flex-1">${item.id_number || '—'}</div>
+              <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider min-w-[100px]">ID Number</div>
+              <div class="text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} text-right flex-1">${item.id_number || '—'}</div>
             </div>
             
             <div class="flex justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Address</div>
-              <div class="text-sm text-gray-100 text-right flex-1">${item.address || '—'}</div>
+              <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider min-w-[100px]">Address</div>
+              <div class="text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} text-right flex-1">${item.address || '—'}</div>
             </div>
             
             <div class="flex justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Life Status</div>
+              <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider min-w-[100px]">Life Status</div>
               <div class="text-right flex-1">${lifeStatusBadge(item.life_status)}</div>
             </div>
           </div>
@@ -284,59 +299,59 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="shrink-0 flex flex-col items-center gap-4">
           ${avatarUrl ? `
             <div class="relative">
-              <img src="${avatarUrl}" alt="${item.name}" class="w-40 h-40 rounded-full object-cover border-4 border-gray-700 shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-              <div class="w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700" style="display:none;">${item.name.charAt(0).toUpperCase()}</div>
+              <img src="${avatarUrl}" alt="${item.name}" class="w-40 h-40 rounded-full object-cover border-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}" style="display:none;">${item.name.charAt(0).toUpperCase()}</div>
             </div>
           ` : `
-            <div class="w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700">${item.name.charAt(0).toUpperCase()}</div>
+            <div class="w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}">${item.name.charAt(0).toUpperCase()}</div>
           `}
           <div class="text-center">
-            <div class="text-lg font-semibold text-gray-100">${item.name}</div>
-            <div class="text-xs text-gray-400 mt-1">Visitor</div>
+            <div class="text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${item.name}</div>
+            <div class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1">Visitor</div>
           </div>
         </div>
         
         <!-- Right Side: Table -->
         <div class="flex-1">
           <div class="relative overflow-x-auto shadow-md rounded-lg">
-            <table class="w-full text-sm text-left text-gray-400">
-              <thead class="text-xs uppercase bg-gray-700 text-gray-400">
+            <table class="w-full text-sm text-left ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">
+              <thead class="text-xs uppercase ${isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-600'}">
                 <tr>
                   <th scope="col" class="px-6 py-3">Field</th>
                   <th scope="col" class="px-6 py-3">Information</th>
                 </tr>
               </thead>
               <tbody>
-                <tr class="bg-gray-800 border-b border-gray-700">
-                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Inmate (PDL)</th>
+                <tr class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b">
+                  <th scope="row" class="px-6 py-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} whitespace-nowrap">Inmate (PDL)</th>
                   <td class="px-6 py-4">${inmateName}</td>
                 </tr>
-                <tr class="bg-gray-800 border-b border-gray-700">
-                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Relationship</th>
+                <tr class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b">
+                  <th scope="row" class="px-6 py-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} whitespace-nowrap">Relationship</th>
                   <td class="px-6 py-4">${item.relationship || '—'}</td>
                 </tr>
-                <tr class="bg-gray-800 border-b border-gray-700">
-                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Phone</th>
+                <tr class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b">
+                  <th scope="row" class="px-6 py-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} whitespace-nowrap">Phone</th>
                   <td class="px-6 py-4">${item.phone || '—'}</td>
                 </tr>
-                <tr class="bg-gray-800 border-b border-gray-700">
-                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Email</th>
+                <tr class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b">
+                  <th scope="row" class="px-6 py-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} whitespace-nowrap">Email</th>
                   <td class="px-6 py-4">${item.email || '—'}</td>
                 </tr>
-                <tr class="bg-gray-800 border-b border-gray-700">
-                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">ID Type</th>
+                <tr class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b">
+                  <th scope="row" class="px-6 py-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} whitespace-nowrap">ID Type</th>
                   <td class="px-6 py-4">${item.id_type || '—'}</td>
                 </tr>
-                <tr class="bg-gray-800 border-b border-gray-700">
-                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">ID Number</th>
+                <tr class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b">
+                  <th scope="row" class="px-6 py-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} whitespace-nowrap">ID Number</th>
                   <td class="px-6 py-4">${item.id_number || '—'}</td>
                 </tr>
-                <tr class="bg-gray-800 border-b border-gray-700">
-                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Address</th>
+                <tr class="${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b">
+                  <th scope="row" class="px-6 py-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} whitespace-nowrap">Address</th>
                   <td class="px-6 py-4">${item.address || '—'}</td>
                 </tr>
-                <tr class="bg-gray-800">
-                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Life Status</th>
+                <tr class="${isDarkMode ? 'bg-gray-800' : 'bg-white'}">
+                  <th scope="row" class="px-6 py-4 font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} whitespace-nowrap">Life Status</th>
                   <td class="px-6 py-4">${lifeStatusBadge(item.life_status)}</td>
                 </tr>
               </tbody>
@@ -347,10 +362,10 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     if (window.Swal) {
       window.Swal.fire({
-        title: '<span class="text-white">Visitor Details</span>',
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Visitor Details</span>`,
         html,
-        background: '#111827',
-        color: '#F9FAFB',
+        background: isDarkMode ? '#1F2937' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827',
         showConfirmButton: false,
         showCloseButton: true,
         width: '48rem',
@@ -365,16 +380,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function openEditModal(item) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     const formHtml = `
       <div class="text-left">
         <div class="grid md:grid-cols-2 md:gap-6">
           <div class="relative z-0 w-full mb-5 group">
-            <input type="text" id="ev-name" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="${item.name || ''}"/>
-            <label for="ev-name" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left">Name</label>
+            <input type="text" id="ev-name" class="block py-2.5 px-0 w-full text-sm ${isDarkMode ? 'text-gray-900' : 'text-gray-900'} bg-transparent border-0 border-b-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} appearance-none ${isDarkMode ? 'text-white' : 'text-gray-900'} focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="${item.name || ''}"/>
+            <label for="ev-name" class="peer-focus:font-medium absolute text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left">Name</label>
           </div>
           <div class="relative z-0 w-full mb-5 group">
-            <label class="block mb-1 text-xs text-gray-500 dark:text-gray-400">Life Status</label>
-            <select id="ev-life" class="block w-full px-2 py-2 text-xs text-gray-900 bg-white border-b-2 border-r border-gray-200 dark:bg-gray-900 dark:text-white dark:border-gray-700 focus:outline-none">
+            <label class="block mb-1 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Life Status</label>
+            <select id="ev-life" class="block w-full px-2 py-2 text-xs ${isDarkMode ? 'text-gray-900' : 'text-gray-900'} ${isDarkMode ? 'bg-gray-900' : 'bg-white'} border-b-2 border-r ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} ${isDarkMode ? 'text-white' : 'text-gray-900'} focus:outline-none">
               <option value="alive" ${item.life_status==='alive'?'selected':''}>Alive</option>
               <option value="deceased" ${item.life_status==='deceased'?'selected':''}>Deceased</option>
               <option value="unknown" ${item.life_status==='unknown'?'selected':''}>Unknown</option>
@@ -383,21 +401,21 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="grid md:grid-cols-2 md:gap-6">
           <div class="relative z-0 w-full mb-5 group">
-            <input type="text" id="ev-relationship" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="${item.relationship || ''}"/>
-            <label for="ev-relationship" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left">Relationship</label>
+            <input type="text" id="ev-relationship" class="block py-2.5 px-0 w-full text-sm ${isDarkMode ? 'text-gray-900' : 'text-gray-900'} bg-transparent border-0 border-b-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} appearance-none ${isDarkMode ? 'text-white' : 'text-gray-900'} focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="${item.relationship || ''}"/>
+            <label for="ev-relationship" class="peer-focus:font-medium absolute text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left">Relationship</label>
           </div>
           <div class="relative z-0 w-full mb-5 group">
-            <input type="email" id="ev-email" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="${item.email || ''}"/>
-            <label for="ev-email" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left">Email</label>
+            <input type="email" id="ev-email" class="block py-2.5 px-0 w-full text-sm ${isDarkMode ? 'text-gray-900' : 'text-gray-900'} bg-transparent border-0 border-b-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} appearance-none ${isDarkMode ? 'text-white' : 'text-gray-900'} focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="${item.email || ''}"/>
+            <label for="ev-email" class="peer-focus:font-medium absolute text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-left">Email</label>
           </div>
         </div>
       </div>
     `;
     const res = await window.Swal.fire({
-      title: '<span class="text-white">Edit Allowed Visitor</span>',
+      title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Edit Allowed Visitor</span>`,
       html: formHtml,
-      background: '#111827',
-      color: '#F9FAFB',
+      background: isDarkMode ? '#1F2937' : '#FFFFFF',
+      color: isDarkMode ? '#F9FAFB' : '#111827',
       showCancelButton: true,
       confirmButtonText: 'Save',
       cancelButtonText: 'Cancel',
@@ -407,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
       customClass: {
         popup: 'm-0 w-[96vw] max-w-[96vw] sm:max-w-[42rem] p-5 !rounded-2xl',
         confirmButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium cursor-pointer',
-        cancelButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-medium ml-2 cursor-pointer'
+        cancelButton: `inline-flex items-center justify-center px-4 py-2 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-200 text-gray-900'} text-sm font-medium ml-2 cursor-pointer`
       },
       preConfirm: async () => {
         const name = document.getElementById('ev-name').value.trim();
@@ -433,32 +451,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (res.isConfirmed) {
       await loadData();
-      window.Swal.fire({
-        title: '<span class="text-white">Updated</span>',
+        window.Swal.fire({
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Updated</span>`,
         icon: 'success',
         timer: 1200,
         showConfirmButton: false,
-        background: '#111827',
-        color: '#FFFFFF',
+        background: isDarkMode ? '#1F2937' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827',
       });
     }
   }
 
   async function confirmDelete(id) {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     const res = await window.Swal.fire({
-      title: '<span class="text-white">Delete visitor?</span>',
+      title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Delete visitor?</span>`,
       text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
-      background: '#111827',
-      color: '#F9FAFB',
+      background: isDarkMode ? '#1F2937' : '#FFFFFF',
+      color: isDarkMode ? '#F9FAFB' : '#111827',
       buttonsStyling: false,
       customClass: {
         popup: 'm-0 w-[96vw] max-w-[28rem] p-5 !rounded-xl',
         confirmButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-700 hover:bg-red-800 text-white text-sm font-medium cursor-pointer',
-        cancelButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-medium ml-2 cursor-pointer'
+        cancelButton: `inline-flex items-center justify-center px-4 py-2 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-200 text-gray-900'} text-sm font-medium ml-2 cursor-pointer`
       }
     });
     if (!res.isConfirmed) return;
@@ -483,6 +504,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function openRegistrationModal() {
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     // Fetch inmates for dropdown with better error handling
     let inmates = [];
     try {
@@ -623,10 +647,10 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     const result = await window.Swal.fire({
-      title: '<span class="text-white">Register Allowed Visitor</span>',
+      title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Register Allowed Visitor</span>`,
       html: formHtml,
-      background: '#111827',
-      color: '#F9FAFB',
+      background: isDarkMode ? '#1F2937' : '#FFFFFF',
+      color: isDarkMode ? '#F9FAFB' : '#111827',
       showCancelButton: true,
       confirmButtonText: 'Register',
       cancelButtonText: 'Cancel',
@@ -637,7 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
       customClass: {
         popup: 'm-0 w-[96vw] max-w-[48rem] p-5 !rounded-2xl',
         confirmButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium cursor-pointer',
-        cancelButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-medium ml-2 cursor-pointer'
+        cancelButton: `inline-flex items-center justify-center px-4 py-2 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-200 text-gray-900'} text-sm font-medium ml-2 cursor-pointer`
       },
       preConfirm: async () => {
         const inmateId = document.getElementById('rv-inmate').value;
@@ -693,13 +717,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (result.isConfirmed) {
       await loadData();
       window.Swal.fire({
-        title: '<span class="text-white">Success!</span>',
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Success!</span>`,
         text: 'Visitor registered successfully',
         icon: 'success',
         timer: 1500,
         showConfirmButton: false,
-        background: '#111827',
-        color: '#FFFFFF',
+        background: isDarkMode ? '#1F2937' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827',
       });
     }
   }

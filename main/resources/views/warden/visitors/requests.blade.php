@@ -14,7 +14,7 @@
         </aside>
 
         <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950">
-            <header class="sticky top-0 z-30 backdrop-blur supports-backdrop-filter:bg-white/70 dark:supports-backdrop-filter:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
+            <header>
                 <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">
                     <button data-sidebar-toggle class="sm:hidden inline-flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 h-9 w-9 text-gray-700 dark:text-gray-300 cursor-pointer">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-label="Menu" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -38,6 +38,15 @@
                     </div>
 
                     <div class="flex items-center gap-2 ml-auto">
+                        <button data-theme-toggle class="inline-flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 h-9 w-9 text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Toggle theme">
+                            <svg data-theme-icon="light" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <svg data-theme-icon="dark" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        
                         <x-notification-bell />
 
                         <!-- User dropdown -->
@@ -166,7 +175,7 @@
                 <div class="hidden sm:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                            <thead class="bg-gray-50 dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Visitor</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PDL</th>
@@ -176,7 +185,7 @@
                                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="visitors-table-body" class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody id="visitors-table-body" class="bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 <tr>
                                     <td colspan="6" class="px-4 py-12 text-center">
                                         <div class="flex flex-col items-center justify-center space-y-6">
@@ -219,6 +228,7 @@
     @vite('resources/js/dashboard/components/role-based.js')
     @vite('resources/js/dashboard/components/quick-action-modals.js')
     @vite('resources/js/dashboard/components/notifications.js')
+    @vite('resources/js/theme-manager.js')
 </x-app-layout>
 
 

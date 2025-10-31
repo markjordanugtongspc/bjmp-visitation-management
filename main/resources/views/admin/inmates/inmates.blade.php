@@ -11,15 +11,7 @@
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
                     <x-application-logo size="sm" :showText="true" heading="BJMP Iligan" subtext="Information & Visitation" />
                 </a>
-                
-                <!-- Dark Mode Toggle removed; icons preserved
-                <svg data-icon="moon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                </svg>
-                <svg data-icon="sun" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
-                </svg>
-                -->
+                <x-theme-toggle />
             </div>
 
             <nav data-sidebar-nav class="p-3 text-sm" data-user-role="{{ Auth::user()->role_id ?? 0 }}">
@@ -30,7 +22,7 @@
         <!-- Main content -->
         <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950" data-route-admin-inmates-male="{{ route('admin.inmates.index') }}" data-route-admin-inmates-female="{{ route('admin.inmates.female') }}" data-current-gender="male">
             <!-- Hope UI–style Header -->
-            <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-800">
+            <header>
                 <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">
                  <!-- Mobile: sidebar toggle (hamburger icon) -->
                     <button data-sidebar-toggle class="sm:hidden inline-flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 h-9 w-9 text-gray-700 dark:text-gray-300">
@@ -58,14 +50,7 @@
 
                     <!-- Actions -->
                     <div class="flex items-center gap-2 ml-auto">
-                        <!-- Dark Mode Toggle removed; icons preserved
-                        <svg data-icon="moon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                        </svg>
-                        <svg data-icon="sun" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
-                        </svg>
-                        -->
+                        <x-theme-toggle />
 
                         <x-notification-bell />
 
@@ -111,15 +96,18 @@
                                 
                                 <hr class="border-t border-gray-200 dark:border-gray-700">
                                 
-                                <!-- Dark Mode Toggle removed; icons preserved
-                                <svg data-icon="moon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                                </svg>
-                                <svg data-icon="sun" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
-                                </svg>
+                                <!-- Theme Toggle in Dropdown -->
+                                <button data-theme-toggle class="block sm:hidden w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-2">
+                                    <svg data-theme-icon="light" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <svg data-theme-icon="dark" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                                    </svg>
+                                    <span>Toggle Theme</span>
+                                </button>
+                                
                                 <hr class="border-t border-gray-200 dark:border-gray-700">
-                                -->
                                 
                                 <button id="edit-profile-btn-template" class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -234,7 +222,7 @@
 
                 <!-- Statistics Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" viewBox="0 0 512 512">
@@ -248,7 +236,7 @@
                         </div>
                     </div>
                     
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="currentColor">
@@ -262,7 +250,7 @@
                         </div>
                     </div>
                     
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600 dark:text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
@@ -276,7 +264,7 @@
                         </div>
                     </div>
                     
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
+                    <div class="bg-white dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
                         <div class="flex items-center">
                             <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600 dark:text-red-400" viewBox="0 0 48 48">
@@ -340,7 +328,7 @@
                 <div class="hidden sm:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                            <thead class="bg-gray-50 dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Inmate</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Crime & Sentence</th>
@@ -349,9 +337,9 @@
                                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="inmates-table-body" class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody id="inmates-table-body" class="bg-white dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 <!-- Empty state by default -->
-                                <tr>
+                                <tr class="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                     <td colspan="5" class="px-4 py-12 text-center">
                                         <div class="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
                                             <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
