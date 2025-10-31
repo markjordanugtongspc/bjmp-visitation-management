@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
 class VisitorController extends Controller
 {
@@ -47,6 +48,7 @@ class VisitorController extends Controller
             if (Schema::hasColumn('visitation_logs', 'visit_time')) $select[] = 'visit_time';
             if (Schema::hasColumn('visitation_logs', 'time_in')) $select[] = 'time_in';
             if (Schema::hasColumn('visitation_logs', 'time_out')) $select[] = 'time_out';
+            if (Schema::hasColumn('visitation_logs', 'reason_for_visit')) $select[] = 'reason_for_visit';
 
             $logs = DB::table('visitation_logs')
                 ->select($select)
@@ -65,6 +67,7 @@ class VisitorController extends Controller
                         'status' => $row->status,
                         'time_in' => property_exists($row, 'time_in') ? $row->time_in : null,
                         'time_out' => property_exists($row, 'time_out') ? $row->time_out : null,
+                        'reason_for_visit' => property_exists($row, 'reason_for_visit') ? $row->reason_for_visit : null,
                     ];
                 }
             }
@@ -191,6 +194,7 @@ $visitor->setAttribute('latest_log', null);
             if (Schema::hasColumn('visitation_logs', 'visit_time')) $select[] = 'visit_time';
             if (Schema::hasColumn('visitation_logs', 'time_in')) $select[] = 'time_in';
             if (Schema::hasColumn('visitation_logs', 'time_out')) $select[] = 'time_out';
+            if (Schema::hasColumn('visitation_logs', 'reason_for_visit')) $select[] = 'reason_for_visit';
 
             $query = DB::table('visitation_logs')->select($select);
             if (Schema::hasColumn('visitation_logs', 'visitor_id')) {
@@ -208,6 +212,7 @@ $visitor->setAttribute('latest_log', null);
                     'status' => $latest->status,
                     'time_in' => property_exists($latest, 'time_in') ? $latest->time_in : null,
                     'time_out' => property_exists($latest, 'time_out') ? $latest->time_out : null,
+                    'reason_for_visit' => property_exists($latest, 'reason_for_visit') ? $latest->reason_for_visit : null,
                 ]);
             }
         }
@@ -543,6 +548,157 @@ $visitor->setAttribute('latest_log', null);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to record time out: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get visitation requests (logs) for manual approval
+     * This returns visitation_logs entries, not visitors
+     */
+    public function getVisitationRequests(Request $request)
+    {
+        try {
+            // Get basic visitation_logs data first
+            $logs = DB::table('visitation_logs')
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get();
+
+            // Get visitor and inmate information separately
+            $visitorIds = $logs->pluck('visitor_id')->filter()->unique();
+            $inmateIds = $logs->pluck('inmate_id')->filter()->unique();
+
+            $visitors = [];
+            if ($visitorIds->isNotEmpty()) {
+                $visitors = DB::table('visitors')
+                    ->whereIn('id', $visitorIds)
+                    ->get()
+                    ->keyBy('id');
+            }
+
+            $inmates = [];
+            if ($inmateIds->isNotEmpty()) {
+                $inmates = DB::table('inmates')
+                    ->whereIn('id', $inmateIds)
+                    ->get()
+                    ->keyBy('id');
+            }
+
+            // Transform the data with related information
+            $data = $logs->map(function ($log) use ($visitors, $inmates) {
+                $visitor = $visitors->get($log->visitor_id);
+                $inmate = $inmates->get($log->inmate_id);
+                
+                $inmateName = 'N/A';
+                if ($inmate) {
+                    $inmateName = trim(($inmate->first_name ?? '') . ' ' . ($inmate->last_name ?? ''));
+                    if (empty($inmateName)) $inmateName = 'N/A';
+                }
+                
+                return [
+                    'id' => $log->id,
+                    'visitor_id' => $log->visitor_id,
+                    'inmate_id' => $log->inmate_id,
+                    'visitor' => $visitor->name ?? 'N/A',
+                    'schedule' => $log->schedule ?? 'N/A',
+                    'reason_for_visit' => $log->reason_for_visit ?? 'N/A',
+                    'status' => $log->status ?? 2,
+                    'time_in' => $log->time_in,
+                    'time_out' => $log->time_out,
+                    'created_at' => $log->created_at,
+                    'visitorDetails' => [
+                        'name' => $visitor->name ?? 'N/A',
+                        'phone' => $visitor->phone ?? 'N/A',
+                        'email' => $visitor->email ?? 'N/A',
+                        'relationship' => $visitor->relationship ?? 'N/A',
+                        'avatar' => $visitor->avatar ?? null
+                    ],
+                    'pdlDetails' => [
+                        'name' => $inmateName,
+                        'inmate_id' => $log->inmate_id
+                    ],
+                    'inmate' => [
+                        'id' => $log->inmate_id,
+                        'first_name' => $inmate->first_name ?? null,
+                        'last_name' => $inmate->last_name ?? null,
+                        'middle_name' => $inmate->middle_name ?? null,
+                        'name' => $inmateName,
+                        'birthdate' => $inmate->birthdate ?? null,
+                        'date_of_birth' => $inmate->date_of_birth ?? null,
+                        'civil_status' => $inmate->civil_status ?? null
+                    ]
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => 5,
+                    'total' => $data->count()
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch visitation requests: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Create a new visitation log entry
+     */
+    public function createVisitationLog(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'visitor_id' => 'required|exists:visitors,id',
+                'inmate_id' => 'required|exists:inmates,id',
+                'schedule' => 'required|date',
+                'reason_for_visit' => 'required|string|max:500',
+                'status' => 'sometimes|integer|in:0,1,2' // 0=Declined, 1=Approved, 2=Pending
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Create visitation log entry
+            $visitationLog = DB::table('visitation_logs')->insert([
+                'visitor_id' => $request->visitor_id,
+                'inmate_id' => $request->inmate_id,
+                'schedule' => $request->schedule,
+                'reason_for_visit' => $request->reason_for_visit,
+                'status' => $request->status ?? 2, // Default to pending
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            if (!$visitationLog) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create visitation log'
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Visitation request created successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create visitation request: ' . $e->getMessage()
             ], 500);
         }
     }

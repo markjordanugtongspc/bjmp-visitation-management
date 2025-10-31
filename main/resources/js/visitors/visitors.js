@@ -1,4 +1,5 @@
 import 'flowbite';
+import { openVisitationRequestModal } from './visitor-request-modal.js';
 
 // Minimal static + dynamic behavior for Searcher Visitors management
 // - Renders a table and mobile cards
@@ -63,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!list.length) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="5" class="px-32 py-32 text-center text-gray-500 dark:text-gray-400">No visitors found</td>
+          <td colspan="6" class="px-32 py-32 text-center text-gray-500 dark:text-gray-400">No visitors found</td>
         </tr>
       `;
       return;
@@ -93,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function tableRowHtml(v) {
     const badge = statusBadge(v.status);
+    const reasonForVisit = v.reason_for_visit || 'N/A';
     return `
       <tr data-id="${v.id}">
         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
@@ -100,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
         <td class="px-3 py-3 text-sm text-gray-700 dark:text-gray-200">${v.pdlDetails?.name || '—'}</td>
         <td class="px-3 py-3 text-sm text-gray-700 dark:text-gray-200">${v.schedule}</td>
+        <td class="px-3 py-3 text-sm text-gray-700 dark:text-gray-200">${reasonForVisit}</td>
         <td class="px-3 py-3">${badge}</td>
         <td class="px-3 py-3">
           <div class="flex items-center gap-2 justify-end">
@@ -112,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function mobileCardHtml(v) {
+    const reasonForVisit = v.reason_for_visit || 'N/A';
     return `
       <div data-id="${v.id}" class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
         <div class="flex items-start justify-between">
@@ -119,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="js-visitor-link text-left text-sm font-medium text-blue-600 hover:underline cursor-pointer" data-id="${v.id}">${v.visitor}</button>
             <div class="text-xs text-gray-600 dark:text-gray-300 mt-0.5">PDL: ${v.pdlDetails?.name || '—'}</div>
             <div class="text-xs text-gray-600 dark:text-gray-300">${v.schedule}</div>
+            <div class="text-xs text-gray-600 dark:text-gray-300 mt-0.5">Reason: ${reasonForVisit}</div>
           </div>
           <div>${statusBadge(v.status)}</div>
         </div>
@@ -267,55 +272,71 @@ document.addEventListener('DOMContentLoaded', () => {
   render();
   // Then load backend visitors and merge into the list
   loadBackendVisitors();
+  
+  // Set up auto-reload every 30 seconds
+  setupAutoReload();
 
   // Utilities and modal implementation
-  async function loadBackendVisitors() {
+  async function loadBackendVisitors(page = 1) {
     try {
-      const resp = await fetch('/api/visitors?per_page=50', {
+      // Fetch visitation requests (logs) with 5 items per page
+      const resp = await fetch(`/api/visitation-requests?per_page=5&page=${page}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
       });
       if (!resp.ok) return;
       const json = await resp.json();
-      const rows = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
-      if (!rows.length) return;
+      
+      if (!json.success) {
+        console.warn('API returned error:', json.message);
+        return;
+      }
+      
+      const rows = Array.isArray(json?.data) ? json.data : [];
+      const meta = json?.meta || {};
 
       const backendItems = rows.map(r => {
-        const inmate = r.inmate || {};
-        const first = inmate.first_name || inmate.firstName || '';
-        const last = inmate.last_name || inmate.lastName || '';
-        const pdlDisplay = (first && last) ? `${first.charAt(0)}. ${last}` : (inmate.full_name || inmate.fullName || inmate.name || 'N/A');
-        const latest = r.latest_log || {};
-        const rawStatus = latest.status ?? r.status;
+        const rawStatus = r.status;
         const friendlyStatus = typeof rawStatus === 'number'
           ? (rawStatus === 1 ? 'Approved' : (rawStatus === 0 ? 'Declined' : 'Pending'))
           : ((rawStatus === 'Rejected' || rawStatus === 'Denied') ? 'Declined' : (rawStatus || 'Pending'));
+        
         return {
           id: r.id,
-          visitor: r.name || 'N/A',
-          schedule: latest.schedule || r.schedule || 'N/A',
+          visitor_id: r.visitor_id,
+          visitor: r.visitor || 'N/A',
+          schedule: r.schedule || 'N/A',
+          reason_for_visit: r.reason_for_visit || 'N/A',
           status: friendlyStatus,
-          visitorDetails: {
-            name: r.name || 'N/A',
-            phone: r.phone || 'N/A',
-            email: r.email || 'N/A',
-            relationship: r.relationship || 'N/A'
+          time_in: r.time_in,
+          time_out: r.time_out,
+          visitorDetails: r.visitorDetails || {
+            name: r.visitor || 'N/A',
+            phone: 'N/A',
+            email: 'N/A',
+            relationship: 'N/A'
           },
-          pdlDetails: {
-            name: pdlDisplay || 'N/A',
-            birthday: inmate.birthdate || inmate.date_of_birth || inmate.dateOfBirth || null,
+          pdlDetails: r.pdlDetails || {
+            name: 'N/A',
+            birthday: null,
             age: null,
             parents: { father: 'N/A', mother: 'N/A' },
-            spouse: inmate.civil_status === 'Married' ? 'Married' : 'N/A',
+            spouse: 'N/A',
             nextOfKin: 'N/A'
           },
-          latest_log: latest
+          inmate: r.inmate || {}
         };
       });
 
       visitors = backendItems;
       render();
+      
+      // Update statistics after loading
+      updateStatistics();
+      
+      // Store pagination info for potential future use
+      window.visitationPagination = meta;
     } catch (e) {
-      console.warn('Failed to load visitors from backend', e);
+      console.warn('Failed to load visitation requests from backend', e);
     }
   }
   function formatDateHuman(isoDate) {
@@ -336,15 +357,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function openVisitorModal(item) {
     let data = item;
-    try {
-      const resp = await fetch(`/api/visitors/${item.id}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-      if (resp.ok) {
-        const json = await resp.json();
-        if (json && (json.data || json.visitor)) {
-          data = json.data || json.visitor;
-        }
-      }
-    } catch (_) { /* fallback to local data */ }
+    // Since we're working with visitation requests, use the local data directly
+    // No need to fetch from /api/visitors/ as we already have all the data from visitation_logs
+    // The item already contains visitorDetails, pdlDetails, and reason_for_visit
 
     // Support both local shape (visitorDetails/pdlDetails) and backend shape (name, inmate)
     const inmateBk = data.inmate || {};
@@ -364,9 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
       spouse: inmateBk.civil_status === 'Married' ? 'Married' : 'N/A',
       nextOfKin: 'N/A'
     };
-    const latest = data.latest_log || {};
-    const scheduleDisp = latest.schedule || data.schedule || 'N/A';
-    const statusRaw = latest.status ?? data.status;
+    const scheduleDisp = data.schedule || 'N/A';
+    const statusRaw = data.status;
     const statusLabel = typeof statusRaw === 'number'
       ? (statusRaw === 1 ? 'Approved' : (statusRaw === 0 ? 'Declined' : 'Pending'))
       : ((statusRaw === 'Rejected' || statusRaw === 'Denied') ? 'Declined' : (statusRaw || 'Pending'));
@@ -383,8 +397,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Get time in/out data
-    const timeIn = latest.time_in || null;
-    const timeOut = latest.time_out || null;
+    const timeIn = data.time_in || null;
+    const timeOut = data.time_out || null;
     
     // Format time function
     const formatTime = (timestamp) => {
@@ -466,7 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
       { label: 'Relationship', value: v.relationship || 'N/A' },
       { label: 'Schedule', value: scheduleDisp },
       { label: 'Status', value: statusBadge(statusLabel) },
-      { label: 'Visit Times', value: `${timeInFormatted ? `Time In: ${timeInFormatted}` : ''}${timeInFormatted && timeOutFormatted ? ' | ' : ''}${timeOutFormatted ? `Time Out: ${timeOutFormatted}` : ''}` || '—' },
+      { label: 'Visit Times', value: `${timeInFormatted ? `<span class="inline-flex items-center px-2 py-1 rounded-md bg-green-600/20 text-green-400 font-medium">Time In: ${timeInFormatted}</span>` : ''}${timeInFormatted && timeOutFormatted ? ' <span class="text-gray-500">|</span> ' : ''}${timeOutFormatted ? `<span class="inline-flex items-center px-2 py-1 rounded-md bg-red-600/20 text-red-400 font-medium">Time Out: ${timeOutFormatted}</span>` : ''}` || '—' },
+      { label: 'Reason For Visit', value: data.reason_for_visit || 'N/A' },
       { label: 'Actions', value: desktopActionButtons },
     ];
     const pdlRows = [
@@ -620,13 +635,10 @@ await Swal.fire({
                 
                 // Reload the modal with updated data
                 if (result.success && result.data) {
-                  // Update the latest_log with new time_in data
-                  if (!data.latest_log) {
-                    data.latest_log = {};
-                  }
-                  data.latest_log.time_in = result.data.time_in;
-                  data.latest_log.time_out = result.data.time_out;
-                  data.latest_log.status = result.data.status;
+                  // Update the data with new time_in data
+                  data.time_in = result.data.time_in;
+                  data.time_out = result.data.time_out;
+                  data.status = result.data.status;
                   
                   // Close current modal and reopen with updated data
                   Swal.close();
@@ -687,13 +699,10 @@ await Swal.fire({
                 
                 // Reload the modal with updated data
                 if (result.success && result.data) {
-                  // Update the latest_log with new time_out data
-                  if (!data.latest_log) {
-                    data.latest_log = {};
-                  }
-                  data.latest_log.time_in = result.data.time_in;
-                  data.latest_log.time_out = result.data.time_out;
-                  data.latest_log.status = result.data.status;
+                  // Update the data with new time_out data
+                  data.time_in = result.data.time_in;
+                  data.time_out = result.data.time_out;
+                  data.status = result.data.status;
                   
                   // Close current modal and reopen with updated data
                   Swal.close();
@@ -862,6 +871,12 @@ await Swal.fire({
   }
 
   async function openVisitorFormStep(inmate) {
+    // Use the new visitation request modal
+    return openVisitationRequestModal(inmate);
+  }
+
+  // Legacy function kept for compatibility
+  async function openVisitorFormStepOld(inmate) {
     const html = `
       <div class="text-left">
         <h3 class="text-base sm:text-lg font-semibold text-white mb-3">Visitor Details</h3>
@@ -1042,5 +1057,147 @@ await Swal.fire({
         return true;
       }
     });
+  }
+
+  /**
+   * Set up auto-reload functionality for visitation requests
+   */
+  function setupAutoReload() {
+    try {
+      console.log('Setting up auto-reload for visitation requests...');
+      
+      let autoReloadEnabled = true;
+      let reloadInterval;
+      
+      const toggleButton = document.getElementById('auto-reload-toggle');
+      const toggleIcon = toggleButton?.querySelector('svg');
+      
+      // Function to start auto-reload
+      function startAutoReload() {
+        reloadInterval = setInterval(async () => {
+          // Only reload if the page is visible (not in background tab)
+          if (!document.hidden && autoReloadEnabled) {
+            console.log('Auto-reloading visitation requests...');
+            
+            // Show visual feedback
+            if (toggleButton) {
+              toggleButton.classList.add('text-blue-600', 'dark:text-blue-400', 'bg-green-100', 'dark:bg-green-900');
+              toggleButton.classList.remove('text-gray-500', 'dark:text-gray-400', 'bg-gray-100', 'dark:bg-gray-800');
+              if (toggleIcon) toggleIcon.classList.add('animate-spin');
+            }
+            
+            await loadBackendVisitors();
+            updateStatistics();
+            
+            // Reset visual feedback after a short delay
+            setTimeout(() => {
+              if (toggleButton && autoReloadEnabled) {
+                toggleButton.classList.remove('text-blue-600', 'dark:text-blue-400');
+                toggleButton.classList.add('text-green-600', 'dark:text-green-400');
+                if (toggleIcon) toggleIcon.classList.remove('animate-spin');
+              }
+            }, 1000);
+          }
+        }, 30000); // 30 seconds
+      }
+      
+      // Function to stop auto-reload
+      function stopAutoReload() {
+        if (reloadInterval) {
+          clearInterval(reloadInterval);
+          reloadInterval = null;
+        }
+      }
+      
+      // Toggle button click handler
+      if (toggleButton) {
+        toggleButton.addEventListener('click', () => {
+          autoReloadEnabled = !autoReloadEnabled;
+          
+          if (autoReloadEnabled) {
+            // Enable auto-reload
+            startAutoReload();
+            toggleButton.classList.remove('text-red-600', 'dark:text-red-400', 'bg-red-100', 'dark:bg-red-900');
+            toggleButton.classList.add('text-green-600', 'dark:text-green-400', 'bg-green-100', 'dark:bg-green-900');
+            if (toggleIcon) toggleIcon.classList.add('animate-spin');
+            console.log('Auto-refresh enabled');
+          } else {
+            // Disable auto-reload
+            stopAutoReload();
+            toggleButton.classList.remove('text-green-600', 'dark:text-green-400', 'bg-green-100', 'dark:bg-green-900');
+            toggleButton.classList.add('text-red-600', 'dark:text-red-400', 'bg-red-100', 'dark:bg-red-900');
+            if (toggleIcon) toggleIcon.classList.remove('animate-spin');
+            console.log('Auto-refresh disabled');
+          }
+        });
+        
+        // Initialize as enabled
+        toggleButton.classList.add('text-green-600', 'dark:text-green-400', 'bg-green-100', 'dark:bg-green-900');
+        if (toggleIcon) toggleIcon.classList.add('animate-spin');
+      }
+      
+      // Start auto-reload
+      startAutoReload();
+      
+      console.log('Auto-reload setup completed for visitation requests');
+    } catch (error) {
+      console.error('Error setting up auto-reload:', error);
+    }
+  }
+
+  /**
+   * Update statistics counters
+   */
+  function updateStatistics() {
+    try {
+      const totalElement = document.getElementById('visitors-total');
+      const approvedElement = document.getElementById('visitors-approved');
+      const pendingElement = document.getElementById('visitors-pending');
+      const declinedElement = document.getElementById('visitors-declined');
+
+      if (totalElement && visitors.length > 0) {
+        const total = visitors.length;
+        const approved = visitors.filter(v => v.status === 'Approved').length;
+        const pending = visitors.filter(v => v.status === 'Pending').length;
+        const declined = visitors.filter(v => v.status === 'Declined').length;
+
+        // Animate counter updates
+        animateCounter(totalElement, total);
+        if (approvedElement) animateCounter(approvedElement, approved);
+        if (pendingElement) animateCounter(pendingElement, pending);
+        if (declinedElement) animateCounter(declinedElement, declined);
+      }
+    } catch (error) {
+      console.error('Error updating statistics:', error);
+    }
+  }
+
+  /**
+   * Animate counter number changes
+   */
+  function animateCounter(element, targetValue) {
+    const currentValue = parseInt(element.textContent) || 0;
+    const increment = targetValue > currentValue ? 1 : -1;
+    const steps = Math.abs(targetValue - currentValue);
+    
+    if (steps === 0) return;
+    
+    let current = currentValue;
+    const duration = 500; // 500ms animation
+    const stepTime = duration / steps;
+    
+    const timer = setInterval(() => {
+      current += increment;
+      element.textContent = current;
+      
+      if (current === targetValue) {
+        clearInterval(timer);
+        // Add pulse effect
+        element.classList.add('scale-110');
+        setTimeout(() => {
+          element.classList.remove('scale-110');
+        }, 200);
+      }
+    }, stepTime);
   }
 });

@@ -99,45 +99,61 @@
                 <div class="mb-6">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div class="flex-1">
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Visitors Management</h1>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Handle manual registrations, approvals, and logs</p>
+                            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Visitation Requests</h1>
+                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Review and approve pending visitation requests from inmates</p>
                         </div>
                         <div class="flex gap-2">
-                            <button type="button" id="open-manual-registration" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
-                                New Manual Registration
+                            <button type="button" id="open-manual-registration" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 py-2 sm:px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+                                <span class="hidden sm:inline">New Visitation Request</span>
+                                <span class="sm:hidden">New Request</span>
+                            </button>
+                            <button id="auto-reload-toggle" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 py-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer" title="Toggle auto-refresh">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                                </svg>
+                                <span class="hidden sm:inline">Auto-refresh</span>
+                                <span class="sm:hidden">Refresh</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Visitors</p>
-                            <span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Live</span>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 mb-6">
+                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-3 sm:p-4 transition-all hover:shadow-md">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total</p>
+                                <span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-1.5 py-0.5 text-[8px] sm:text-[10px]">Live</span>
+                            </div>
+                            <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100 transition-all" id="visitors-total">0</p>
                         </div>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="visitors-total">0</p>
                     </div>
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Approved</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="visitors-approved">0</p>
+                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-3 sm:p-4 transition-all hover:shadow-md">
+                        <div class="flex flex-col gap-1">
+                            <p class="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Approved</p>
+                            <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 dark:text-green-400 transition-all" id="visitors-approved">0</p>
+                        </div>
                     </div>
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="visitors-pending">0</p>
+                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-3 sm:p-4 transition-all hover:shadow-md">
+                        <div class="flex flex-col gap-1">
+                            <p class="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Pending</p>
+                            <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600 dark:text-yellow-400 transition-all" id="visitors-pending">0</p>
+                        </div>
                     </div>
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Rejected</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="visitors-rejected">0</p>
+                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-3 sm:p-4 transition-all hover:shadow-md">
+                        <div class="flex flex-col gap-1">
+                            <p class="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Rejected</p>
+                            <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600 dark:text-red-400 transition-all" id="visitors-rejected">0</p>
+                        </div>
                     </div>
                 </div>
 
                 <div class="mb-6">
-                    <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                         <div class="flex-1"></div>
                         <div class="flex gap-2">
-                            <select id="visitors-status-filter" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                            <select id="visitors-status-filter" class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                                 <option value="">All Status</option>
                                 <option value="Pending">Pending</option>
                                 <option value="Approved">Approved</option>
@@ -155,20 +171,21 @@
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Visitor</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PDL</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Schedule</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reason For Visit</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="visitors-table-body" class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 <tr>
-                                    <td colspan="5" class="px-4 py-12 text-center">
+                                    <td colspan="6" class="px-4 py-12 text-center">
                                         <div class="flex flex-col items-center justify-center space-y-6">
                                             <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                             </div>
                                             <div class="text-center">
-                                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No Visitors Yet</h3>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">Use "New Manual Registration" to add the first visitor.</p>
+                                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No Requests Yet</h3>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">Use "New Visitation Request" to create the first request.</p>
                                             </div>
                                         </div>
                                     </td>
@@ -185,8 +202,8 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                             </div>
                             <div class="text-center">
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No Visitors Yet</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">Use "New Manual Registration" to add the first visitor.</p>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No Requests Yet</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">Use "New Visitation Request" to create the first request.</p>
                             </div>
                         </div>
                     </div>

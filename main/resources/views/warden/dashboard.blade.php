@@ -305,15 +305,16 @@
                             <table class="min-w-full text-sm">
                                 <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-600 dark:text-gray-300">
                                     <tr>
-                                        <th class="text-left font-medium px-3 py-2 w-[25%]">Visitor</th>
-                                        <th class="text-left font-medium px-3 py-2 w-[25%]">Inmate</th>
-                                        <th class="text-left font-medium px-3 py-2 w-[30%]">Date</th>
-                                        <th class="text-left font-medium px-3 py-2 w-[20%]">Status</th>
+                                        <th class="text-left font-medium px-3 py-2 w-[20%]">Visitor</th>
+                                        <th class="text-left font-medium px-3 py-2 w-[20%]">Inmate</th>
+                                        <th class="text-left font-medium px-3 py-2 w-[25%]">Date</th>
+                                        <th class="text-left font-medium px-3 py-2 w-[20%]">Reason</th>
+                                        <th class="text-left font-medium px-3 py-2 w-[15%]">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="recent-requests-tbody" class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-200">
                                     <tr>
-                                        <td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+                                        <td colspan="5" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                                             <div class="flex items-center justify-center">
                                                 <svg class="animate-spin h-5 w-5 text-gray-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

@@ -213,68 +213,134 @@ document.addEventListener('DOMContentLoaded', () => {
       : null;
     
     const html = `
-      <div class="flex flex-col sm:flex-row gap-6">
-        <!-- Avatar Section -->
-        <div class="shrink-0 flex justify-center sm:justify-start">
+      <!-- Mobile View: Original Layout -->
+      <div class="block sm:hidden">
+        <div class="flex flex-col gap-6">
+          <!-- Avatar Section -->
+          <div class="shrink-0 flex justify-center">
+            ${avatarUrl ? `
+              <div class="relative">
+                <img src="${avatarUrl}" alt="${item.name}" class="w-32 h-32 rounded-full object-cover border-4 border-gray-700 shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700" style="display:none;">${item.name.charAt(0).toUpperCase()}</div>
+              </div>
+            ` : `
+              <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700">${item.name.charAt(0).toUpperCase()}</div>
+            `}
+          </div>
+          
+          <!-- Details Section -->
+          <div class="space-y-3 text-left">
+            <div class="flex justify-between items-start gap-4">
+              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Visitor Name</div>
+              <div class="text-sm font-semibold text-gray-100 text-right flex-1">${item.name}</div>
+            </div>
+            
+            <div class="flex justify-between items-start gap-4">
+              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Inmate (PDL)</div>
+              <div class="text-sm text-gray-100 text-right flex-1">${inmateName}</div>
+            </div>
+            
+            <div class="flex justify-between items-start gap-4">
+              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Relationship</div>
+              <div class="text-sm text-gray-100 text-right flex-1">${item.relationship || '—'}</div>
+            </div>
+            
+            <div class="flex justify-between items-start gap-4">
+              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Phone</div>
+              <div class="text-sm text-gray-100 text-right flex-1">${item.phone || '—'}</div>
+            </div>
+            
+            <div class="flex justify-between items-start gap-4">
+              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Email</div>
+              <div class="text-sm text-gray-100 text-right flex-1">${item.email || '—'}</div>
+            </div>
+            
+            <div class="flex justify-between items-start gap-4">
+              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">ID Type</div>
+              <div class="text-sm text-gray-100 text-right flex-1">${item.id_type || '—'}</div>
+            </div>
+            
+            <div class="flex justify-between items-start gap-4">
+              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">ID Number</div>
+              <div class="text-sm text-gray-100 text-right flex-1">${item.id_number || '—'}</div>
+            </div>
+            
+            <div class="flex justify-between items-start gap-4">
+              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Address</div>
+              <div class="text-sm text-gray-100 text-right flex-1">${item.address || '—'}</div>
+            </div>
+            
+            <div class="flex justify-between items-start gap-4">
+              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px]">Life Status</div>
+              <div class="text-right flex-1">${lifeStatusBadge(item.life_status)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Desktop View: Avatar + Name on Left, Table on Right -->
+      <div class="hidden sm:flex gap-6">
+        <!-- Left Side: Avatar + Name -->
+        <div class="shrink-0 flex flex-col items-center gap-4">
           ${avatarUrl ? `
             <div class="relative">
-              <img src="${avatarUrl}" alt="${item.name}" class="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl object-cover border-4 border-gray-700 shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-              <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700" style="display:none;">${item.name.charAt(0).toUpperCase()}</div>
+              <img src="${avatarUrl}" alt="${item.name}" class="w-40 h-40 rounded-full object-cover border-4 border-gray-700 shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700" style="display:none;">${item.name.charAt(0).toUpperCase()}</div>
             </div>
           ` : `
-            <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700">${item.name.charAt(0).toUpperCase()}</div>
+            <div class="w-40 h-40 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-5xl shadow-xl border-4 border-gray-700">${item.name.charAt(0).toUpperCase()}</div>
           `}
+          <div class="text-center">
+            <div class="text-lg font-semibold text-gray-100">${item.name}</div>
+            <div class="text-xs text-gray-400 mt-1">Visitor</div>
+          </div>
         </div>
         
-        <!-- Details Section -->
-        <div class="flex-1 space-y-3 sm:space-y-4 text-left">
-          <!-- Mobile: Left-Right Layout -->
-          <div class="flex sm:block justify-between items-start gap-4">
-            <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px] sm:min-w-0">Visitor Name</div>
-            <div class="text-sm sm:text-lg font-semibold text-gray-100 text-right sm:text-left flex-1 sm:mt-1">${item.name}</div>
-          </div>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div class="flex sm:block justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px] sm:min-w-0">Inmate (PDL)</div>
-              <div class="text-sm text-gray-100 text-right sm:text-left flex-1 sm:mt-1">${inmateName}</div>
-            </div>
-            <div class="flex sm:block justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px] sm:min-w-0">Relationship</div>
-              <div class="text-sm text-gray-100 text-right sm:text-left flex-1 sm:mt-1">${item.relationship || '—'}</div>
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div class="flex sm:block justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px] sm:min-w-0">Phone</div>
-              <div class="text-sm text-gray-100 text-right sm:text-left flex-1 sm:mt-1">${item.phone || '—'}</div>
-            </div>
-            <div class="flex sm:block justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px] sm:min-w-0">Email</div>
-              <div class="text-sm text-gray-100 text-right sm:text-left flex-1 sm:mt-1">${item.email || '—'}</div>
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div class="flex sm:block justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px] sm:min-w-0">ID Type</div>
-              <div class="text-sm text-gray-100 text-right sm:text-left flex-1 sm:mt-1">${item.id_type || '—'}</div>
-            </div>
-            <div class="flex sm:block justify-between items-start gap-4">
-              <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px] sm:min-w-0">ID Number</div>
-              <div class="text-sm text-gray-100 text-right sm:text-left flex-1 sm:mt-1">${item.id_number || '—'}</div>
-            </div>
-          </div>
-          
-          <div class="flex sm:block justify-between items-start gap-4">
-            <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px] sm:min-w-0">Address</div>
-            <div class="text-sm text-gray-100 text-right sm:text-left flex-1 sm:mt-1">${item.address || '—'}</div>
-          </div>
-          
-          <div class="flex sm:block justify-between items-start gap-4">
-            <div class="text-xs text-gray-400 uppercase tracking-wider min-w-[100px] sm:min-w-0">Life Status</div>
-            <div class="text-right sm:text-left flex-1 sm:mt-1">${lifeStatusBadge(item.life_status)}</div>
+        <!-- Right Side: Table -->
+        <div class="flex-1">
+          <div class="relative overflow-x-auto shadow-md rounded-lg">
+            <table class="w-full text-sm text-left text-gray-400">
+              <thead class="text-xs uppercase bg-gray-700 text-gray-400">
+                <tr>
+                  <th scope="col" class="px-6 py-3">Field</th>
+                  <th scope="col" class="px-6 py-3">Information</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="bg-gray-800 border-b border-gray-700">
+                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Inmate (PDL)</th>
+                  <td class="px-6 py-4">${inmateName}</td>
+                </tr>
+                <tr class="bg-gray-800 border-b border-gray-700">
+                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Relationship</th>
+                  <td class="px-6 py-4">${item.relationship || '—'}</td>
+                </tr>
+                <tr class="bg-gray-800 border-b border-gray-700">
+                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Phone</th>
+                  <td class="px-6 py-4">${item.phone || '—'}</td>
+                </tr>
+                <tr class="bg-gray-800 border-b border-gray-700">
+                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Email</th>
+                  <td class="px-6 py-4">${item.email || '—'}</td>
+                </tr>
+                <tr class="bg-gray-800 border-b border-gray-700">
+                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">ID Type</th>
+                  <td class="px-6 py-4">${item.id_type || '—'}</td>
+                </tr>
+                <tr class="bg-gray-800 border-b border-gray-700">
+                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">ID Number</th>
+                  <td class="px-6 py-4">${item.id_number || '—'}</td>
+                </tr>
+                <tr class="bg-gray-800 border-b border-gray-700">
+                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Address</th>
+                  <td class="px-6 py-4">${item.address || '—'}</td>
+                </tr>
+                <tr class="bg-gray-800">
+                  <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">Life Status</th>
+                  <td class="px-6 py-4">${lifeStatusBadge(item.life_status)}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

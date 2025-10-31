@@ -79,6 +79,16 @@ Route::prefix('visitors')->middleware(['web'])->group(function () {
     Route::post('/{id}/time-out', [VisitorController::class, 'recordTimeOut'])->name('api.visitors.time-out');
 });
 
+// Visitation Requests (Logs) API routes
+Route::prefix('visitation-requests')->middleware(['web'])->group(function () {
+    Route::get('/', [VisitorController::class, 'getVisitationRequests'])->name('api.visitation-requests.index');
+});
+
+// Visitation Logs API routes
+Route::prefix('visitation-logs')->group(function () {
+    Route::post('/', [VisitorController::class, 'createVisitationLog'])->name('api.visitation-logs.store');
+});
+
 // Metrics related to visitors/inmates
 Route::get('/inmates/without-allowed-visitors/count', [VisitorController::class, 'inmatesWithoutAllowedVisitorsCount'])
     ->middleware(['web'])

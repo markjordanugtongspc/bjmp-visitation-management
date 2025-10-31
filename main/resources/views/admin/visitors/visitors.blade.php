@@ -120,22 +120,36 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Registered Allowed Visitors</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="allowed-visitors-total">0</p>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 mb-6">
+                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-3 sm:p-4 transition-all hover:shadow-md">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Registered</p>
+                                <span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-1.5 py-0.5 text-[8px] sm:text-[10px]">Total</span>
+                            </div>
+                            <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 dark:text-blue-400 transition-all" id="allowed-visitors-total">0</p>
+                        </div>
                     </div>
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Inmates with No Allowed Visitor Yet</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="inmates-without-allowed">0</p>
+                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-3 sm:p-4 transition-all hover:shadow-md">
+                        <div class="flex flex-col gap-1">
+                            <p class="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">No Visitor</p>
+                            <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600 dark:text-red-400 transition-all" id="inmates-without-allowed">0</p>
+                        </div>
                     </div>
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Inmates</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="inmates-total">0</p>
+                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-3 sm:p-4 transition-all hover:shadow-md">
+                        <div class="flex flex-col gap-1">
+                            <p class="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Inmates</p>
+                            <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 dark:text-green-400 transition-all" id="inmates-total">0</p>
+                        </div>
                     </div>
-                    <div class="dark:bg-gray-900 shadow border border-gray-200 dark:border-gray-800 p-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Recently Added (7 days)</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100" id="recently-added">0</p>
+                    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-3 sm:p-4 transition-all hover:shadow-md">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Recent</p>
+                                <span class="inline-flex items-center rounded-full bg-orange-500/10 text-orange-500 px-1.5 py-0.5 text-[8px] sm:text-[10px]">7 days</span>
+                            </div>
+                            <p class="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600 dark:text-orange-400 transition-all" id="recently-added">0</p>
+                        </div>
                     </div>
                 </div>
 
@@ -153,10 +167,10 @@
                     </div>
                 </div>
 
-                <div class="hidden sm:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="hidden sm:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800">
+                            <thead class="bg-gray-50 dark:bg-gray-900">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Visitor</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">PDL</th>
@@ -165,7 +179,7 @@
                                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="visitors-table-body" class="dark:bg-gray-900 p-4 shadow border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody id="visitors-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 <tr>
                                     <td colspan="5" class="px-4 py-12 text-center">
                                         <div class="flex flex-col items-center justify-center space-y-6">
@@ -204,8 +218,7 @@
 
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/profile/edit-profile-modal.js')
-    @vite('resources/js/visitors/visitors.js')
+    @vite('resources/js/visitors/allowed-visitors.js')
     @vite('resources/js/dashboard/components/role-based.js')
     @vite('resources/js/dashboard/components/quick-action-modals.js')
-    @vite('resources/js/dashboard/components/notifications.js')
 </x-app-layout>

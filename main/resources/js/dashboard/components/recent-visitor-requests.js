@@ -8,20 +8,17 @@ export async function initRecentVisitorRequests() {
   if (!tableBody) return;
 
   try {
-    // Fetch all recent visitors
-    const response = await fetch('/api/visitors?per_page=10&sort=created_at&order=desc');
-    if (!response.ok) throw new Error('Failed to fetch visitors');
+    // Fetch recent visitation requests from visitation_logs
+    const response = await fetch('/api/visitation-requests?per_page=5&sort=created_at&order=desc');
+    if (!response.ok) throw new Error('Failed to fetch visitation requests');
     
     const json = await response.json();
-    const visitors = json?.data || [];
+    const requests = json?.data || [];
 
-    // Take first 5 visitors
-    const recentVisitors = visitors.slice(0, 5);
-
-    if (!recentVisitors.length) {
+    if (!requests.length) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+          <td colspan="5" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
             No recent visitation requests
           </td>
         </tr>
@@ -31,17 +28,17 @@ export async function initRecentVisitorRequests() {
 
     // Render table rows
     tableBody.innerHTML = '';
-    recentVisitors.forEach(visitor => {
-      const visitorName = visitor.name || '—';
-      const inmateName = visitor.inmate?.full_name || 
-                        (visitor.inmate?.first_name && visitor.inmate?.last_name 
-                          ? `${visitor.inmate.first_name} ${visitor.inmate.last_name}` 
+    requests.forEach(request => {
+      const visitorName = request.visitorDetails?.name || request.name || '—';
+      const inmateName = request.pdlDetails?.name || 
+                        (request.inmate?.first_name && request.inmate?.last_name 
+                          ? `${request.inmate.first_name} ${request.inmate.last_name}` 
                           : '—');
       
-      // Use schedule from latest_log only - show N/A if no schedule set
+      // Use schedule from visitation_logs
       let createdAt = 'N/A';
-      if (visitor.latest_log && visitor.latest_log.schedule) {
-        createdAt = new Date(visitor.latest_log.schedule).toLocaleString('en-US', {
+      if (request.schedule) {
+        createdAt = new Date(request.schedule).toLocaleString('en-US', {
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
@@ -51,26 +48,21 @@ export async function initRecentVisitorRequests() {
         });
       }
 
-      // Determine status badge
-      // Only show status if visitor has a visitation_log entry (schedule was set)
+      // Get reason for visit from visitation_logs
+      const reasonForVisit = request.reason_for_visit || 'N/A';
+
+      // Determine status badge from visitation_logs
       // Status values from visitation_logs: 1 = Approved, 2 = Pending, 0 = Denied/Declined
       let statusBadge = '';
+      const status = request.status;
       
-      if (visitor.latest_log && visitor.latest_log.status !== undefined) {
-        // Has visitation log (schedule was set) - use its status
-        const status = visitor.latest_log.status;
-        
-        if (status === 1 || status === '1' || status === 'Approved') {
-          statusBadge = '<span class="inline-flex items-center rounded-full bg-green-500/10 text-green-500 px-2 py-0.5 text-[11px]">Approved</span>';
-        } else if (status === 0 || status === '0' || status === 'Denied' || status === 'Declined') {
-          statusBadge = '<span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-2 py-0.5 text-[11px]">Declined</span>';
-        } else {
-          // status === 2 or 'Pending' or anything else
-          statusBadge = '<span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Pending</span>';
-        }
+      if (status === 1 || status === '1' || status === 'Approved') {
+        statusBadge = '<span class="inline-flex items-center rounded-full bg-green-500/10 text-green-500 px-2 py-0.5 text-[11px]">Approved</span>';
+      } else if (status === 0 || status === '0' || status === 'Denied' || status === 'Declined') {
+        statusBadge = '<span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-2 py-0.5 text-[11px]">Declined</span>';
       } else {
-        // No visitation log (no schedule set yet) - show N/A
-        statusBadge = '<span class="inline-flex items-center rounded-full bg-gray-500/10 text-gray-500 px-2 py-0.5 text-[11px]">N/A</span>';
+        // status === 2 or 'Pending' or anything else
+        statusBadge = '<span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-0.5 text-[11px]">Pending</span>';
       }
 
       tableBody.insertAdjacentHTML('beforeend', `
@@ -78,6 +70,7 @@ export async function initRecentVisitorRequests() {
           <td class="px-3 py-2 text-sm text-gray-700 dark:text-gray-200 max-w-[120px] truncate">${visitorName}</td>
           <td class="px-3 py-2 text-sm text-gray-700 dark:text-gray-200 max-w-[120px] truncate">${inmateName}</td>
           <td class="px-3 py-2 text-xs text-gray-700 dark:text-gray-200 whitespace-nowrap">${createdAt}</td>
+          <td class="px-3 py-2 text-xs text-gray-700 dark:text-gray-200 max-w-[100px] truncate">${reasonForVisit}</td>
           <td class="px-3 py-2">${statusBadge}</td>
         </tr>
       `);
@@ -87,7 +80,7 @@ export async function initRecentVisitorRequests() {
     console.error('Error loading recent visitor requests:', error);
     tableBody.innerHTML = `
       <tr>
-        <td colspan="4" class="px-4 py-8 text-center text-red-500 dark:text-red-400 text-sm">
+        <td colspan="5" class="px-4 py-8 text-center text-red-500 dark:text-red-400 text-sm">
           Failed to load visitor requests
         </td>
       </tr>
