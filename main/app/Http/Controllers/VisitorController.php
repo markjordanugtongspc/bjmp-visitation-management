@@ -49,6 +49,7 @@ class VisitorController extends Controller
             if (Schema::hasColumn('visitation_logs', 'time_in')) $select[] = 'time_in';
             if (Schema::hasColumn('visitation_logs', 'time_out')) $select[] = 'time_out';
             if (Schema::hasColumn('visitation_logs', 'reason_for_visit')) $select[] = 'reason_for_visit';
+            if (Schema::hasColumn('visitation_logs', 'reference_number')) $select[] = 'reference_number';
 
             $logs = DB::table('visitation_logs')
                 ->select($select)
@@ -68,6 +69,7 @@ class VisitorController extends Controller
                         'time_in' => property_exists($row, 'time_in') ? $row->time_in : null,
                         'time_out' => property_exists($row, 'time_out') ? $row->time_out : null,
                         'reason_for_visit' => property_exists($row, 'reason_for_visit') ? $row->reason_for_visit : null,
+                        'reference_number' => property_exists($row, 'reference_number') ? $row->reference_number : null,
                     ];
                 }
             }
@@ -561,6 +563,10 @@ $visitor->setAttribute('latest_log', null);
         try {
             // Get basic visitation_logs data first
             $logs = DB::table('visitation_logs')
+                ->select([
+                    'id', 'visitor_id', 'inmate_id', 'schedule', 'reason_for_visit', 
+                    'status', 'time_in', 'time_out', 'created_at', 'reference_number'
+                ])
                 ->orderByDesc('created_at')
                 ->limit(5)
                 ->get();
@@ -585,8 +591,17 @@ $visitor->setAttribute('latest_log', null);
                     ->keyBy('id');
             }
 
+            // Get all registered visitors for these inmates to extract family information
+            $allVisitors = [];
+            if ($inmateIds->isNotEmpty()) {
+                $allVisitors = DB::table('visitors')
+                    ->whereIn('inmate_id', $inmateIds)
+                    ->get()
+                    ->groupBy('inmate_id');
+            }
+
             // Transform the data with related information
-            $data = $logs->map(function ($log) use ($visitors, $inmates) {
+            $data = $logs->map(function ($log) use ($visitors, $inmates, $allVisitors) {
                 $visitor = $visitors->get($log->visitor_id);
                 $inmate = $inmates->get($log->inmate_id);
                 
@@ -603,6 +618,7 @@ $visitor->setAttribute('latest_log', null);
                     'visitor' => $visitor->name ?? 'N/A',
                     'schedule' => $log->schedule ?? 'N/A',
                     'reason_for_visit' => $log->reason_for_visit ?? 'N/A',
+                    'reference_number' => $log->reference_number ?? null,
                     'status' => $log->status ?? 2,
                     'time_in' => $log->time_in,
                     'time_out' => $log->time_out,
@@ -616,7 +632,15 @@ $visitor->setAttribute('latest_log', null);
                     ],
                     'pdlDetails' => [
                         'name' => $inmateName,
-                        'inmate_id' => $log->inmate_id
+                        'inmate_id' => $log->inmate_id,
+                        'birthday' => $inmate->birthdate ?? $inmate->date_of_birth ?? null,
+                        'age' => $inmate->birthdate ?? $inmate->date_of_birth ? $this->calculateAge($inmate->birthdate ?? $inmate->date_of_birth) : null,
+                        'parents' => [
+                            'father' => $this->extractFamilyMember($allVisitors, $log->inmate_id, 'father'),
+                            'mother' => $this->extractFamilyMember($allVisitors, $log->inmate_id, 'mother')
+                        ],
+                        'spouse' => $inmate->civil_status === 'Married' ? 'Married' : 'N/A',
+                        'nextOfKin' => $this->extractFamilyMembers($allVisitors, $log->inmate_id, ['sister', 'brother', 'sibling'])
                     ],
                     'inmate' => [
                         'id' => $log->inmate_id,
@@ -661,6 +685,7 @@ $visitor->setAttribute('latest_log', null);
                 'inmate_id' => 'required|exists:inmates,id',
                 'schedule' => 'required|date',
                 'reason_for_visit' => 'required|string|max:500',
+                'reference_number' => 'required|string|max:20|unique:visitation_logs,reference_number',
                 'status' => 'sometimes|integer|in:0,1,2' // 0=Declined, 1=Approved, 2=Pending
             ]);
 
@@ -673,7 +698,8 @@ $visitor->setAttribute('latest_log', null);
             }
 
             // Create visitation log entry
-            $visitationLog = DB::table('visitation_logs')->insert([
+            $visitationLogId = DB::table('visitation_logs')->insertGetId([
+                'reference_number' => $request->reference_number,
                 'visitor_id' => $request->visitor_id,
                 'inmate_id' => $request->inmate_id,
                 'schedule' => $request->schedule,
@@ -683,7 +709,7 @@ $visitor->setAttribute('latest_log', null);
                 'updated_at' => now()
             ]);
 
-            if (!$visitationLog) {
+            if (!$visitationLogId) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to create visitation log'
@@ -692,7 +718,11 @@ $visitor->setAttribute('latest_log', null);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Visitation request created successfully'
+                'message' => 'Visitation request created successfully',
+                'data' => [
+                    'id' => $visitationLogId,
+                    'reference_number' => $request->reference_number
+                ]
             ]);
 
         } catch (\Exception $e) {
@@ -701,5 +731,68 @@ $visitor->setAttribute('latest_log', null);
                 'message' => 'Failed to create visitation request: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Calculate age from birthdate
+     */
+    private function calculateAge($birthdate)
+    {
+        if (!$birthdate) return null;
+        
+        try {
+            $birthDate = new \DateTime($birthdate);
+            $today = new \DateTime();
+            $age = $today->diff($birthDate)->y;
+            return $age;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Extract a single family member from registered visitors by relationship
+     */
+    private function extractFamilyMember($allVisitors, $inmateId, $relationship)
+    {
+        if (!isset($allVisitors[$inmateId])) {
+            return 'N/A';
+        }
+
+        $visitors = $allVisitors[$inmateId];
+        foreach ($visitors as $visitor) {
+            if ($visitor->relationship && strtolower($visitor->relationship) === strtolower($relationship)) {
+                return $visitor->name ?? 'N/A';
+            }
+        }
+
+        return 'N/A';
+    }
+
+    /**
+     * Extract multiple family members from registered visitors by relationships (for Next of Kin)
+     */
+    private function extractFamilyMembers($allVisitors, $inmateId, $relationships)
+    {
+        if (!isset($allVisitors[$inmateId])) {
+            return 'N/A';
+        }
+
+        $visitors = $allVisitors[$inmateId];
+        $names = [];
+
+        foreach ($visitors as $visitor) {
+            if ($visitor->relationship) {
+                $rel = strtolower($visitor->relationship);
+                foreach ($relationships as $targetRel) {
+                    if ($rel === strtolower($targetRel)) {
+                        $names[] = $visitor->name ?? 'Unknown';
+                        break;
+                    }
+                }
+            }
+        }
+
+        return !empty($names) ? implode(' | ', $names) : 'N/A';
     }
 }

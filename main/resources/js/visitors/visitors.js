@@ -6,6 +6,60 @@ import { openVisitationRequestModal } from './visitor-request-modal.js';
 // - Filters by status and simple search
 // - Accept/Decline actions using SweetAlert2
 
+// ============================================================================
+// AVATAR HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Generate SVG avatar based on inmate name
+ * @param {string} name - Full name of the inmate
+ * @returns {string} - Data URI of the generated SVG
+ */
+function generateInmateAvatarSVG(name) {
+  if (!name || name === 'N/A') return '/images/logo/bjmp_logo.png';
+  
+  const initials = name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+  
+  // Generate consistent color based on name
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash) % 360;
+  
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="grad-${hue}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:hsl(${hue}, 60%, 50%);stop-opacity:1" />
+          <stop offset="100%" style="stop-color:hsl(${hue}, 60%, 40%);stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="100" height="100" fill="url(#grad-${hue})" rx="50" />
+      <text x="50" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle" dy=".3em">${initials}</text>
+    </svg>
+  `;
+  
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
+/**
+ * Get inmate avatar URL with fallback to generated SVG
+ * @param {Object} inmate - Inmate object with avatar data
+ * @returns {string} - Avatar URL or generated SVG
+ */
+function getInmateAvatarUrl(inmate) {
+  if (inmate?.avatar_path && inmate?.avatar_filename) {
+    return `/storage/${inmate.avatar_path}/${inmate.avatar_filename}`;
+  }
+  return generateInmateAvatarSVG(inmate?.name || 'N/A');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   /**
    * Sample data enriched to support the visitor details modal.
@@ -306,6 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
           visitor: r.visitor || 'N/A',
           schedule: r.schedule || 'N/A',
           reason_for_visit: r.reason_for_visit || 'N/A',
+          reference_number: r.reference_number || null,
           status: friendlyStatus,
           time_in: r.time_in,
           time_out: r.time_out,
@@ -373,11 +428,14 @@ document.addEventListener('DOMContentLoaded', () => {
       name: (inmateBk.first_name && inmateBk.last_name)
         ? `${inmateBk.first_name} ${inmateBk.last_name}`
         : (inmateBk.full_name || inmateBk.fullName || inmateBk.name || 'N/A'),
-      birthday: inmateBk.birthdate || inmateBk.date_of_birth || inmateBk.dateOfBirth || null,
-      age: inmateBk.birthdate ? calcAge(inmateBk.birthdate) : null,
-      parents: { father: 'N/A', mother: 'N/A' },
-      spouse: inmateBk.civil_status === 'Married' ? 'Married' : 'N/A',
-      nextOfKin: 'N/A'
+      birthday: data.pdlDetails?.birthday || inmateBk.birthdate || inmateBk.date_of_birth || inmateBk.dateOfBirth || null,
+      age: data.pdlDetails?.age || ((inmateBk.birthdate || inmateBk.date_of_birth || inmateBk.dateOfBirth) ? calcAge(inmateBk.birthdate || inmateBk.date_of_birth || inmateBk.dateOfBirth) : null),
+      parents: data.pdlDetails?.parents || { father: 'N/A', mother: 'N/A' },
+      spouse: data.pdlDetails?.spouse || (inmateBk.civil_status === 'Married' ? 'Married' : 'N/A'),
+      nextOfKin: data.pdlDetails?.nextOfKin || 'N/A',
+      avatar_path: data.pdlDetails?.avatar_path || inmateBk.avatar_path || null,
+      avatar_filename: data.pdlDetails?.avatar_filename || inmateBk.avatar_filename || null,
+      id: data.pdlDetails?.id || inmateBk.id || null
     };
     const scheduleDisp = data.schedule || 'N/A';
     const statusRaw = data.status;
@@ -482,9 +540,31 @@ document.addEventListener('DOMContentLoaded', () => {
       { label: 'Status', value: statusBadge(statusLabel) },
       { label: 'Visit Times', value: `${timeInFormatted ? `<span class="inline-flex items-center px-2 py-1 rounded-md bg-green-600/20 text-green-400 font-medium">Time In: ${timeInFormatted}</span>` : ''}${timeInFormatted && timeOutFormatted ? ' <span class="text-gray-500">|</span> ' : ''}${timeOutFormatted ? `<span class="inline-flex items-center px-2 py-1 rounded-md bg-red-600/20 text-red-400 font-medium">Time Out: ${timeOutFormatted}</span>` : ''}` || '—' },
       { label: 'Reason For Visit', value: data.reason_for_visit || 'N/A' },
+      { label: 'Reference Number', value: data.reference_number ? `<span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-600/20 text-blue-400 font-mono text-xs font-semibold tracking-wider">${data.reference_number}</span>` : 'N/A' },
       { label: 'Actions', value: desktopActionButtons },
     ];
     const pdlRows = [
+      { 
+        label: 'Photo', 
+        value: `
+          <div class="relative group w-16 h-16 rounded-full overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center">
+            <img 
+              src="${getInmateAvatarUrl(p)}" 
+              alt="${p.name || 'PDL'}'s avatar" 
+              class="w-full h-full object-cover"
+              loading="lazy"
+            />
+            ${p.id ? `
+            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" class="drop-shadow-lg">
+                <rect width="24" height="24" fill="none"/>
+                <path fill="white" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM21.41 6.34l-3.75-3.75l-2.53 2.54l3.75 3.75z" stroke-width="0.3" stroke="white"/>
+              </svg>
+            </div>
+            ` : ''}
+          </div>
+        `
+      },
       { label: 'Name', value: p.name || 'N/A' },
       { label: 'Birthday', value: formatDateHuman(p.birthday) },
       { label: 'Age', value: pAge ? `${pAge} Years Old` : 'N/A' },

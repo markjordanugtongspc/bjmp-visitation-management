@@ -2295,11 +2295,14 @@ document.addEventListener('DOMContentLoaded', () => {
       row.innerHTML = `
         <td class="px-4 py-3 whitespace-nowrap">
           <div class="flex items-center gap-3">
-            <div class="h-9 w-9 rounded-full bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/>
-                <path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/>
-              </svg>
+            <div class="relative group h-9 w-9 rounded-full overflow-hidden ring-2 ring-blue-500/20 flex items-center justify-center cursor-pointer" data-avatar-upload data-inmate-id="${inmate.id}">
+              <img src="${getInmateAvatarUrl(inmate)}" alt="Avatar" class="h-full w-full object-cover" />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" class="drop-shadow-lg">
+                  <rect width="24" height="24" fill="none"/>
+                  <path fill="white" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM21.41 6.34l-3.75-3.75l-2.53 2.54l3.75 3.75z" stroke-width="0.3" stroke="white"/>
+                </svg>
+              </div>
             </div>
             <div>
               <div class="font-medium text-gray-900 dark:text-gray-50 cursor-pointer hover:underline" data-i-name data-inmate-id="${inmate.id}"></div>
@@ -2477,11 +2480,18 @@ document.addEventListener('DOMContentLoaded', () => {
       card.innerHTML = `
         <div class="flex justify-between items-start">
           <div class="flex items-center gap-3">
-            <div class="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/>
-                <path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/>
-              </svg>
+            <div class="relative group h-10 w-10 rounded-full overflow-hidden ring-2 ring-blue-500/20 flex items-center justify-center cursor-pointer" data-avatar-upload data-inmate-id="${inmate.id}">
+              <img 
+                src="${getInmateAvatarUrl(inmate)}" 
+                alt="Avatar" 
+                class="h-full w-full object-cover" 
+              />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" class="drop-shadow-lg">
+                  <rect width="24" height="24" fill="none"/>
+                  <path fill="white" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM21.41 6.34l-3.75-3.75l-2.53 2.54l3.75 3.75z" stroke-width="0.3" stroke="white"/>
+                </svg>
+              </div>
             </div>
             <div>
               <div class="font-medium text-gray-900 dark:text-gray-50 cursor-pointer hover:underline" data-i-name data-inmate-id="${inmate.id}"></div>
@@ -2845,13 +2855,19 @@ async function openUnifiedInmateModal(inmate) {
         <!-- Desktop: Profile Card -->
         <div class="hidden lg:flex flex-col items-center w-full">
           <div class="flex items-center justify-center mb-4">
-            <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
+            <div class="relative group rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1 cursor-pointer" data-avatar-upload data-inmate-id="${inmate.id}">
               <img 
-                src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
+                src="${getInmateAvatarUrl(inmate)}" 
                 alt="${name}'s avatar" 
                 class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
                 loading="lazy"
               />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="drop-shadow-lg">
+                  <rect width="24" height="24" fill="none"/>
+                  <path fill="white" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM21.41 6.34l-3.75-3.75l-2.53 2.54l3.75 3.75z" stroke-width="0.3" stroke="white"/>
+                </svg>
+              </div>
         </div>
         </div>
           <div class="flex flex-col items-center w-full">
@@ -2866,13 +2882,19 @@ async function openUnifiedInmateModal(inmate) {
         </div>
         <!-- Mobile/Tablet: Stacked Profile Card -->
         <div class="flex flex-col items-center lg:hidden gap-2">
-          <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
+          <div class="relative group w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2 cursor-pointer" data-avatar-upload data-inmate-id="${inmate.id}">
             <img 
-              src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
+              src="${getInmateAvatarUrl(inmate)}" 
               alt="${name}'s avatar" 
               class="w-full h-full object-cover rounded-full border-4 border-white shadow"
               loading="lazy"
             />
+            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="drop-shadow-lg">
+                <rect width="24" height="24" fill="none"/>
+                <path fill="white" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM21.41 6.34l-3.75-3.75l-2.53 2.54l3.75 3.75z" stroke-width="0.3" stroke="white"/>
+              </svg>
+            </div>
           </div>
           <h2 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">${name}</h2>
           <span 
@@ -3043,13 +3065,19 @@ async function openUnifiedInmateModal(inmate) {
         <!-- Desktop: Profile Card -->
         <div class="hidden lg:flex flex-col items-center w-full">
           <div class="flex items-center justify-center mb-4">
-            <div class="rounded-full bg-gradient-to-br from-teal-100 via-teal-200 to-emerald-300 shadow-lg shadow-teal-200/60 p-1">
+            <div class="relative group rounded-full bg-gradient-to-br from-teal-100 via-teal-200 to-emerald-300 shadow-lg shadow-teal-200/60 p-1 cursor-pointer" data-avatar-upload data-inmate-id="${inmate.id}">
               <img 
-                src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
+                src="${getInmateAvatarUrl(inmate)}" 
                 alt="${name}'s avatar" 
                 class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
                 loading="lazy"
               />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="drop-shadow-lg">
+                  <rect width="24" height="24" fill="none"/>
+                  <path fill="white" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM21.41 6.34l-3.75-3.75l-2.53 2.54l3.75 3.75z" stroke-width="0.3" stroke="white"/>
+                </svg>
+              </div>
             </div>
           </div>
           <div class="flex flex-col items-center w-full">
@@ -3072,13 +3100,19 @@ async function openUnifiedInmateModal(inmate) {
         
         <!-- Mobile/Tablet: Stacked Profile Card -->
         <div class="flex flex-col items-center lg:hidden gap-2 mb-4">
-          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden ring-2 ring-teal-200 dark:ring-teal-700 bg-gradient-to-br from-teal-100 to-emerald-200 flex items-center justify-center shadow-lg">
+          <div class="relative group w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden ring-2 ring-teal-200 dark:ring-teal-700 bg-gradient-to-br from-teal-100 to-emerald-200 flex items-center justify-center shadow-lg cursor-pointer" data-avatar-upload data-inmate-id="${inmate.id}">
             <img 
-              src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
+              src="${getInmateAvatarUrl(inmate)}" 
               alt="${name}'s avatar" 
               class="w-full h-full object-cover"
               loading="lazy"
             />
+            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" class="drop-shadow-lg">
+                <rect width="24" height="24" fill="none"/>
+                <path fill="white" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM21.41 6.34l-3.75-3.75l-2.53 2.54l3.75 3.75z" stroke-width="0.3" stroke="white"/>
+              </svg>
+            </div>
           </div>
           <h2 class="text-base sm:text-lg font-bold text-gray-800 dark:text-white text-center">${name}</h2>
           <div class="flex flex-wrap items-center justify-center gap-2">
@@ -3335,19 +3369,26 @@ async function openUnifiedInmateModal(inmate) {
   `).join('');
   const pointsHTML = `
      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left Side: Avatar Section -->
       <div class="lg:col-span-1">
         <!-- Desktop: Profile Card -->
         <div class="hidden lg:flex flex-col items-center w-full">
           <div class="flex items-center justify-center mb-4">
-            <div class="rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1">
+            <div class="relative group rounded-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 shadow-lg shadow-blue-200/60 p-1 cursor-pointer" data-avatar-upload data-inmate-id="${inmate.id}">
               <img 
-                src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
+                src="${getInmateAvatarUrl(inmate)}" 
                 alt="${name}'s avatar" 
                 class="h-28 w-28 object-cover rounded-full border-4 border-white shadow-md"
                 loading="lazy"
               />
-        </div>
-        </div>
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="drop-shadow-lg">
+                  <rect width="24" height="24" fill="none"/>
+                  <path fill="white" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM21.41 6.34l-3.75-3.75l-2.53 2.54l3.75 3.75z" stroke-width="0.3" stroke="white"/>
+                </svg>
+              </div>
+            </div>
+          </div>
           <div class="flex flex-col items-center w-full">
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white mt-2">${name}</h2>
             <span 
@@ -3356,27 +3397,34 @@ async function openUnifiedInmateModal(inmate) {
             >
               ${inmate.status || '—'}
             </span>
-      </div>
-        </div>
-        <!-- Mobile/Tablet: Stacked Profile Card -->
-        <div class="flex flex-col items-center lg:hidden gap-2">
-          <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center mb-2">
-            <img 
-              src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}" 
-              alt="${name}'s avatar" 
-              class="w-full h-full object-cover rounded-full border-4 border-white shadow"
-              loading="lazy"
-            />
           </div>
-          <h2 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">${name}</h2>
-          <span 
-            class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}"
-            aria-label="Inmate status: ${inmate.status || 'Unknown'}"
-          >
-            ${inmate.status || '—'}
-          </span>
+        </div>
+        
+        <!-- Mobile: Horizontal Layout -->
+        <div class="lg:hidden flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="flex-shrink-0">
+            <div class="w-20 h-20 rounded-full overflow-hidden ring-2 ring-blue-200 bg-blue-100 flex items-center justify-center">
+              <img 
+                src="${getInmateAvatarUrl(inmate)}" 
+                alt="${name}'s avatar" 
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white truncate">${name}</h2>
+            <span 
+              class="mt-1 inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClasses(inmate.status)}"
+              aria-label="Inmate status: ${inmate.status || 'Unknown'}"
+            >
+              ${inmate.status || '—'}
+            </span>
+          </div>
         </div>
       </div>
+      
+      <!-- Right Side: Points System -->
       <div class="lg:col-span-2 space-y-4">
       <!-- Points Summary with Progress -->
       <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
@@ -4525,6 +4573,199 @@ function formatAddress(i) {
 
   // Initialize the page
   initializePage();
+
+  // ============================================================================
+  // AVATAR UPLOAD EVENT LISTENERS
+  // ============================================================================
+  // Event delegation for avatar upload clicks
+  document.addEventListener('click', (e) => {
+    const avatarUpload = e.target.closest('[data-avatar-upload]');
+    if (avatarUpload) {
+      e.stopPropagation();
+      const inmateId = avatarUpload.getAttribute('data-inmate-id');
+      const inmate = inmates.find(i => i.id === parseInt(inmateId));
+      if (inmate) {
+        const name = [inmate.first_name, inmate.last_name].filter(Boolean).join(' ');
+        console.log('Found inmate:', inmate);
+        console.log('Generated name:', name);
+        // Fallback to ID if name is empty
+        const finalName = name || `Inmate_${inmateId}`;
+        openAvatarUpload(inmateId, finalName);
+      } else {
+        console.error('Inmate not found for ID:', inmateId);
+      }
+    }
+  });
+
+  // ============================================================================
+  // AVATAR UPLOAD FUNCTION
+  // ============================================================================
+  /**
+   * Generate SVG avatar based on inmate name
+   * @param {string} name - Full name of the inmate
+   * @returns {string} - Data URI of the generated SVG
+   */
+  function generateAvatarSVG(name) {
+    if (!name || name === 'N/A') return '/images/logo/bjmp_logo.png';
+    
+    const initials = name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+    
+    // Generate a consistent color based on the name
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = hash % 360;
+    
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+        <rect width="128" height="128" fill="hsl(${hue}, 60%, 50%)"/>
+        <text x="50%" y="50%" text-anchor="middle" dy=".35em" fill="white" font-size="48" font-family="Arial, sans-serif" font-weight="600">
+          ${initials}
+        </text>
+      </svg>
+    `;
+    
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+  }
+
+  /**
+   * Open file manager to upload avatar for an inmate
+   * @param {number} inmateId - ID of the inmate
+   * @param {string} inmateName - Name of the inmate
+   */
+  function openAvatarUpload(inmateId, inmateName) {
+    console.log('openAvatarUpload called with:', { inmateId, inmateName });
+    
+    // Create hidden file input
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.style.display = 'none';
+    
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Validate file size
+        if (file.size > 5 * 1024 * 1024) {
+          alert('File size must be less than 5MB');
+          return;
+        }
+        
+        // Upload immediately
+        await uploadInmateAvatar(inmateId, file, inmateName);
+      }
+    });
+    
+    // Add to DOM and click to open file manager
+    document.body.appendChild(input);
+    input.click();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(input);
+    }, 100);
+  }
+
+  /**
+   * Upload inmate avatar to server
+   * @param {number} inmateId - ID of the inmate
+   * @param {File} file - Image file to upload
+   * @param {string} inmateName - Name of the inmate
+   */
+  async function uploadInmateAvatar(inmateId, file, inmateName) {
+    try {
+      // Show simple loading
+      const loadingDiv = document.createElement('div');
+      loadingDiv.innerHTML = 'Uploading...';
+      loadingDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        z-index: 9999;
+        font-family: system-ui;
+      `;
+      document.body.appendChild(loadingDiv);
+
+      const formData = new FormData();
+      formData.append('avatar', file);
+      formData.append('inmate_id', parseInt(inmateId));
+      formData.append('inmate_name', inmateName);
+
+      // Debug: Log what we're sending
+      console.log('Uploading avatar for inmate:', inmateId, inmateName);
+      console.log('FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+      console.log('File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
+      const response = await fetch('/api/inmates/upload-avatar', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      // Remove loading
+      document.body.removeChild(loadingDiv);
+
+      if (data.success) {
+        // Reload immediately to show new avatar
+        window.location.reload();
+      } else {
+        console.error('Upload validation errors:', data.errors);
+        let errorMessage = data.message || 'Unknown error';
+        if (data.errors) {
+          const errorMessages = Object.values(data.errors).flat();
+          errorMessage = errorMessages.join(', ');
+        }
+        alert('Upload failed: ' + errorMessage);
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      // Remove loading if it exists
+      const loading = document.querySelector('div[style*="position: fixed"]');
+      if (loading) document.body.removeChild(loading);
+      alert('Upload failed: ' + (error.message || 'Network error'));
+    }
+  }
+
+  /**
+   * Get inmate avatar URL with fallback to generated SVG
+   * @param {Object} inmate - Inmate object
+   * @returns {string} - Avatar URL
+   */
+  function getInmateAvatarUrl(inmate) {
+    if (inmate.avatar_path && inmate.avatar_filename) {
+      return `/storage/inmates/avatars/${inmate.id}/${inmate.avatar_filename}`;
+    }
+    
+    const name = [inmate.first_name, inmate.last_name].filter(Boolean).join(' ');
+    return generateAvatarSVG(name);
+  }
+
+  // Expose avatar functions globally
+  window.openAvatarUpload = openAvatarUpload;
+  window.generateAvatarSVG = generateAvatarSVG;
+  window.getInmateAvatarUrl = getInmateAvatarUrl;
 
   // Expose components for external use
   window.inmateStatusCounter = statusCounter;

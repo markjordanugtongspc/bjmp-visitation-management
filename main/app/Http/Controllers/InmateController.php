@@ -446,6 +446,8 @@ class InmateController extends Controller
                 'medicalNotes' => $inmate->medical_notes,
                 'initialPoints' => $inmate->initial_points,
                 'currentPoints' => $inmate->current_points,
+                'avatar_path' => $inmate->avatar_path,
+                'avatar_filename' => $inmate->avatar_filename,
                 'originalSentenceDays' => $inmate->original_sentence_days ?? null,
                 'reducedSentenceDays' => $inmate->reduced_sentence_days ?? 0,
                 'expectedReleaseDate' => $inmate->expected_release_date?->format('Y-m-d'),
@@ -616,5 +618,142 @@ class InmateController extends Controller
             'success' => true,
             'message' => 'File deleted successfully'
         ]);
+    }
+
+    /**
+     * Verify inmate by ID number for visitation request
+     * This endpoint allows visitors to verify PDL information using their ID
+     */
+    public function verifyByIdNumber(Request $request): JsonResponse
+    {
+        try {
+            $idNumber = $request->query('id_number');
+            $idType = $request->query('id_type');
+            
+            if (!$idNumber || !$idType) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID number and ID type are required'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+            
+            // Search for visitor with matching ID
+            $visitor = \App\Models\Visitor::where('id_number', $idNumber)
+                ->where('id_type', $idType)
+                ->where('is_allowed', true)
+                ->with(['inmate.cell'])
+                ->first();
+            
+            if (!$visitor || !$visitor->inmate) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No matching inmate found for this ID. Please ensure you are registered as an allowed visitor.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            $inmate = $visitor->inmate;
+            
+            // Return inmate and visitor information
+            return response()->json([
+                'success' => true,
+                'visitor_id' => $visitor->id,
+                'inmate' => [
+                    'id' => $inmate->id,
+                    'first_name' => $inmate->first_name,
+                    'last_name' => $inmate->last_name,
+                    'name' => $inmate->full_name,
+                    'status' => $inmate->status,
+                    'cell' => $inmate->cell ? [
+                        'id' => $inmate->cell->id,
+                        'name' => $inmate->cell->name
+                    ] : null,
+                    'avatar_path' => $inmate->avatar_path,
+                    'avatar_filename' => $inmate->avatar_filename
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to verify inmate by ID', [
+                'error' => $e->getMessage(),
+                'id_number' => $request->query('id_number')
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to verify inmate',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Upload avatar for an inmate
+     */
+    public function uploadAvatar(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
+                'inmate_id' => 'required|integer|exists:inmates,id',
+                'inmate_name' => 'required|string|max:255'
+            ]);
+
+            $inmateId = $request->input('inmate_id');
+            $inmateName = $request->input('inmate_name');
+            $inmate = Inmate::findOrFail($inmateId);
+
+            // Create directory structure: storage/app/public/inmates/avatars/{inmate_id}/
+            $directory = "inmates/avatars/{$inmateId}";
+            
+            // Generate filename using inmate name with underscores
+            $nameSlug = str_replace(' ', '_', strtolower($inmateName));
+            $extension = $request->file('avatar')->getClientOriginalExtension();
+            $filename = "{$nameSlug}_{$inmateId}.{$extension}";
+
+            // Delete old avatar if exists
+            if ($inmate->avatar_path && $inmate->avatar_filename) {
+                $oldPath = "public/{$inmate->avatar_path}/{$inmate->avatar_filename}";
+                if (Storage::exists($oldPath)) {
+                    Storage::delete($oldPath);
+                }
+            }
+
+            // Store the new avatar
+            $path = $request->file('avatar')->storeAs("public/{$directory}", $filename);
+
+            // Update inmate record
+            $inmate->update([
+                'avatar_path' => $directory,
+                'avatar_filename' => $filename
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Avatar uploaded successfully',
+                'data' => [
+                    'avatar_url' => "/storage/{$directory}/{$filename}",
+                    'avatar_path' => $directory,
+                    'avatar_filename' => $filename
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            Log::error('Failed to upload inmate avatar', [
+                'error' => $e->getMessage(),
+                'inmate_id' => $request->input('inmate_id')
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload avatar',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

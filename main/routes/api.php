@@ -28,6 +28,7 @@ Route::prefix('inmates')->middleware(['web'])->group(function () {
     Route::post('/', [InmateController::class, 'store'])->name('api.inmates.store');
     Route::get('/statistics', [InmateController::class, 'statistics'])->name('api.inmates.statistics');
     Route::get('/search', [InmateController::class, 'search'])->name('api.inmates.search');
+    Route::get('/verify-by-id', [InmateController::class, 'verifyByIdNumber'])->name('api.inmates.verify-by-id');
     Route::get('/{id}', [InmateController::class, 'show'])->name('api.inmates.show');
     Route::patch('/{id}', [InmateController::class, 'update'])->name('api.inmates.update');
     Route::delete('/{id}', [InmateController::class, 'destroy'])->name('api.inmates.destroy');
@@ -41,6 +42,9 @@ Route::prefix('inmates')->middleware(['web'])->group(function () {
     Route::get('/medical-files/{fileId}/download', [InmateController::class, 'downloadMedicalFile'])->name('api.inmates.download-medical-file');
     Route::patch('/medical-files/{fileId}', [InmateController::class, 'updateMedicalFile'])->name('api.inmates.update-medical-file');
     Route::delete('/medical-files/{fileId}', [InmateController::class, 'deleteMedicalFile'])->name('api.inmates.delete-medical-file');
+    
+    // Avatar upload endpoint
+    Route::post('/upload-avatar', [InmateController::class, 'uploadAvatar'])->name('api.inmates.upload-avatar');
 });
 
 // Cells API routes (order matters: static paths before dynamic /{cell})

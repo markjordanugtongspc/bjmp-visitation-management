@@ -42,6 +42,8 @@ class Inmate extends Model
         'reduced_sentence_days',
         'expected_release_date',
         'adjusted_release_date',
+        'avatar_path',
+        'avatar_filename',
     ];
 
     protected $casts = [

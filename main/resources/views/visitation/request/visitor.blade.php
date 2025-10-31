@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Visitation Form</title>
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('images/logo/bjmp_logo.png') }}" type="image/png">
@@ -91,17 +92,23 @@
                     @for ($d = 1; $d <= $daysInMonth; $d++)
                         @php
                             $isToday = $d === (int) $today->day;
-                            // Example availability: Mon/Wed/Fri open, others closed
+                            // Tuesday to Sunday are allowed (2,3,4,5,6,0)
                             $date = $today->copy()->day($d);
                             $dow = (int) $date->dayOfWeek; // 0 Sun ... 6 Sat
-                            $isOpen = in_array($dow, [1,3,5]);
+                            $isOpen = in_array($dow, [2,3,4,5,6,0]); // Tue-Sun
+                            $dateString = $date->format('Y-m-d');
                         @endphp
                         <button type="button"
-                           class="aspect-square rounded-lg border border-black/5 dark:border-white/10 flex items-center justify-center text-sm transition-colors cursor-pointer
-                                  {{ $isToday ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-blue-600/10 dark:hover:bg-blue-500/10' }}"
+                           class="calendar-day aspect-square rounded-lg border border-black/5 dark:border-white/10 flex items-center justify-center text-sm transition-all duration-200 {{ $isOpen ? 'cursor-pointer hover:bg-blue-600/10 dark:hover:bg-blue-500/10' : 'cursor-not-allowed opacity-50' }}
+                                  {{ $isToday ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100' }}"
                            aria-label="Day {{ $d }}"
+                           data-calendar-day="{{ $d }}"
+                           data-calendar-month="{{ $today->month }}"
+                           data-calendar-year="{{ $year }}"
+                           data-is-open="{{ $isOpen ? 'true' : 'false' }}"
+                           data-date="{{ $dateString }}"
 >                        
-                           <span class="relative transform transition-transform duration-200 ease-out hover:scale-105">
+                           <span class="relative transform transition-transform duration-200 ease-out {{ $isOpen ? 'hover:scale-105' : '' }}">
                             {{ $d }}
                             @if ($isOpen)
                               <span class="absolute -right-2 -top-2 size-1.5 rounded-full bg-emerald-500"></span>
@@ -140,7 +147,8 @@
                 <div class="rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-gray-900 p-6 shadow-md">
                     <h4 class="text-base font-semibold text-gray-900 dark:text-gray-50">Visitation Information</h4>
                     <ul class="mt-3 space-y-2 text-sm text-gray-700 dark:text-gray-300 list-disc ms-5">
-                        <li>Available visiting days: Monday, Wednesday, Friday.</li>
+                        <li>Available visiting days: <strong>Tuesday to Sunday</strong>.</li>
+                        <li>Available visiting hours: <strong>9:00 AM - 12:00 PM</strong> and <strong>2:00 PM - 5:00 PM</strong>.</li>
                         <li>Cut-off time for requests: 3:00 PM the day before.</li>
                         <li>Maximum visitors per schedule: 2 adults (children allowed with guardian).</li>
                         <li>Bring a valid government-issued ID and your request reference code.</li>
@@ -153,6 +161,6 @@
         <!-- Footer note -->
         <p class="mt-8 text-center text-xs text-gray-600 dark:text-gray-400">This page is a work in progress. We will iterate on features and design over time.</p>
     </div>
-    @vite('resources/js/visitation/request/visitmodal.js') <!-- Ingon ani pag tawag sa JS script gamit ng VITE -->
+    @vite(['resources/js/visitation/request/visitmodal.js', 'resources/js/visitation/calendar-handler.js']) <!-- Ingon ani pag tawag sa JS script gamit ng VITE -->
 </body>
 </html>
