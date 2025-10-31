@@ -19,7 +19,7 @@
         </aside>
 
         <!-- Main content -->
-    <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950" 
+    <div class="flex-1 min-h-screen bg-white dark:bg-gray-950" 
          data-upload-url="{{ route('warden.supervision.upload') }}"
          data-list-url="{{ route('warden.supervision.index') }}"
          data-preview-url="{{ route('warden.supervision.preview', ':id') }}"

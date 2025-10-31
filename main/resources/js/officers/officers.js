@@ -393,21 +393,27 @@ document.addEventListener('DOMContentLoaded', () => {
           Object.assign(data, updated);
           renderOrUpdateViews(data);
           await ensureSwal();
+          const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+          
           window.Swal.fire({
             icon: 'success',
-            title: 'Saved',
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Saved</span>`,
             timer: 900,
             showConfirmButton: false,
-            background: '#111827', // Gray 900
-            color: '#F9FAFB', // Gray 50
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
             width: isMobile() ? '90%' : '32rem',
           });
         } catch (e) {
           await ensureSwal();
+          const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+          
           window.Swal.fire({
             icon: 'error',
-            title: 'Error',
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
             text: e.message || 'Unable to update officer',
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
           });
         }
       }

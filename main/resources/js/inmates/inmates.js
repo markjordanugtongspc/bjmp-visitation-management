@@ -212,13 +212,15 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error fetching cells by gender:', error);
       // Show user-friendly error message
       if (window.Swal) {
+        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+        
         window.Swal.fire({
-          title: 'Error',
+          title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
           text: `Failed to load ${gender} cells. Please try again.`,
           icon: 'error',
           confirmButtonText: 'OK',
-          background: '#111827',
-          color: '#F9FAFB'
+          background: isDarkMode ? '#111827' : '#FFFFFF',
+          color: isDarkMode ? '#F9FAFB' : '#111827'
         });
       }
       return [];
@@ -1379,14 +1381,16 @@ document.addEventListener('DOMContentLoaded', () => {
                   const data = await response.json();
                   
                   if (data.success) {
+                    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+                    
                     Swal.fire({
                       icon: 'success',
-                      title: 'Points Added!',
+                      title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Points Added!</span>`,
                       text: 'Points entry saved successfully',
                       timer: 1500,
                       showConfirmButton: false,
-                      background: '#111827',
-                      color: '#F9FAFB'
+                      background: isDarkMode ? '#111827' : '#FFFFFF',
+                      color: isDarkMode ? '#F9FAFB' : '#111827'
                     });
                     
                     // Update inmate object with fresh data
@@ -1434,12 +1438,14 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
                 } catch (error) {
                   console.error('Error adding points:', error);
+                  const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+                  
                   Swal.fire({
                     icon: 'error',
-                    title: 'Error',
+                    title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
                     text: error.message || 'Failed to add points',
-                    background: '#111827',
-                    color: '#F9FAFB'
+                    background: isDarkMode ? '#111827' : '#FFFFFF',
+                    color: isDarkMode ? '#F9FAFB' : '#111827'
                   });
                 }
               }
@@ -2931,7 +2937,7 @@ async function openUnifiedInmateModal(inmate) {
       </div>
       <div class="lg:col-span-2 space-y-4">
         <!-- Basic Information (accordion) -->
-        <div class="rounded-lg border ${isDarkMode ? 'border-gray-800 bg-black-900' : 'border-gray-200 bg-white'}">
+        <div class="rounded-lg border ${isDarkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}">
           <button data-accordion-toggle="basic" class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium ${isDarkMode ? 'text-white hover:bg-gray-800' : 'text-gray-900 hover:bg-gray-50'} rounded-t-lg cursor-pointer">
             <span>Basic Information</span>
             <svg class="h-4 w-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.38a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
@@ -3969,6 +3975,8 @@ async function openUnifiedInmateModal(inmate) {
     padding: isMobile() ? '0.75rem' : '1.5rem',
     showCancelButton: false,
     showConfirmButton: false,
+    background: isDarkMode ? '#111827' : '#FFFFFF',
+    color: isDarkMode ? '#F9FAFB' : '#111827',
     didOpen: () => {
       // Attach close handler to custom close button
       const closeBtn = document.getElementById('swal-custom-close');
