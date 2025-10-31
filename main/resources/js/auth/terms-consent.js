@@ -35,14 +35,18 @@ function initTermsConsent() {
 
     e.preventDefault();
     e.stopPropagation();
+    
+    // Get theme-aware colors from ThemeManager
+    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    
     await (window.Swal ? window.Swal.fire({
       icon: 'error',
-      title: 'Agreement Required',
-      html: '<p class="text-sm">You must agree to the Terms and Conditions before logging in.</p>',
+      title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Agreement Required</span>`,
+      html: `<p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">You must agree to the Terms and Conditions before logging in.</p>`,
       confirmButtonText: 'Okay',
       confirmButtonColor: '#3B82F6',
-      background: '#111827',
-      color: '#F9FAFB'
+      background: isDarkMode ? '#111827' : '#FFFFFF',
+      color: isDarkMode ? '#F9FAFB' : '#111827'
     }) : Promise.resolve());
   });
 
@@ -53,33 +57,36 @@ function initTermsConsent() {
       e.preventDefault();
       e.stopPropagation();
 
+      // Get theme-aware colors from ThemeManager
+      const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+
       // Wide, desktop-optimized, Tailwind-styled Terms content, scrollable
       const termsHtml = `
         <div id="terms-scrollable" class="text-left space-y-4 max-h-[60vh] md:max-h-[500px] overflow-y-auto pr-3">
-          <h2 class="text-2xl md:text-3xl font-semibold text-gray-50 mb-2">BJMP Iligan City — Terms & Conditions</h2>
-          <p class="text-base text-gray-300">These terms govern the use of the BJMP Iligan City Information & Visitation System by authorized personnel.</p>
-          <ul class="list-disc pl-6 space-y-3 text-base text-gray-300">
-            <li><span class="font-medium text-gray-100">Account Ownership:</span> Officers must use only their assigned personal account. Shared use is strictly prohibited. Officers accept full responsibility for all actions performed using their credentials.</li>
-            <li><span class="font-medium text-gray-100">Data Confidentiality:</span> Information regarding Persons Deprived of Liberty (PDL), visitations, health status, or internal operations is confidential. Unauthorized disclosure is forbidden.</li>
-            <li><span class="font-medium text-gray-100">Audit & Compliance:</span> All actions are logged. Misuse, tampering, or attempts to circumvent system policies may result in administrative and legal actions.</li>
-            <li><span class="font-medium text-gray-100">Device Security:</span> Officers must secure access devices. Lock screens when unattended and report any compromise immediately to ICT.</li>
-            <li><span class="font-medium text-gray-100">Proper Use:</span> Use the system solely for official BJMP functions—PDL management, visitation scheduling, incident recording, and approved administrative tasks.</li>
-            <li><span class="font-medium text-gray-100">Data Integrity:</span> Enter accurate, verifiable data. Falsification or negligent entries are violations subject to sanction.</li>
+          <h2 class="text-2xl md:text-3xl font-semibold ${isDarkMode ? 'text-gray-50' : 'text-gray-900'} mb-2">BJMP Iligan City — Terms & Conditions</h2>
+          <p class="text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">These terms govern the use of the BJMP Iligan City Information & Visitation System by authorized personnel.</p>
+          <ul class="list-disc pl-6 space-y-3 text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">
+            <li><span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Account Ownership:</span> Officers must use only their assigned personal account. Shared use is strictly prohibited. Officers accept full responsibility for all actions performed using their credentials.</li>
+            <li><span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Data Confidentiality:</span> Information regarding Persons Deprived of Liberty (PDL), visitations, health status, or internal operations is confidential. Unauthorized disclosure is forbidden.</li>
+            <li><span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Audit & Compliance:</span> All actions are logged. Misuse, tampering, or attempts to circumvent system policies may result in administrative and legal actions.</li>
+            <li><span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Device Security:</span> Officers must secure access devices. Lock screens when unattended and report any compromise immediately to ICT.</li>
+            <li><span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Proper Use:</span> Use the system solely for official BJMP functions—PDL management, visitation scheduling, incident recording, and approved administrative tasks.</li>
+            <li><span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Data Integrity:</span> Enter accurate, verifiable data. Falsification or negligent entries are violations subject to sanction.</li>
           </ul>
-          <p class="text-xs text-gray-400 mt-2">By accepting, you agree to comply with these terms and understand that violations may lead to disciplinary measures in accordance with BJMP policies and applicable laws.</p>
+          <p class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-2">By accepting, you agree to comply with these terms and understand that violations may lead to disciplinary measures in accordance with BJMP policies and applicable laws.</p>
         </div>
         <div id="terms-buttons-placeholder"></div>
       `;
 
       // Fire SweetAlert2 with hidden buttons initially, wide on desktop, buttons right
       const result = await (window.Swal ? window.Swal.fire({
-        title: 'Terms & Conditions',
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Terms & Conditions</span>`,
         html: termsHtml,
         showCancelButton: true,
         confirmButtonText: 'Accept',
         cancelButtonText: 'Decline',
-        background: '#111827',
-        color: '#F9FAFB',
+        background: isDarkMode ? '#111827' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827',
         reverseButtons: false,
         customClass: {
           popup: 'w-full max-w-4xl md:w-[900px] md:max-w-[900px] rounded-xl shadow-2xl',

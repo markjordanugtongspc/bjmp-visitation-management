@@ -785,8 +785,11 @@ export class MedicalCardManager {
         `;
 
         // Show SweetAlert2 modal with custom HTML
+        // Get theme-aware colors from ThemeManager
+        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+        
         Swal.fire({
-            title: 'Upload Medical File',
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Upload Medical File</span>`,
             html: modalContent,
             width: '600px',
             showCloseButton: true,
@@ -794,9 +797,9 @@ export class MedicalCardManager {
             confirmButtonText: 'Upload File',
             cancelButtonText: 'Cancel',
             confirmButtonColor: '#3B82F6', // Blue color to match inmate-cells
-            cancelButtonColor: '#111827', // Dark color to match inmate-cells
-            background: '#111827', // Dark background to match inmate-cells
-            color: '#F9FAFB', // Light text to match inmate-cells
+            cancelButtonColor: isDarkMode ? '#111827' : '#6B7280', // Theme-aware cancel button
+            background: isDarkMode ? '#111827' : '#FFFFFF', // Theme-aware background
+            color: isDarkMode ? '#F9FAFB' : '#111827', // Theme-aware text color
             allowOutsideClick: true,
             allowEscapeKey: true,
             backdrop: true,
@@ -804,11 +807,11 @@ export class MedicalCardManager {
                 popup: 'swal-responsive-popup',
                 container: 'swal-responsive-container',
                 content: 'swal-responsive-content',
-                title: 'text-gray-100',
-                htmlContainer: 'text-gray-300',
-                closeButton: 'text-gray-400 hover:text-gray-300',
+                title: isDarkMode ? 'text-gray-100' : 'text-gray-900',
+                htmlContainer: isDarkMode ? 'text-gray-300' : 'text-gray-700',
+                closeButton: isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600',
                 confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-2 transition-colors',
-                cancelButton: 'bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium rounded-lg px-4 py-2 transition-colors'
+                cancelButton: isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium rounded-lg px-4 py-2 transition-colors' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg px-4 py-2 transition-colors'
             },
             didOpen: () => {
                 // Initialize file input handler after modal opens
