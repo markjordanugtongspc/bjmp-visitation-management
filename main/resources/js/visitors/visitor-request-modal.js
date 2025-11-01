@@ -286,7 +286,7 @@ export async function openVisitationRequestModal(inmate) {
               visitor_id: visitorId,
               inmate_id: inmate.id,
               schedule: sched,
-              reason_for_visit: reason,
+              reason_for_visit: reason || null,
               status: 2 // Pending
             })
           });

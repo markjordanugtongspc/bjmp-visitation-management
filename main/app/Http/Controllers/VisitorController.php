@@ -689,8 +689,8 @@ $visitor->setAttribute('latest_log', null);
                 'visitor_id' => 'required|exists:visitors,id',
                 'inmate_id' => 'required|exists:inmates,id',
                 'schedule' => 'required|date',
-                'reason_for_visit' => 'required|string|max:500',
-                'reference_number' => 'required|string|max:20|unique:visitation_logs,reference_number',
+                'reason_for_visit' => 'nullable|string|max:500',
+                'reference_number' => 'nullable|string|max:20|unique:visitation_logs,reference_number',
                 'status' => 'sometimes|integer|in:0,1,2' // 0=Declined, 1=Approved, 2=Pending
             ]);
 
@@ -702,9 +702,25 @@ $visitor->setAttribute('latest_log', null);
                 ], 422);
             }
 
+            // Generate reference number if not provided
+            $referenceNumber = $request->reference_number;
+            if (!$referenceNumber) {
+                $todayCount = DB::table('visitation_logs')
+                    ->whereDate('created_at', today())
+                    ->count();
+                $referenceNumber = 'VL-' . date('Ymd') . '-' . str_pad($todayCount + 1, 4, '0', STR_PAD_LEFT);
+                
+                // Ensure uniqueness
+                $counter = 1;
+                while (DB::table('visitation_logs')->where('reference_number', $referenceNumber)->exists()) {
+                    $referenceNumber = 'VL-' . date('Ymd') . '-' . str_pad($todayCount + 1 + $counter, 4, '0', STR_PAD_LEFT);
+                    $counter++;
+                }
+            }
+
             // Create visitation log entry
             $visitationLogId = DB::table('visitation_logs')->insertGetId([
-                'reference_number' => $request->reference_number,
+                'reference_number' => $referenceNumber,
                 'visitor_id' => $request->visitor_id,
                 'inmate_id' => $request->inmate_id,
                 'schedule' => $request->schedule,
@@ -726,7 +742,7 @@ $visitor->setAttribute('latest_log', null);
                 'message' => 'Visitation request created successfully',
                 'data' => [
                     'id' => $visitationLogId,
-                    'reference_number' => $request->reference_number
+                    'reference_number' => $referenceNumber
                 ]
             ]);
 
