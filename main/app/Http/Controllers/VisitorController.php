@@ -421,35 +421,25 @@ $visitor->setAttribute('latest_log', null);
     }
 
     /**
-     * Record Time In for a visitor
+     * Record Time In for a visitation log
      */
     public function recordTimeIn($id)
     {
         try {
-            $visitor = Visitor::find($id);
-            
-            if (!$visitor) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Visitor not found'
-                ], 404);
-            }
-
-            // Get the latest visitation log for this visitor
-            $latestLog = DB::table('visitation_logs')
-                ->where('visitor_id', $id)
-                ->orderBy('created_at', 'desc')
+            // $id is the visitation_log_id
+            $visitationLog = DB::table('visitation_logs')
+                ->where('id', $id)
                 ->first();
 
-            if (!$latestLog) {
+            if (!$visitationLog) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No visitation log found for this visitor'
+                    'message' => 'Visitation log not found'
                 ], 404);
             }
 
             // Check if time_in is already recorded
-            if ($latestLog->time_in) {
+            if ($visitationLog->time_in) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Time in already recorded'
@@ -458,7 +448,7 @@ $visitor->setAttribute('latest_log', null);
 
             // Update time_in
             DB::table('visitation_logs')
-                ->where('id', $latestLog->id)
+                ->where('id', $id)
                 ->update([
                     'time_in' => now(),
                     'updated_at' => now()
@@ -466,7 +456,7 @@ $visitor->setAttribute('latest_log', null);
 
             // Get updated log
             $updatedLog = DB::table('visitation_logs')
-                ->where('id', $latestLog->id)
+                ->where('id', $id)
                 ->first();
 
             return response()->json([
@@ -484,35 +474,25 @@ $visitor->setAttribute('latest_log', null);
     }
 
     /**
-     * Record Time Out for a visitor
+     * Record Time Out for a visitation log
      */
     public function recordTimeOut($id)
     {
         try {
-            $visitor = Visitor::find($id);
-            
-            if (!$visitor) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Visitor not found'
-                ], 404);
-            }
-
-            // Get the latest visitation log for this visitor
-            $latestLog = DB::table('visitation_logs')
-                ->where('visitor_id', $id)
-                ->orderBy('created_at', 'desc')
+            // $id is the visitation_log_id
+            $visitationLog = DB::table('visitation_logs')
+                ->where('id', $id)
                 ->first();
 
-            if (!$latestLog) {
+            if (!$visitationLog) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No visitation log found for this visitor'
+                    'message' => 'Visitation log not found'
                 ], 404);
             }
 
             // Check if time_in is recorded
-            if (!$latestLog->time_in) {
+            if (!$visitationLog->time_in) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Time in must be recorded before time out'
@@ -520,7 +500,7 @@ $visitor->setAttribute('latest_log', null);
             }
 
             // Check if time_out is already recorded
-            if ($latestLog->time_out) {
+            if ($visitationLog->time_out) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Time out already recorded'
@@ -529,7 +509,7 @@ $visitor->setAttribute('latest_log', null);
 
             // Update time_out
             DB::table('visitation_logs')
-                ->where('id', $latestLog->id)
+                ->where('id', $id)
                 ->update([
                     'time_out' => now(),
                     'updated_at' => now()
@@ -537,7 +517,7 @@ $visitor->setAttribute('latest_log', null);
 
             // Get updated log
             $updatedLog = DB::table('visitation_logs')
-                ->where('id', $latestLog->id)
+                ->where('id', $id)
                 ->first();
 
             return response()->json([
@@ -690,7 +670,7 @@ $visitor->setAttribute('latest_log', null);
                 'inmate_id' => 'required|exists:inmates,id',
                 'schedule' => 'required|date',
                 'reason_for_visit' => 'nullable|string|max:500',
-                'reference_number' => 'nullable|string|max:20|unique:visitation_logs,reference_number',
+                'reference_number' => 'nullable|string|max:20',
                 'status' => 'sometimes|integer|in:0,1,2' // 0=Declined, 1=Approved, 2=Pending
             ]);
 
@@ -702,19 +682,36 @@ $visitor->setAttribute('latest_log', null);
                 ], 422);
             }
 
-            // Generate reference number if not provided
+            // Auto-generate reference number if not provided (for existing visitors without one)
+            // Format: VL-YYYYMMDD-XXXX (e.g., VL-20251031-0001)
             $referenceNumber = $request->reference_number;
             if (!$referenceNumber) {
+                // Generate unique reference number based on today's count
                 $todayCount = DB::table('visitation_logs')
                     ->whereDate('created_at', today())
                     ->count();
                 $referenceNumber = 'VL-' . date('Ymd') . '-' . str_pad($todayCount + 1, 4, '0', STR_PAD_LEFT);
                 
-                // Ensure uniqueness
+                // Ensure uniqueness in case of race conditions
                 $counter = 1;
                 while (DB::table('visitation_logs')->where('reference_number', $referenceNumber)->exists()) {
                     $referenceNumber = 'VL-' . date('Ymd') . '-' . str_pad($todayCount + 1 + $counter, 4, '0', STR_PAD_LEFT);
                     $counter++;
+                }
+            } else {
+                // If reference number is provided, ensure it's unique
+                if (DB::table('visitation_logs')->where('reference_number', $referenceNumber)->exists()) {
+                    // Generate a new one if duplicate (e.g., if client-generated number already exists)
+                    $todayCount = DB::table('visitation_logs')
+                        ->whereDate('created_at', today())
+                        ->count();
+                    $referenceNumber = 'VL-' . date('Ymd') . '-' . str_pad($todayCount + 1, 4, '0', STR_PAD_LEFT);
+                    
+                    $counter = 1;
+                    while (DB::table('visitation_logs')->where('reference_number', $referenceNumber)->exists()) {
+                        $referenceNumber = 'VL-' . date('Ymd') . '-' . str_pad($todayCount + 1 + $counter, 4, '0', STR_PAD_LEFT);
+                        $counter++;
+                    }
                 }
             }
 
@@ -815,5 +812,63 @@ $visitor->setAttribute('latest_log', null);
         }
 
         return !empty($names) ? implode(' | ', $names) : 'N/A';
+    }
+
+    /**
+     * Update visitation log status (for requests page)
+     */
+    public function updateVisitationLogStatus(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|integer|in:0,1,2'
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid status',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        if (!Schema::hasTable('visitation_logs')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Visitation logs not initialized'
+            ], 400);
+        }
+
+        $log = DB::table('visitation_logs')->where('id', $id)->first();
+        
+        if (!$log) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Visitation log not found'
+            ], 404);
+        }
+
+        $statusInt = (int) $request->input('status');
+        $statusText = $statusInt === 1 ? 'Approved' : ($statusInt === 0 ? 'Denied' : 'Pending');
+
+        // Check if status column is enum or integer
+        $colInfo = DB::select("SHOW COLUMNS FROM visitation_logs LIKE 'status'");
+        $type = strtolower($colInfo[0]->Type ?? '');
+        $isEnum = str_starts_with($type, 'enum');
+
+        $update = [
+            'status' => $isEnum ? $statusText : $statusInt,
+            'updated_at' => now(),
+        ];
+
+        DB::table('visitation_logs')->where('id', $id)->update($update);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status updated successfully',
+            'data' => [
+                'id' => $id,
+                'status' => $isEnum ? $statusText : $statusInt,
+            ]
+        ]);
     }
 }

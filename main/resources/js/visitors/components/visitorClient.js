@@ -104,7 +104,15 @@ class VisitorApiClient {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                let errorMessage = errorData.message || `HTTP error! status: ${response.status}`;
+                
+                // Include validation errors if present
+                if (errorData.errors) {
+                    const validationErrors = Object.values(errorData.errors).flat().join(', ');
+                    errorMessage += ': ' + validationErrors;
+                }
+                
+                throw new Error(errorMessage);
             }
 
             return await response.json();
@@ -160,6 +168,34 @@ class VisitorApiClient {
             return await response.json();
         } catch (error) {
             console.error(`Error deleting visitor ${id}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update visitation log status (for requests page)
+     */
+    async updateVisitationLogStatus(id, status) {
+        try {
+            const response = await fetch(`/api/visitation-requests/${id}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ status })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(`Error updating visitation log ${id} status:`, error);
             throw error;
         }
     }

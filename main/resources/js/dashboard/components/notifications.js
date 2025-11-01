@@ -87,7 +87,7 @@ export async function initNotifications() {
       const timeAgo = getTimeAgo(createdAt);
 
       return `
-        <div class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 last:border-0">
+        <div class="px-4 py-3 hover:bg-white/50 dark:hover:bg-white/5 border-b border-gray-200 dark:border-gray-800 last:border-0 transition-colors">
           <div class="flex items-start justify-between gap-3">
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-gray-900 dark:text-gray-50 truncate">
@@ -95,7 +95,7 @@ export async function initNotifications() {
               </p>
               <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 Wants to visit: <span class="font-medium text-gray-700 dark:text-gray-300">${inmateName}</span>
-                ${inmateId ? `<span class="text-gray-400">(ID ${String(inmateId).padStart(4, '0')})</span>` : ''}
+                ${inmateId ? `<span class="text-gray-400 dark:text-gray-500">(ID ${String(inmateId).padStart(4, '0')})</span>` : ''}
               </p>
               <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">${timeAgo}</p>
             </div>
@@ -179,16 +179,17 @@ window.handleNotificationAction = async function(visitorId, action) {
       throw new Error(errorData.message || 'Failed to update request');
     }
 
-    // Show success message
-    if (window.Swal) {
+    // Show success message with theme integration
+    if (window.Swal && window.ThemeManager) {
+      const isDarkMode = window.ThemeManager.isDarkMode();
       window.Swal.fire({
         icon: 'success',
-        title: `<span style="color: white;">${action === 'approve' ? 'Request Approved!' : 'Request Rejected'}</span>`,
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">${action === 'approve' ? 'Request Approved!' : 'Request Rejected'}</span>`,
         text: `The visitor request has been ${action === 'approve' ? 'approved' : 'rejected'}.`,
         timer: 2000,
         showConfirmButton: false,
-        background: '#111827',
-        color: '#F9FAFB'
+        background: isDarkMode ? '#111827' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827'
       });
     }
 
@@ -201,14 +202,15 @@ window.handleNotificationAction = async function(visitorId, action) {
   } catch (error) {
     console.error('Error updating request:', error);
     
-    // Show error message
-    if (window.Swal) {
+    // Show error message with theme integration
+    if (window.Swal && window.ThemeManager) {
+      const isDarkMode = window.ThemeManager.isDarkMode();
       window.Swal.fire({
         icon: 'error',
-        title: 'Error',
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
         text: error.message || 'Failed to update the request. Please try again.',
-        background: '#111827',
-        color: '#F9FAFB'
+        background: isDarkMode ? '#111827' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827'
       });
     }
 

@@ -20,7 +20,7 @@
   <img src="{{ asset('images/logo/bjmp_logo.png') }}" alt="Application Logo" class="{{ $logoSize }} flex-shrink-0 rounded-full ring-0">
   @if($showText)
     <div class="leading-tight">
-      <div class="text-sm font-semibold text-gray-900 dark:text-gray-50">{{ $heading }}</div>
+      <div class="text-gray-900 dark:text-gray-100">{{ $heading }}</div>
       @if($subtext)
         <div class="text-[11px] text-gray-500 dark:text-gray-400">{{ $subtext }}</div>
       @endif

@@ -17,7 +17,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js']) <!-- Kani gamiton aron ma import ang tailwind css nga naka built in -->
 </head>
 <body class="dark bg-white dark:bg-slate-900 text-[#1b1b18] min-h-screen"> <!-- Default Bacground - Dark Mode -->
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 font-['Poppins',_sans-serif]">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 font-['Poppins',sans-serif]">
         <!-- Home Button and Dark Mode Toggle -->
         <div class="mb-6 flex justify-between items-center">
             <a href="{{ url('/') }}" class="inline-flex items-center gap-2 rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-gray-900 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20">
@@ -102,7 +102,6 @@
                         <button type="button"
                            class="calendar-day aspect-square rounded-lg border border-black/5 dark:border-white/10 flex items-center justify-center text-sm transition-all duration-200 {{ $isOpen ? 'cursor-pointer hover:bg-blue-600/10 dark:hover:bg-blue-500/10' : 'cursor-not-allowed opacity-50' }}
                                   {{ $isToday ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100' }}
-                                  {{ $isToday ? '' : 'hover:text-white' }}
                                   {{ $isToday ? '' : 'selected:text-gray-900' }}"
                            aria-label="Day {{ $d }}"
                            data-calendar-day="{{ $d }}"
@@ -111,7 +110,7 @@
                            data-is-open="{{ $isOpen ? 'true' : 'false' }}"
                            data-date="{{ $dateString }}"
 >                        
-                           <span class="relative transform transition-transform duration-200 ease-out {{ $isOpen ? 'hover:scale-105' : '' }}">
+                           <span class="relative transform transition-transform duration-200 ease-out {{ $isOpen ? 'hover:scale-105 hover:font-bold' : '' }}">
                             {{ $d }}
                             @if ($isOpen)
                               <span class="absolute -right-2 -top-2 size-1.5 rounded-full bg-emerald-500"></span>

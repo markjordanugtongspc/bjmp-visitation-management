@@ -225,13 +225,16 @@ function highlightSelectedDate(dateString) {
     // Get theme-aware colors from ThemeManager
     const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
     
-    // Remove previous selection
+    // Remove previous selection (ring indicators only, preserve isToday styling)
     document.querySelectorAll('[data-calendar-day]').forEach(btn => {
         btn.classList.remove('ring-4', 'ring-blue-500', 'ring-offset-2', 'ring-offset-gray-900');
         btn.classList.remove('ring-offset-white');
-        btn.classList.remove('bg-blue-500', '!text-white');
-        btn.classList.remove('bg-blue-600', 'text-white');
-        btn.classList.remove('!text-gray-900');
+        // Only remove bg-blue-500 if it exists (user selection), not bg-blue-600 (isToday)
+        if (btn.classList.contains('bg-blue-500')) {
+            btn.classList.remove('bg-blue-500', '!text-white');
+            // Only remove !text-gray-900 if it was added as part of selection
+            btn.classList.remove('!text-gray-900');
+        }
     });
     
     // Add selection to new date
@@ -241,7 +244,10 @@ function highlightSelectedDate(dateString) {
     );
     
     if (button) {
-        // Apply theme-aware selection styling
+        // Check if this is the current day (has bg-blue-600)
+        const isToday = button.classList.contains('bg-blue-600');
+        
+        // Apply selection ring
         button.classList.add('ring-4', 'ring-blue-500', 'ring-offset-2');
         
         // Theme-aware ring offset
@@ -251,14 +257,19 @@ function highlightSelectedDate(dateString) {
             button.classList.add('ring-offset-white');
         }
         
-        // Theme-aware text color for selected date
-        if (isDarkMode) {
-            // Dark mode: white text on blue background
-            button.classList.add('bg-blue-500', '!text-white');
-        } else {
-            // Light mode: black text on blue background
-            button.classList.add('bg-blue-500', '!text-gray-900');
+        // Apply background color only if NOT today
+        // If isToday, keep bg-blue-600 and just add the ring
+        if (!isToday) {
+            // Theme-aware text color for selected date
+            if (isDarkMode) {
+                // Dark mode: white text on blue background
+                button.classList.add('bg-blue-500', '!text-white');
+            } else {
+                // Light mode: black text on blue background
+                button.classList.add('bg-blue-500', '!text-gray-900');
+            }
         }
+        // If isToday, the existing bg-blue-600 text-white classes remain unchanged
     }
 }
 
@@ -270,24 +281,15 @@ export function getSelectedDate() {
 }
 
 /**
- * Generate time slots from 8:00 AM to 5:00 PM with 30-minute intervals
+ * Generate time slots from CalendarConfig configuration
  */
 function generateTimeSlots() {
     const slots = [];
-    const startHour = 8; // 8:00 AM
-    const endHour = 17;  // 5:00 PM
     
-    for (let hour = startHour; hour <= endHour; hour++) {
-        for (let minute = 0; minute < 60; minute += 30) {
-            if (hour === endHour && minute > 0) break; // Don't go beyond 5:00 PM
-            
-            const time = hour <= 12 
-                ? `${hour === 12 ? 12 : hour}:${minute.toString().padStart(2, '0')} ${minute === 0 ? 'PM' : 'PM'}`
-                : `${hour - 12}:${minute.toString().padStart(2, '0')} PM`;
-            
-            slots.push(`<option value="${time}">${time}</option>`);
-        }
-    }
+    // Use the configured time slots
+    CalendarConfig.timeSlots.forEach(slot => {
+        slots.push(`<option value="${slot.value}">${slot.label}</option>`);
+    });
     
     return slots.join('');
 }
@@ -319,7 +321,7 @@ export async function openManualRequestModal() {
         weekday: 'long'
     });
 
-    // Generate time slots from 8:00 AM to 5:00 PM with 30-minute intervals
+    // Generate time slots from CalendarConfig
     const timeOptions = generateTimeSlots();
 
     const html = `
@@ -537,6 +539,42 @@ function hidePDLInfo() {
 }
 
 /**
+ * Convert time format to 24-hour format
+ * @param {string} time - Time in either 12-hour (e.g., "8:00 AM", "1:30 PM") or 24-hour format (e.g., "08:00", "13:30")
+ * @returns {string} Time in 24-hour format (e.g., "08:00", "13:30")
+ */
+function convertTo24Hour(time) {
+    // If already in 24-hour format (no AM/PM), return as-is
+    if (!time || typeof time !== 'string') {
+        return time;
+    }
+    
+    const parts = time.trim().split(' ');
+    
+    // If only one part, it's already 24-hour format
+    if (parts.length === 1) {
+        return time;
+    }
+    
+    // Handle 12-hour format (e.g., "8:00 AM", "1:30 PM")
+    const [timePart, ampm] = parts;
+    const [hours, minutes] = timePart.split(':').map(Number);
+    
+    if (isNaN(hours) || isNaN(minutes)) {
+        return time; // Return original if parsing fails
+    }
+    
+    let hours24 = hours;
+    if (ampm && ampm.toUpperCase() === 'PM' && hours !== 12) {
+        hours24 = hours + 12;
+    } else if (ampm && ampm.toUpperCase() === 'AM' && hours === 12) {
+        hours24 = 0;
+    }
+    
+    return `${String(hours24).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+/**
  * Validate form and proceed to submit
  */
 function validateAndProceedToSubmit(visitDate) {
@@ -578,8 +616,11 @@ function validateAndProceedToSubmit(visitDate) {
         return false;
     }
     
-    // Combine date and time
-    const scheduleDateTime = `${visitDate} ${visitTime}:00`;
+    // Convert time format to 24-hour format (HH:mm) - handles both 12-hour and 24-hour
+    const time24Hour = convertTo24Hour(visitTime);
+    
+    // Combine date and time in ISO 8601 format: YYYY-MM-DDTHH:mm:ss
+    const scheduleDateTime = `${visitDate}T${time24Hour}:00`;
     
     return {
         visitor_id: visitorId,
@@ -616,14 +657,17 @@ function generateReferenceNumber() {
  */
 async function submitVisitationRequest(requestData) {
     try {
+        // Get theme-aware colors from ThemeManager
+        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+        
         window.Swal.fire({
-            title: 'Submitting Request...',
-            html: 'Please wait while we process your visitation request.',
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Submitting Request...</span>`,
+            html: `<p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">Please wait while we process your visitation request.</p>`,
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
-            background: '#111827',
-            color: '#F9FAFB',
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
             didOpen: () => {
                 window.Swal.showLoading();
             }
@@ -648,7 +692,15 @@ async function submitVisitationRequest(requestData) {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to submit visitation request');
+            let errorMessage = errorData.message || 'Failed to submit visitation request';
+            
+            // Include validation errors if present
+            if (errorData.errors) {
+                const validationErrors = Object.values(errorData.errors).flat().join(', ');
+                errorMessage += ': ' + validationErrors;
+            }
+            
+            throw new Error(errorMessage);
         }
         
         const data = await response.json();
@@ -661,9 +713,6 @@ async function submitVisitationRequest(requestData) {
         await sendVisitationReminder(requestData);
         
         // Show success message
-        // Get theme-aware colors from ThemeManager
-        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
-        
         await window.Swal.fire({
             title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Request Submitted!</span>`,
             html: `
@@ -689,9 +738,6 @@ async function submitVisitationRequest(requestData) {
         
     } catch (error) {
         console.error('Error submitting visitation request:', error);
-        
-        // Get theme-aware colors from ThemeManager
-        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
         
         await window.Swal.fire({
             title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Submission Failed</span>`,

@@ -4205,7 +4205,10 @@ function openVisitorModal(visitor) {
               }
             });
             
-            if (!response.ok) throw new Error('Failed to record time in');
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'Failed to record time in');
+            }
             
             const result = await response.json();
             
@@ -4221,9 +4224,10 @@ function openVisitorModal(visitor) {
               iconColor: '#1dca00'
             });
             
-            // Reopen the modal with updated data
+            // Update visitor's latestLog with fresh data from backend
             if (result.data) {
               visitor.latestLog = result.data;
+              // Reopen the modal with updated data
               openVisitorModal(visitor);
             }
           } catch (error) {
@@ -4231,7 +4235,7 @@ function openVisitorModal(visitor) {
             Swal.fire({
               icon: 'error',
               title: 'Error',
-              text: 'Failed to record time in. Please try again.',
+              text: error.message || 'Failed to record time in. Please try again.',
               background: '#111827',
               color: '#F9FAFB',
               confirmButtonColor: '#3B82F6'
@@ -4258,7 +4262,10 @@ function openVisitorModal(visitor) {
               }
             });
             
-            if (!response.ok) throw new Error('Failed to record time out');
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'Failed to record time out');
+            }
             
             const result = await response.json();
             
@@ -4274,9 +4281,10 @@ function openVisitorModal(visitor) {
               iconColor: '#1dca00'
             });
             
-            // Reopen the modal with updated data
+            // Update visitor's latestLog with fresh data from backend
             if (result.data) {
               visitor.latestLog = result.data;
+              // Reopen the modal with updated data
               openVisitorModal(visitor);
             }
           } catch (error) {
@@ -4284,7 +4292,7 @@ function openVisitorModal(visitor) {
             Swal.fire({
               icon: 'error',
               title: 'Error',
-              text: 'Failed to record time out. Please try again.',
+              text: error.message || 'Failed to record time out. Please try again.',
               background: '#111827',
               color: '#F9FAFB',
               confirmButtonColor: '#3B82F6'

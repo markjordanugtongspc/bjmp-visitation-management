@@ -78,7 +78,7 @@ Route::prefix('visitors')->middleware(['web'])->group(function () {
     Route::patch('/{id}/status', [VisitorController::class, 'updateStatus'])->name('api.visitors.update-status');
     Route::delete('/{id}', [VisitorController::class, 'destroy'])->name('api.visitors.destroy');
     
-    // Time In/Time Out routes
+    // Time In/Time Out routes (id = visitation_log_id)
     Route::post('/{id}/time-in', [VisitorController::class, 'recordTimeIn'])->name('api.visitors.time-in');
     Route::post('/{id}/time-out', [VisitorController::class, 'recordTimeOut'])->name('api.visitors.time-out');
 });
@@ -86,6 +86,7 @@ Route::prefix('visitors')->middleware(['web'])->group(function () {
 // Visitation Requests (Logs) API routes
 Route::prefix('visitation-requests')->middleware(['web'])->group(function () {
     Route::get('/', [VisitorController::class, 'getVisitationRequests'])->name('api.visitation-requests.index');
+    Route::patch('/{id}/status', [VisitorController::class, 'updateVisitationLogStatus'])->name('api.visitation-requests.update-status');
 });
 
 // Visitation Logs API routes

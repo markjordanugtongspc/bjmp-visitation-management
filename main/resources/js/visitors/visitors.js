@@ -149,6 +149,27 @@ document.addEventListener('DOMContentLoaded', () => {
   function tableRowHtml(v) {
     const badge = statusBadge(v.status);
     const reasonForVisit = v.reason_for_visit || 'N/A';
+    
+    // Determine status label
+    let statusLabel = v.status;
+    if (typeof v.status === 'number') {
+      statusLabel = v.status === 1 ? 'Approved' : (v.status === 0 ? 'Declined' : 'Pending');
+    }
+    if (statusLabel === 'Rejected' || statusLabel === 'Denied') statusLabel = 'Declined';
+    
+    // Determine button states
+    const isApproved = statusLabel === 'Approved';
+    const isDeclined = statusLabel === 'Declined';
+    // Disable the button that matches the current status
+    const approveDisabled = isApproved;
+    const declineDisabled = isDeclined;
+    const approveBtnClass = approveDisabled 
+      ? 'px-2 py-1 text-xs rounded bg-gray-400 text-white cursor-not-allowed opacity-50' 
+      : 'px-2 py-1 text-xs rounded bg-green-800 hover:bg-green-900 text-white cursor-pointer';
+    const declineBtnClass = declineDisabled
+      ? 'px-2 py-1 text-xs rounded bg-gray-400 text-white cursor-not-allowed opacity-50'
+      : 'px-2 py-1 text-xs rounded bg-red-800 hover:bg-red-900 text-white cursor-pointer';
+    
     return `
       <tr data-id="${v.id}">
         <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
@@ -160,8 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <td class="px-3 py-3">${badge}</td>
         <td class="px-3 py-3">
           <div class="flex items-center gap-2 justify-end">
-            <button class="px-2 py-1 text-xs rounded bg-green-800 hover:bg-green-900 text-white cursor-pointer" data-action="approve">Approve</button>
-            <button class="px-2 py-1 text-xs rounded bg-red-800 hover:bg-red-900 text-white cursor-pointer" data-action="decline">Decline</button>
+            <button class="${approveBtnClass}" data-action="approve" ${approveDisabled ? 'disabled' : ''}>Approve</button>
+            <button class="${declineBtnClass}" data-action="decline" ${declineDisabled ? 'disabled' : ''}>Decline</button>
           </div>
         </td>
       </tr>
@@ -170,6 +191,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function mobileCardHtml(v) {
     const reasonForVisit = v.reason_for_visit || 'N/A';
+    
+    // Determine status label
+    let statusLabel = v.status;
+    if (typeof v.status === 'number') {
+      statusLabel = v.status === 1 ? 'Approved' : (v.status === 0 ? 'Declined' : 'Pending');
+    }
+    if (statusLabel === 'Rejected' || statusLabel === 'Denied') statusLabel = 'Declined';
+    
+    // Determine button states
+    const isApproved = statusLabel === 'Approved';
+    const isDeclined = statusLabel === 'Declined';
+    // Disable the button that matches the current status
+    const approveDisabled = isApproved;
+    const declineDisabled = isDeclined;
+    const approveBtnClass = approveDisabled 
+      ? 'w-full py-2 text-sm rounded bg-gray-400 text-white font-medium cursor-not-allowed opacity-50' 
+      : 'w-full py-2 text-sm rounded bg-green-800 hover:bg-green-900 text-white font-medium cursor-pointer';
+    const declineBtnClass = declineDisabled
+      ? 'w-full py-2 text-sm rounded bg-gray-400 text-white font-medium cursor-not-allowed opacity-50'
+      : 'w-full py-2 text-sm rounded bg-red-800 hover:bg-red-900 text-white font-medium cursor-pointer';
+    
     return `
       <div data-id="${v.id}" class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
         <div class="flex items-start justify-between">
@@ -182,8 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <div>${statusBadge(v.status)}</div>
         </div>
         <div class="mt-3 grid grid-cols-2 gap-2">
-          <button class="w-full py-2 text-sm rounded bg-green-800 hover:bg-green-900 text-white font-medium cursor-pointer" data-action="approve">Approve</button>
-          <button class="w-full py-2 text-sm rounded bg-red-800 hover:bg-red-900 text-white font-medium cursor-pointer" data-action="decline">Decline</button>
+          <button class="${approveBtnClass}" data-action="approve" ${approveDisabled ? 'disabled' : ''}>Approve</button>
+          <button class="${declineBtnClass}" data-action="decline" ${declineDisabled ? 'disabled' : ''}>Decline</button>
         </div>
       </div>
     `;
@@ -208,6 +250,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleAction(id, action) {
     const item = visitors.find(v => v.id === id);
     if (!item) return;
+    
+    // Determine status label
+    let statusLabel = item.status;
+    if (typeof item.status === 'number') {
+      statusLabel = item.status === 1 ? 'Approved' : (item.status === 0 ? 'Declined' : 'Pending');
+    }
+    if (statusLabel === 'Rejected' || statusLabel === 'Denied') statusLabel = 'Declined';
+    
+    // Prevent action if already in that state
+    const isAlreadyApproved = statusLabel === 'Approved' && action === 'approve';
+    const isAlreadyDeclined = statusLabel === 'Declined' && action === 'decline';
+    if (isAlreadyApproved || isAlreadyDeclined) return;
 
     // Get theme-aware colors from ThemeManager
     const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
@@ -251,12 +305,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const api = new VisitorApiClient();
             const newStatus = isApprove ? 1 : 0;
-            await api.updateStatus(item.id, newStatus);
-            item.status = isApprove ? 'Approved' : 'Declined';
-            render();
+            await api.updateVisitationLogStatus(item.id, newStatus);
+            
+            // Reload backend data to get fresh data
+            await loadBackendVisitors();
+            
             window.Swal.fire({
               title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Updated</span>`,
-              text: `Visitor marked as ${item.status}.`,
+              text: `Visitor marked as ${isApprove ? 'Approved' : 'Declined'}.`,
               icon: 'success',
               timer: 1200,
               showConfirmButton: false,
@@ -698,7 +754,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
                 });
                 
-                if (!response.ok) throw new Error('Failed to record time in');
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.message || 'Failed to record time in');
+                }
                 
                 const result = await response.json();
                 
@@ -710,7 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 
                 const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
-                Swal.fire({
+                await Swal.fire({
                   icon: 'success',
                   title: 'Time In Recorded!',
                   text: `Time in recorded at ${timeInTime}`,
@@ -721,16 +780,17 @@ document.addEventListener('DOMContentLoaded', () => {
                   iconColor: '#1dca00'
                 });
                 
-                // Reload the modal with updated data
-                if (result.success && result.data) {
-                  // Update the data with new time_in data
-                  data.time_in = result.data.time_in;
-                  data.time_out = result.data.time_out;
-                  data.status = result.data.status;
-                  
-                  // Close current modal and reopen with updated data
+                // Reload backend data to get fresh data
+                await loadBackendVisitors();
+                
+                // Find the updated visitor in the refreshed list
+                const updatedVisitor = visitors.find(v => v.id === visitorId);
+                if (updatedVisitor) {
+                  // Reopen modal with fresh data
+                  openVisitorModal(updatedVisitor);
+                } else {
+                  // Fallback: just close the modal
                   Swal.close();
-                  setTimeout(() => openVisitorModal(data), 100);
                 }
               } catch (error) {
                 console.error('Error recording time in:', error);
@@ -738,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Swal.fire({
                   icon: 'error',
                   title: 'Error',
-                  text: 'Failed to record time in. Please try again.',
+                  text: error.message || 'Failed to record time in. Please try again.',
                   background: isDarkMode ? '#1F2937' : '#FFFFFF',
                   color: isDarkMode ? '#F9FAFB' : '#111827',
                   confirmButtonColor: '#3B82F6'
@@ -764,7 +824,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
                 });
                 
-                if (!response.ok) throw new Error('Failed to record time out');
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.message || 'Failed to record time out');
+                }
                 
                 const result = await response.json();
                 
@@ -776,7 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 
                 const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
-                Swal.fire({
+                await Swal.fire({
                   icon: 'success',
                   title: 'Time Out Recorded!',
                   text: `Time out recorded at ${timeOutTime}`,
@@ -787,23 +850,25 @@ document.addEventListener('DOMContentLoaded', () => {
                   iconColor: '#1dca00'
                 });
                 
-                // Reload the modal with updated data
-                if (result.success && result.data) {
-                  // Update the data with new time_out data
-                  data.time_in = result.data.time_in;
-                  data.time_out = result.data.time_out;
-                  data.status = result.data.status;
-                  
-                  // Close current modal and reopen with updated data
+                // Reload backend data to get fresh data
+                await loadBackendVisitors();
+                
+                // Find the updated visitor in the refreshed list
+                const updatedVisitor = visitors.find(v => v.id === visitorId);
+                if (updatedVisitor) {
+                  // Reopen modal with fresh data
+                  openVisitorModal(updatedVisitor);
+                } else {
+                  // Fallback: just close the modal
                   Swal.close();
-                  setTimeout(() => openVisitorModal(data), 100);
                 }
               } catch (error) {
                 console.error('Error recording time out:', error);
+                const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
                 Swal.fire({
                   icon: 'error',
                   title: 'Error',
-                  text: 'Failed to record time out. Please try again.',
+                  text: error.message || 'Failed to record time out. Please try again.',
                   background: isDarkMode ? '#1F2937' : '#FFFFFF',
                   color: isDarkMode ? '#F9FAFB' : '#111827',
                   confirmButtonColor: '#3B82F6'
@@ -1252,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const totalElement = document.getElementById('visitors-total');
       const approvedElement = document.getElementById('visitors-approved');
       const pendingElement = document.getElementById('visitors-pending');
-      const declinedElement = document.getElementById('visitors-declined');
+      const declinedElement = document.getElementById('visitors-rejected');
 
       if (totalElement && visitors.length > 0) {
         const total = visitors.length;
