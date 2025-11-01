@@ -293,7 +293,7 @@ export class MedicalCardManager {
     }
 
     /**
-     * Render medical files section with responsive carousel design
+     * Render medical files section with responsive table design
      * @param {Object} inmate - Inmate data with medical files
      * @returns {string} HTML string for medical files section
      */
@@ -314,12 +314,8 @@ export class MedicalCardManager {
             `;
         }
 
-        // Use carousel for multiple items, grid for single page
-        if (files.length > 3) {
-            return this.renderMedicalFilesCarousel(files);
-        } else {
-            return this.renderMedicalFilesGrid(files);
-        }
+        // Use table view for all files
+        return this.renderMedicalDocumentsTable(inmate);
     }
 
     /**
@@ -389,6 +385,205 @@ export class MedicalCardManager {
                             </svg>
                         </button>
                     </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Render medical documents table with responsive design
+     * @param {Object} inmate - Inmate data with medical files
+     * @returns {string} HTML string for medical documents table
+     */
+    renderMedicalDocumentsTable(inmate) {
+        const files = inmate.medicalFiles || [];
+        
+        if (files.length === 0) {
+            return `
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Medical Documents</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">No medical documents have been uploaded yet.</p>
+                </div>
+            `;
+        }
+
+        // Desktop table view
+        const desktopTable = `
+            <div class="hidden md:block overflow-x-auto">
+                <div class="max-h-96 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                    <table class="w-full text-sm text-left text-gray-700 dark:text-gray-300">
+                        <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase bg-gray-100 dark:bg-gray-800 sticky top-0 z-10">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">File Name</th>
+                                <th scope="col" class="px-4 py-3">Notes</th>
+                                <th scope="col" class="px-4 py-3">Uploaded By</th>
+                                <th scope="col" class="px-4 py-3 whitespace-nowrap">Upload Date</th>
+                                <th scope="col" class="px-4 py-3 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${files.map(file => this.renderMedicalDocumentRow(file)).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        // Mobile cards view
+        const mobileCards = `
+            <div class="md:hidden space-y-4">
+                ${files.map(file => this.renderMedicalDocumentCard(file)).join('')}
+            </div>
+        `;
+
+        return desktopTable + mobileCards;
+    }
+
+    /**
+     * Truncate file name if it's too long
+     * @param {string} fileName - File name to truncate
+     * @param {number} maxLength - Maximum length before truncation
+     * @returns {string} Truncated file name
+     */
+    truncateFileName(fileName, maxLength = 30) {
+        if (!fileName || fileName.length <= maxLength) {
+            return fileName;
+        }
+        
+        // Get file extension
+        const lastDotIndex = fileName.lastIndexOf('.');
+        const extension = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : '';
+        const nameWithoutExt = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
+        
+        // Calculate how much of the name we can show
+        const availableLength = maxLength - extension.length - 3; // 3 for "..."
+        
+        if (availableLength <= 0) {
+            return fileName.substring(0, maxLength - 3) + '...';
+        }
+        
+        return nameWithoutExt.substring(0, availableLength) + '...' + extension;
+    }
+
+    /**
+     * Render a single medical document table row for desktop
+     * @param {Object} file - Medical file object
+     * @returns {string} HTML string for table row
+     */
+    renderMedicalDocumentRow(file) {
+        const fileSize = this.formatFileSize(file.file_size);
+        const notes = file.notes || 'N/A';
+        const uploadedBy = file.uploaded_by || 'Unknown';
+        const uploadDate = this.formatDate(file.created_at);
+        const displayName = this.truncateFileName(file.file_name, 35);
+        
+        return `
+            <tr class="border-b border-gray-200 dark:border-gray-700 last:border-none hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="font-medium text-gray-900 dark:text-gray-100" title="${file.file_name}">${displayName}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${fileSize}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-4 py-3">
+                    <p class="text-gray-600 dark:text-gray-400 line-clamp-2">${notes}</p>
+                </td>
+                <td class="px-4 py-3">
+                    <p class="text-gray-600 dark:text-gray-400">${uploadedBy}</p>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <p class="text-gray-600 dark:text-gray-400">${uploadDate}</p>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center justify-center gap-2">
+                        <button onclick="window.medicalCard.downloadMedicalFile('${file.id}', '${file.file_name}')" 
+                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 transition-colors cursor-pointer"
+                                title="Download">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </button>
+                        <button onclick="window.medicalCard.deleteMedicalFile('${file.id}')" 
+                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors cursor-pointer"
+                                title="Delete">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    /**
+     * Render a single medical document card for mobile
+     * @param {Object} file - Medical file object
+     * @returns {string} HTML string for card
+     */
+    renderMedicalDocumentCard(file) {
+        const fileSize = this.formatFileSize(file.file_size);
+        const notes = file.notes || 'N/A';
+        const uploadedBy = file.uploaded_by || 'Unknown';
+        const uploadDate = this.formatDate(file.created_at);
+        const displayName = this.truncateFileName(file.file_name, 40);
+        
+        return `
+            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-start gap-3 mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 break-words" title="${file.file_name}">${displayName}</h4>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${fileSize}</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 text-sm mb-4">
+                    <div>
+                        <span class="font-medium text-gray-700 dark:text-gray-300">Notes:</span>
+                        <span class="text-gray-600 dark:text-gray-400 ml-2">${notes}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700 dark:text-gray-300">Uploaded By:</span>
+                        <span class="text-gray-600 dark:text-gray-400 ml-2">${uploadedBy}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700 dark:text-gray-300">Upload Date:</span>
+                        <span class="text-gray-600 dark:text-gray-400 ml-2">${uploadDate}</span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button onclick="window.medicalCard.downloadMedicalFile('${file.id}', '${file.file_name}')" 
+                            class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg cursor-pointer transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Download
+                    </button>
+                    <button onclick="window.medicalCard.deleteMedicalFile('${file.id}')" 
+                            class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg cursor-pointer transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Delete
+                    </button>
                 </div>
             </div>
         `;
@@ -1003,7 +1198,7 @@ export class MedicalCardManager {
             const formData = new FormData();
             formData.append('inmate_id', inmateId);
             formData.append('category', category);
-            formData.append('notes', notes);
+            formData.append('notes', notes ? notes.substring(0, 200) : '');
             
             // Add files to FormData
             for (let i = 0; i < files.length; i++) {
@@ -1036,7 +1231,7 @@ export class MedicalCardManager {
                 }
             });
             
-            // Upload files (you'll need to implement this API endpoint)
+            // Upload files to API endpoint
             const response = await fetch(`/api/inmates/${inmateId}/medical-files/upload`, {
                 method: 'POST',
                 body: formData,
@@ -1045,7 +1240,23 @@ export class MedicalCardManager {
                 }
             });
             
-            if (response.ok) {
+            let result;
+            
+            try {
+                // Check if response is JSON before parsing
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    result = await response.json();
+                } else {
+                    // If not JSON, get text and handle as error
+                    const text = await response.text();
+                    throw new Error(`Server returned non-JSON response: ${text.substring(0, 200)}...`);
+                }
+            } catch (parseError) {
+                throw new Error('Failed to parse server response. Please try again.');
+            }
+            
+            if (response.ok && result && result.success) {
                 // Close loading modal and refresh medical card
                 Swal.close();
                 this.loadInmateMedicalInfo(this.currentInmate);
@@ -1053,11 +1264,11 @@ export class MedicalCardManager {
                 // Show success message with SweetAlert2
                 Swal.fire({
                     title: 'Success!',
-                    text: 'Files uploaded successfully!',
+                    text: result.message || 'Files uploaded successfully!',
                     icon: 'success',
-                    confirmButtonColor: '#3B82F6', // Blue color to match inmate-cells
-                    background: '#111827', // Dark background to match inmate-cells
-                    color: '#F9FAFB', // Light text to match inmate-cells
+                    confirmButtonColor: '#3B82F6',
+                    background: '#111827',
+                    color: '#F9FAFB',
                     customClass: {
                         popup: 'swal-responsive-popup',
                         container: 'swal-responsive-container',
@@ -1067,7 +1278,24 @@ export class MedicalCardManager {
                     }
                 });
             } else {
-                throw new Error('Upload failed');
+                // Handle validation errors and server errors
+                let errorMessage = 'Failed to upload files. Please try again.';
+                
+                if (result && result.errors) {
+                    // Laravel validation errors
+                    const errorMessages = Object.values(result.errors).flat();
+                    errorMessage = errorMessages.join('\n');
+                } else if (result && result.message) {
+                    errorMessage = result.message;
+                } else if (response.status === 500) {
+                    errorMessage = 'Server error occurred. Please check your file and try again.';
+                } else if (response.status === 422) {
+                    errorMessage = 'Validation failed. Please check your file and form data.';
+                } else {
+                    errorMessage = `Upload failed with status ${response.status}. Please try again.`;
+                }
+                
+                throw new Error(errorMessage);
             }
             
         } catch (error) {
@@ -1075,26 +1303,167 @@ export class MedicalCardManager {
             
             // Close loading modal and show error
             Swal.close();
+            
+            const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+            
+            // Format error message for better display
+            let errorMessage = error.message || 'Failed to upload files. Please try again.';
+            
+            // Handle specific error types
+            if (errorMessage.includes('Unexpected token') || errorMessage.includes('not valid JSON')) {
+                errorMessage = 'Server error occurred. The server returned an unexpected response.\n\n💡 Please try again or contact support if the issue persists.';
+            } else if (errorMessage.includes('non-JSON response')) {
+                errorMessage = 'Server error occurred. The server returned an error page instead of a proper response.\n\n💡 Please check your file and try again.';
+            } else if (errorMessage.includes('mimes') || errorMessage.includes('file type')) {
+                errorMessage += '\n\n💡 Tip: Try using PDF, DOC, DOCX, JPG, or PNG files.';
+            } else if (errorMessage.includes('max') || errorMessage.includes('size')) {
+                errorMessage += '\n\n💡 Tip: Make sure your file is smaller than 10MB.';
+            } else if (errorMessage.includes('storage') || errorMessage.includes('directory')) {
+                errorMessage += '\n\n💡 Tip: There might be a server storage issue. Please try again later.';
+            } else if (errorMessage.includes('notes') || errorMessage.includes('200 characters')) {
+                errorMessage += '\n\n💡 Tip: Keep your notes under 200 characters.';
+            }
+            
             Swal.fire({
                 title: 'Upload Failed',
-                text: 'Failed to upload files. Please try again.',
+                html: `<div class="text-sm whitespace-pre-line">${errorMessage}</div>`,
                 icon: 'error',
-                confirmButtonColor: '#EF4444', // Red color to match inmate-cells
-                background: '#111827', // Dark background to match inmate-cells
-                color: '#F9FAFB', // Light text to match inmate-cells
+                confirmButtonColor: '#EF4444',
+                background: isDarkMode ? '#111827' : '#FFFFFF',
+                color: isDarkMode ? '#F9FAFB' : '#111827',
                 customClass: {
                     popup: 'swal-responsive-popup',
                     container: 'swal-responsive-container',
                     content: 'swal-responsive-content',
-                    title: 'text-gray-100',
-                    htmlContainer: 'text-gray-300'
+                    title: isDarkMode ? 'text-gray-100' : 'text-gray-900',
+                    htmlContainer: isDarkMode ? 'text-gray-300' : 'text-gray-700'
                 }
             });
         }
     }
 
     /**
-     * Download medical file
+     * Download medical file (for table section)
+     * @param {string} fileId - File ID
+     * @param {string} fileName - File name
+     */
+    async downloadMedicalFile(fileId, fileName) {
+        try {
+            // Show loading state
+            const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+            
+            Swal.fire({
+                title: 'Downloading...',
+                html: `
+                    <div class="flex flex-col items-center space-y-3">
+                        <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">Preparing <strong>${fileName}</strong> for download...</p>
+                    </div>
+                `,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                background: isDarkMode ? '#111827' : '#FFFFFF',
+                color: isDarkMode ? '#F9FAFB' : '#111827'
+            });
+            
+            const response = await fetch(`/api/inmates/medical-files/${fileId}/download`);
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                Swal.close();
+                
+                // Show success message
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'File downloaded successfully!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: isDarkMode ? '#111827' : '#FFFFFF',
+                    color: isDarkMode ? '#F9FAFB' : '#111827'
+                });
+            } else {
+                throw new Error('Download failed');
+            }
+        } catch (error) {
+            console.error('Error downloading file:', error);
+            Swal.close();
+            this.showErrorMessage('Failed to download file. Please try again.');
+        }
+    }
+
+    /**
+     * Delete medical file (for table section)
+     * @param {string} fileId - File ID
+     */
+    async deleteMedicalFile(fileId) {
+        const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+        
+        // Show confirmation dialog
+        const result = await Swal.fire({
+            title: 'Delete Medical File?',
+            text: 'Are you sure you want to delete this medical file? This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: isDarkMode ? '#374151' : '#6B7280',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
+            customClass: {
+                confirmButton: 'bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg px-4 py-2 transition-colors',
+                cancelButton: isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium rounded-lg px-4 py-2 transition-colors' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg px-4 py-2 transition-colors'
+            }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/api/inmates/medical-files/${fileId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+                
+                if (response.ok) {
+                    // Reload medical info to refresh the table
+                    this.loadInmateMedicalInfo(this.currentInmate);
+                    
+                    // Show success message
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: 'File deleted successfully!',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: isDarkMode ? '#111827' : '#FFFFFF',
+                        color: isDarkMode ? '#F9FAFB' : '#111827'
+                    });
+                } else {
+                    throw new Error('Delete failed');
+                }
+            } catch (error) {
+                console.error('Error deleting file:', error);
+                this.showErrorMessage('Failed to delete file. Please try again.');
+            }
+        }
+    }
+
+    /**
+     * Download medical file (legacy method for carousel section)
      * @param {string} fileId - File ID
      */
     async downloadFile(fileId) {

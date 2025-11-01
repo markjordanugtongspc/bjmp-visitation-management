@@ -6,6 +6,7 @@ use App\Models\Inmate;
 use App\Models\MedicalFile;
 use App\Services\InmateService;
 use App\Services\PointsService;
+use App\Services\MedicalFileService;
 use App\Http\Requests\StoreInmateRequest;
 use App\Http\Requests\UpdateInmateRequest;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +19,8 @@ use Carbon\Carbon;
 class InmateController extends Controller
 {
     public function __construct(
-        private InmateService $inmateService
+        private InmateService $inmateService,
+        private MedicalFileService $medicalFileService
     ) {}
 
         /**
@@ -518,38 +520,100 @@ class InmateController extends Controller
      */
     public function uploadMedicalFile(Request $request, int $id): JsonResponse
     {
-        $validated = $request->validate([
-            'files.*' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
-            'category' => 'required|string',
-            'notes' => 'nullable|string|max:200'
-        ]);
-        
-        $inmate = Inmate::findOrFail($id);
-        $uploadedFiles = [];
-        
-        foreach ($request->file('files') as $file) {
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('medical/' . $inmate->id, $fileName, 'public');
-            
-            $medicalFile = MedicalFile::create([
-                'inmate_id' => $inmate->id,
-                'file_name' => $file->getClientOriginalName(),
-                'file_path' => $filePath,
-                'file_type' => $file->getClientOriginalExtension(),
-                'category' => $request->category,
-                'file_size' => $file->getSize(),
-                'notes' => $request->notes,
-                'uploaded_by' => auth()->id()
+        try {
+            Log::info('Medical file upload request received', [
+                'inmate_id' => $id,
+                'has_files' => $request->hasFile('files'),
+                'files_count' => $request->file('files') ? count($request->file('files')) : 0,
+                'category' => $request->input('category'),
+                'notes_length' => strlen($request->input('notes', '')),
+                'user_authenticated' => auth()->check(),
+                'user_id' => auth()->id()
+            ]);
+
+            $validated = $request->validate([
+                'files' => 'required|array|min:1',
+                'files.*' => 'required|file|max:10240',
+                'category' => 'required|string|in:lab_results,medical_certificate,prescription,xray_scan,diagnosis_report,treatment_plan,other',
+                'notes' => 'nullable|string|max:200'
+            ], [
+                'files.required' => 'Please select at least one file to upload.',
+                'files.*.file' => 'The selected file is not valid.',
+                'files.*.max' => 'Each file must not exceed 10MB.',
+                'category.required' => 'Please select a file category.',
+                'category.in' => 'Invalid file category selected.'
             ]);
             
-            $uploadedFiles[] = $medicalFile;
+            $files = $request->file('files');
+            $category = $request->input('category');
+            $notes = $request->input('notes');
+            $uploadedBy = auth()->id();
+            
+            Log::info('Validation passed, proceeding with file upload', [
+                'files_count' => count($files),
+                'category' => $category,
+                'uploaded_by' => $uploadedBy
+            ]);
+            
+            // Use MedicalFileService to handle file upload
+            $uploadedFiles = $this->medicalFileService->uploadFiles(
+                $id,
+                $files,
+                $category,
+                $notes,
+                $uploadedBy
+            );
+            
+            Log::info('Files uploaded successfully', [
+                'uploaded_files_count' => count($uploadedFiles)
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Files uploaded successfully',
+                'data' => $uploadedFiles->map(fn($f) => [
+                    'id' => $f->id,
+                    'file_name' => $f->file_name,
+                    'file_type' => $f->file_type,
+                    'category' => $f->category,
+                    'file_size' => $f->file_size,
+                    'notes' => $f->notes,
+                    'uploaded_by' => $f->uploader?->full_name,
+                    'created_at' => $f->created_at?->format('Y-m-d H:i:s'),
+                ])
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::warning('Medical file upload validation failed', [
+                'inmate_id' => $id,
+                'errors' => $e->errors()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            Log::error('Failed to upload medical files', [
+                'inmate_id' => $id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return more specific error message in debug mode
+            $errorMessage = config('app.debug') 
+                ? $e->getMessage() 
+                : 'Failed to upload files. Please check the file format and try again.';
+            
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage,
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Files uploaded successfully',
-            'data' => $uploadedFiles
-        ]);
     }
 
     /**
@@ -570,13 +634,28 @@ class InmateController extends Controller
      */
     public function downloadMedicalFile(int $fileId)
     {
-        $file = MedicalFile::findOrFail($fileId);
-        
-        if (!Storage::disk('public')->exists($file->file_path)) {
-            abort(404, 'File not found');
+        try {
+            Log::info('Download request received', [
+                'file_id' => $fileId,
+                'user_id' => auth()->id(),
+                'user_authenticated' => auth()->check()
+            ]);
+            
+            return $this->medicalFileService->downloadFile($fileId);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Medical file not found in database', [
+                'file_id' => $fileId,
+                'error' => $e->getMessage()
+            ]);
+            abort(404, 'Medical file not found');
+        } catch (\Exception $e) {
+            Log::error('Failed to download medical file', [
+                'file_id' => $fileId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            abort(500, 'Failed to download file: ' . $e->getMessage());
         }
-        
-        return Storage::disk('public')->download($file->file_path, $file->file_name);
     }
 
     /**
@@ -604,20 +683,25 @@ class InmateController extends Controller
      */
     public function deleteMedicalFile(int $fileId): JsonResponse
     {
-        $file = MedicalFile::findOrFail($fileId);
-        
-        // Delete from storage
-        if (Storage::disk('public')->exists($file->file_path)) {
-            Storage::disk('public')->delete($file->file_path);
+        try {
+            $this->medicalFileService->deleteFile($fileId);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'File deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to delete medical file', [
+                'file_id' => $fileId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete file',
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        
-        // Delete from database
-        $file->delete();
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'File deleted successfully'
-        ]);
     }
 
     /**
