@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -65,16 +66,28 @@ class AdminController extends Controller
                 $suffix++;
             }
 
-            $user = User::create([
-                'username' => $username,
-                'email' => $validated['email'],
-                'password' => Hash::make('password'),
-                'full_name' => $validated['name'],
-                'role_id' => null,
-                'is_active' => $validated['status'] === 'Active',
-                'title' => $validated['title'] ?? null,
-                'subtitle' => $validated['subtitle'] ?? null,
-            ]);
+            // Create user within a transaction to safely calculate role_id
+            $user = DB::transaction(function () use ($validated, $username) {
+                // Get the current max user_id with lock to prevent race conditions
+                $nextUserId = DB::table('users')->lockForUpdate()->max('user_id');
+                if ($nextUserId === null) {
+                    $nextUserId = 0; // First user if table is empty
+                }
+                $nextUserId += 1;
+
+                $user = User::create([
+                    'username' => $username,
+                    'email' => $validated['email'],
+                    'password' => Hash::make('password'),
+                    'full_name' => $validated['name'],
+                    'role_id' => $nextUserId,
+                    'is_active' => $validated['status'] === 'Active',
+                    'title' => $validated['title'] ?? null,
+                    'subtitle' => $validated['subtitle'] ?? null,
+                ]);
+
+                return $user;
+            });
 
             return response()->json([
                 'id' => $user->user_id,

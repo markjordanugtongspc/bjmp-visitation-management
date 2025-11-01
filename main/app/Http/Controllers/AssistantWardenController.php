@@ -7,49 +7,50 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\User;
+use App\Models\WardenMessage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
-class WardenController extends Controller
+class AssistantWardenController extends Controller
 {
     /**
-     * Display the warden dashboard.
+     * Display the assistant warden dashboard.
      */
     public function dashboard()
     {
-        return view('warden.dashboard');
+        return view('assistant_warden.dashboard');
     }
     
     /**
-     * Display the inmates management page for warden.
+     * Display the inmates management page for assistant warden.
      */
     public function inmates()
     {
-        return view('warden.inmates.inmates');
+        return view('assistant_warden.inmates.inmates');
     }
     
     /**
-     * Display the officers management page for warden.
+     * Display the officers management page for assistant warden.
      */
     public function officers()
     {
-        return view('warden.officers.officers');
+        return view('assistant_warden.officers.officers');
     }
     
     /**
-     * Display the visitors management page for warden.
+     * Display the visitors management page for assistant warden.
      */
     public function visitors()
     {
-        return view('warden.visitors.visitors');
+        return view('assistant_warden.visitors.visitors');
     }
     
     /**
-     * Display the visitor requests management page for warden.
+     * Display the visitor requests management page for assistant warden.
      */
     public function requests()
     {
-        return view('warden.visitors.requests');
+        return view('assistant_warden.visitors.requests');
     }
 
     /**
@@ -179,5 +180,103 @@ class WardenController extends Controller
             'subtitle' => $user->subtitle ?? 'N/A',
             'status' => $user->is_active ? 'Active' : 'Inactive',
         ]);
+    }
+    
+    /**
+     * Send a bump message to the warden.
+     */
+    public function sendMessage(Request $request)
+    {
+        $validated = $request->validate([
+            'message' => ['required', 'string', 'max:1000'],
+            'priority' => ['sometimes', 'in:normal,high,urgent'],
+            'recipient_id' => ['required', 'exists:users,user_id'],
+        ]);
+
+        $message = WardenMessage::create([
+            'sender_id' => Auth::id(),
+            'recipient_id' => $validated['recipient_id'],
+            'message' => $validated['message'],
+            'priority' => $validated['priority'] ?? 'normal',
+            'is_read' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Message sent successfully',
+            'data' => $message,
+        ], 201);
+    }
+    
+    /**
+     * Get messages for the current user.
+     * For notification bell, only fetch unread messages.
+     */
+    public function getMessages(Request $request)
+    {
+        $messages = WardenMessage::with(['sender:user_id,full_name', 'recipient:user_id,full_name'])
+            ->where(function ($query) {
+                $query->where('recipient_id', Auth::id())
+                      ->orWhere('sender_id', Auth::id());
+            })
+            ->where('is_read', false) // Only fetch unread messages for notification bell
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($messages);
+    }
+    
+    /**
+     * Mark message as read.
+     */
+    public function markAsRead(Request $request, $id)
+    {
+        $message = WardenMessage::findOrFail($id);
+        
+        // Only the recipient can mark as read
+        if ($message->recipient_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $message->update([
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Message marked as read',
+        ]);
+    }
+    
+    /**
+     * Mark all messages as read for the current user.
+     */
+    public function markAllAsRead(Request $request)
+    {
+        $updated = WardenMessage::where('recipient_id', Auth::id())
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All messages marked as read',
+            'count' => $updated,
+        ]);
+    }
+    
+    /**
+     * Get unread message count.
+     */
+    public function getUnreadCount(Request $request)
+    {
+        $count = WardenMessage::where('recipient_id', Auth::id())
+            ->where('is_read', false)
+            ->count();
+
+        return response()->json(['count' => $count]);
     }
 }

@@ -430,6 +430,9 @@ class InmateController extends Controller
                 'job' => $inmate->job,
                 'admissionDate' => $inmate->date_of_admission?->format('Y-m-d'),
                 'status' => $inmate->status,
+                'releasedAt' => $inmate->released_at?->format('Y-m-d\TH:i'),
+                'transferredAt' => $inmate->transferred_at?->format('Y-m-d\TH:i'),
+                'transferDestination' => $inmate->transfer_destination,
                 'cell_id' => $inmate->cell_id,
                 'cell' => $inmate->cell ? [
                     'id' => $inmate->cell->id,
@@ -571,7 +574,7 @@ class InmateController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Files uploaded successfully',
-                'data' => $uploadedFiles->map(fn($f) => [
+                'data' => collect($uploadedFiles)->map(fn($f) => [
                     'id' => $f->id,
                     'file_name' => $f->file_name,
                     'file_type' => $f->file_type,

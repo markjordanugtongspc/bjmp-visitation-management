@@ -72,6 +72,7 @@ Route::prefix('supervision')->group(function () {
 // Visitors API routes
 Route::prefix('visitors')->middleware(['web'])->group(function () {
     Route::get('/', [VisitorController::class, 'index'])->name('api.visitors.index');
+    Route::get('/statistics', [VisitorController::class, 'statistics'])->name('api.visitors.statistics');
     Route::post('/', [VisitorController::class, 'store'])->name('api.visitors.store');
     Route::get('/{id}', [VisitorController::class, 'show'])->name('api.visitors.show');
     Route::patch('/{id}', [VisitorController::class, 'update'])->name('api.visitors.update');
@@ -98,3 +99,23 @@ Route::prefix('visitation-logs')->group(function () {
 Route::get('/inmates/without-allowed-visitors/count', [VisitorController::class, 'inmatesWithoutAllowedVisitorsCount'])
     ->middleware(['web'])
     ->name('api.inmates.without-allowed-visitors.count');
+
+// API endpoint to get wardens for recipient selection
+Route::get('/users/wardens', function () {
+    $wardens = \App\Models\User::where('role_id', 1) // Warden role
+        ->where('is_active', true)
+        ->select(['user_id', 'full_name', 'email'])
+        ->orderBy('full_name')
+        ->get();
+    
+    return response()->json($wardens);
+})->middleware(['web', 'auth']);
+
+// Warden Messages API routes (for Assistant Warden communication)
+Route::prefix('warden-messages')->middleware(['web'])->group(function () {
+    Route::post('/', [\App\Http\Controllers\AssistantWardenController::class, 'sendMessage'])->name('api.warden-messages.send');
+    Route::get('/', [\App\Http\Controllers\AssistantWardenController::class, 'getMessages'])->name('api.warden-messages.index');
+    Route::patch('/{id}/read', [\App\Http\Controllers\AssistantWardenController::class, 'markAsRead'])->name('api.warden-messages.mark-read');
+    Route::patch('/mark-all-read', [\App\Http\Controllers\AssistantWardenController::class, 'markAllAsRead'])->name('api.warden-messages.mark-all-read');
+    Route::get('/unread-count', [\App\Http\Controllers\AssistantWardenController::class, 'getUnreadCount'])->name('api.warden-messages.unread-count');
+});

@@ -871,4 +871,49 @@ $visitor->setAttribute('latest_log', null);
             ]
         ]);
     }
+
+    /**
+     * Get visitation statistics for donut chart
+     */
+    public function statistics()
+    {
+        try {
+            if (!Schema::hasTable('visitation_logs')) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'approved' => 0,
+                        'pending' => 0,
+                        'rejected' => 0,
+                        'total' => 0
+                    ]
+                ]);
+            }
+
+            $stats = DB::table('visitation_logs')
+                ->select(
+                    DB::raw('SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as approved'),
+                    DB::raw('SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as pending'),
+                    DB::raw('SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as rejected'),
+                    DB::raw('COUNT(*) as total')
+                )
+                ->first();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'approved' => (int) ($stats->approved ?? 0),
+                    'pending' => (int) ($stats->pending ?? 0),
+                    'rejected' => (int) ($stats->rejected ?? 0),
+                    'total' => (int) ($stats->total ?? 0)
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch statistics: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

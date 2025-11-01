@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WardenController;
+use App\Http\Controllers\AssistantWardenController;
 use App\Http\Controllers\NurseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupervisionController;
@@ -26,6 +27,10 @@ Route::get('/warden/dashboard', [WardenController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
     ->name('warden.dashboard');
 
+Route::get('/assistant-warden/dashboard', [AssistantWardenController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('assistant-warden.dashboard');
+
 Route::get('/nurse/dashboard', [NurseController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
     ->name('nurse.dashboard');
@@ -40,7 +45,7 @@ Route::get('/dashboard', function () {
         case 1: // Warden
             return redirect()->route('warden.dashboard');
         case 2: // Assistant Warden
-            return redirect()->route('warden.dashboard');
+            return redirect()->route('assistant-warden.dashboard');
         case 8: // Searcher (Jail Gate Searcher)
             return redirect()->route('searcher.dashboard');
         case 6: // Jail Head Nurse
@@ -64,6 +69,30 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     
     // Visitor routes
     Route::get('/visitors', [AdminController::class, 'visitors'])->name('admin.visitors.index');
+});
+
+// Assistant Warden routes
+Route::prefix('assistant-warden')->middleware(['auth', 'verified'])->group(function () {
+    // Female inmates static view for Assistant Warden
+    Route::view('/inmates/female', 'assistant_warden.inmates.female.inmates-female')->name('assistant-warden.inmates.female');
+    Route::get('/inmates', [AssistantWardenController::class, 'inmates'])->name('assistant-warden.inmates.index');
+    Route::get('/officers', [AssistantWardenController::class, 'officers'])->name('assistant-warden.officers.index');
+    Route::post('/officers', [AssistantWardenController::class, 'storeOfficer'])->name('assistant-warden.officers.store');
+    Route::get('/officers/list', [AssistantWardenController::class, 'listOfficers'])->name('assistant-warden.officers.list');
+    Route::patch('/officers/{user:user_id}', [AssistantWardenController::class, 'updateOfficer'])->name('assistant-warden.officers.update');
+    
+    // Visitor routes
+    Route::get('/visitors', [AssistantWardenController::class, 'visitors'])->name('assistant-warden.visitors.index');
+    Route::get('/visitors/requests', [AssistantWardenController::class, 'requests'])->name('assistant-warden.visitors.requests');
+    
+    // Supervision routes (shared with warden)
+    Route::view('/supervision', 'assistant_warden.supervision.supervision')->name('assistant-warden.supervision');
+        Route::get('/supervision/files', [SupervisionController::class, 'index'])->name('assistant-warden.supervision.index');
+        Route::post('/supervision/upload', [SupervisionController::class, 'upload'])->name('assistant-warden.supervision.upload');
+        Route::get('/supervision/files/{id}', [SupervisionController::class, 'show'])->name('assistant-warden.supervision.show');
+        Route::get('/supervision/files/{id}/preview', [SupervisionController::class, 'preview'])->name('assistant-warden.supervision.preview');
+        Route::get('/supervision/files/{id}/download', [SupervisionController::class, 'download'])->name('assistant-warden.supervision.download');
+        Route::delete('/supervision/files/{id}', [SupervisionController::class, 'destroy'])->name('assistant-warden.supervision.destroy');
 });
 
 // Warden routes

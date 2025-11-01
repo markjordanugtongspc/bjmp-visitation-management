@@ -23,7 +23,7 @@ class NavigationConfig {
                         route: {
                             0: 'admin.dashboard',
                             1: 'warden.dashboard',
-                            2: 'warden.dashboard',
+                            2: 'assistant-warden.dashboard',
                             8: 'searcher.dashboard',
                             6: 'nurse.dashboard',
                             7: 'nurse.dashboard'
@@ -37,7 +37,7 @@ class NavigationConfig {
                         route: {
                             0: 'admin.inmates.index', // Admin
                             1: 'warden.inmates.index', // Warden
-                            2: 'warden.inmates.index', // Assistant Warden
+                            2: 'assistant-warden.inmates.index', // Assistant Warden
                             6: 'nurse.dashboard', // Jail Head Nurse
                             7: 'nurse.dashboard'  // Jail Nurse
                         },
@@ -47,7 +47,10 @@ class NavigationConfig {
                     supervision: {
                         title: 'Supervision',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512"><path fill="currentColor" fill-rule="evenodd" d="M384 319.997V85.331H149.333c-11.782 0-21.333 9.551-21.333 21.333v216.975a63.9 63.9 0 0 1 21.333-3.642zM85.333 106.664v298.667c0 35.346 28.654 64 64 64h277.334v-85.334h-21.334v42.667h-256c-11.782 0-21.333-9.551-21.333-21.333v-21.334c0-11.782 9.551-21.333 21.333-21.333h277.334v-320H149.333c-35.346 0-64 28.654-64 64m149.334 170.667v-85.334h42.666v85.334zM256 170.664c11.782 0 21.333-9.551 21.333-21.333s-9.551-21.334-21.333-21.334s-21.333 9.552-21.333 21.334s9.551 21.333 21.333 21.333M149.333 383.997H384v21.334H149.333z" clip-rule="evenodd" stroke-width="13" stroke="currentColor"/></svg>`,
-                        route: 'warden.supervision',
+                        route: {
+                            1: 'warden.supervision',
+                            2: 'assistant-warden.supervision'
+                        },
                         roles: [1, 2], // Warden and Assistant Warden
                         order: 3,
                         dataNavItem: 'supervision'
@@ -68,7 +71,7 @@ class NavigationConfig {
                         route: {
                             0: 'admin.visitors.index',
                             1: 'warden.visitors.index',
-                            2: 'warden.visitors.index',
+                            2: 'assistant-warden.visitors.index',
                             8: 'searcher.visitors.index'
                         },
                         roles: [0, 1, 2, 8], // Admin, Warden, Assistant Warden, Searcher
@@ -79,7 +82,7 @@ class NavigationConfig {
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><rect width="24" height="24" fill="none"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M13.578 16.775a.97.97 0 0 0-.31-.715L7.3 10.554L1.33 16.06a.97.97 0 0 0-.309.715v5.37a.966.966 0 0 0 .966.966h10.626a.966.966 0 0 0 .966-.966zm3.419-9.049a3.419 3.419 0 1 0 0-6.837a3.419 3.419 0 0 0 0 6.837"/><path d="M16.423 23.111h3.138l.855-6.838h2.564V13.71a5.983 5.983 0 0 0-11.037-3.202m-4.644 5.125v4.834m2.417-2.417H4.88"/></g></svg>`,
                         route: {
                             1: 'warden.visitors.requests',
-                            2: 'warden.visitors.requests',
+                            2: 'assistant-warden.visitors.requests',
                             8: 'searcher.visitors.requests'
                         },
                         roles: [1, 2, 8], // Warden, Assistant Warden, Searcher
@@ -122,7 +125,7 @@ class NavigationConfig {
                         route: {
                             0: 'admin.officers.index',
                             1: 'warden.officers.index',
-                            2: 'warden.officers.index'
+                            2: 'assistant-warden.officers.index'
                         },
                         roles: [0, 1, 2], // Admin, Warden, and Assistant Warden
                         order: 3
@@ -217,12 +220,14 @@ class NavigationConfig {
             'dashboard': '/dashboard',
             'admin.dashboard': '/admin/dashboard',
             'warden.dashboard': '/warden/dashboard',
+            'assistant-warden.dashboard': '/assistant-warden/dashboard',
             'searcher.dashboard': '/searcher/dashboard',
             'nurse.dashboard': '/nurse/dashboard',
             
             // Inmates routes
             'admin.inmates.index': '/admin/inmates',
             'warden.inmates.index': '/warden/inmates',
+            'assistant-warden.inmates.index': '/assistant-warden/inmates',
             'inmates.index': '/inmates',
             'admin.inmates.female': '/admin/inmates/female',
             'warden.inmates.female': '/warden/inmates/female',
@@ -230,6 +235,7 @@ class NavigationConfig {
             // Officers routes
             'admin.officers.index': '/admin/officers',
             'warden.officers.index': '/warden/officers',
+            'assistant-warden.officers.index': '/assistant-warden/officers',
             'officers.index': '/officers',
             
             // Profile routes
@@ -237,12 +243,15 @@ class NavigationConfig {
             
             // Supervision routes
             'warden.supervision': '/warden/supervision',
+            'assistant-warden.supervision': '/assistant-warden/supervision',
             
             // Visitation routes
             'visitation.request.visitor': '/visitation/request/visitor',
             'admin.visitors.index': '/admin/visitors',
             'warden.visitors.index': '/warden/visitors',
             'warden.visitors.requests': '/warden/visitors/requests',
+            'assistant-warden.visitors.index': '/assistant-warden/visitors',
+            'assistant-warden.visitors.requests': '/assistant-warden/visitors/requests',
             'searcher.visitors.index': '/searcher/visitors',
             'searcher.visitors.requests': '/searcher/visitors/requests'
         };

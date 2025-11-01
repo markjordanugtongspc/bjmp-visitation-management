@@ -19,8 +19,21 @@ export default defineConfig({
                 'resources/js/inmates/components/points-system.js',
                 
             ],
-            refresh: true,
+            refresh: [
+                'resources/views/**/*.blade.php',
+                'routes/**/*.php',
+                'app/Http/Controllers/**/*.php',
+                'app/Models/**/*.php',
+            ],
         }),
         tailwindcss(),
     ],
+    server: {
+        hmr: {
+            host: 'localhost',
+        },
+        watch: {
+            usePolling: true,
+        }
+    },
 });

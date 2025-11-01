@@ -909,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
           <!-- Cell Assignment -->
           <div class="space-y-3">
-            <h3 class="text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} pb-2">Cell Assignment</h3>
+            <h3 class="text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} pb-2">Cell Assignment & Status</h3>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -938,6 +938,45 @@ document.addEventListener('DOMContentLoaded', () => {
                     <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path>
                   </svg>
                 </div>
+              </div>
+            </div>
+            
+            <!-- Conditional: Released Status Fields -->
+            <div id="released-fields" class="space-y-3 mt-4 p-4 rounded-lg ${isDarkMode ? 'bg-amber-900/20 border border-amber-700/50' : 'bg-amber-50 border border-amber-200'}" style="display: ${inmate.status === 'Released' ? 'block' : 'none'};">
+              <div class="flex items-center gap-2 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <h4 class="text-sm font-semibold ${isDarkMode ? 'text-amber-300' : 'text-amber-800'}">Release Information</h4>
+              </div>
+              <div>
+                <label class="block text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1">Release Date & Time *</label>
+                <input id="i-released-at" type="datetime-local" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" 
+                       value="${inmate.releasedAt ? new Date(inmate.releasedAt).toISOString().slice(0, 16) : ''}" />
+                <p class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1">Timestamp when inmate was released</p>
+              </div>
+            </div>
+            
+            <!-- Conditional: Transferred Status Fields -->
+            <div id="transferred-fields" class="space-y-3 mt-4 p-4 rounded-lg ${isDarkMode ? 'bg-blue-900/20 border border-blue-700/50' : 'bg-blue-50 border border-blue-200'}" style="display: ${inmate.status === 'Transferred' ? 'block' : 'none'};">
+              <div class="flex items-center gap-2 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                  <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                </svg>
+                <h4 class="text-sm font-semibold ${isDarkMode ? 'text-blue-300' : 'text-blue-800'}">Transfer Information</h4>
+              </div>
+              <div>
+                <label class="block text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1">Transfer Date & Time *</label>
+                <input id="i-transferred-at" type="datetime-local" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                       value="${inmate.transferredAt ? new Date(inmate.transferredAt).toISOString().slice(0, 16) : ''}" />
+                <p class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1">Timestamp when inmate was transferred</p>
+              </div>
+              <div>
+                <label class="block text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1">Transfer Destination *</label>
+                <textarea id="i-transfer-destination" class="w-full rounded-md ${isDarkMode ? 'bg-gray-800/60 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                          rows="3" placeholder="Enter facility name, location, and any relevant transfer notes...">${inmate.transferDestination || ''}</textarea>
+                <p class="text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1">Specify where the inmate was transferred</p>
               </div>
             </div>
           </div>
@@ -1210,6 +1249,41 @@ document.addEventListener('DOMContentLoaded', () => {
         content: 'swal-responsive-content',
       },
       didOpen: async () => {
+        // Status change handler for conditional fields
+        const statusSelect = document.getElementById('i-status');
+        const releasedFields = document.getElementById('released-fields');
+        const transferredFields = document.getElementById('transferred-fields');
+        const releasedAtInput = document.getElementById('i-released-at');
+        const transferredAtInput = document.getElementById('i-transferred-at');
+        
+        if (statusSelect && releasedFields && transferredFields) {
+          statusSelect.addEventListener('change', (e) => {
+            const selectedStatus = e.target.value;
+            
+            // Show/hide conditional fields based on status
+            if (selectedStatus === 'Released') {
+              releasedFields.style.display = 'block';
+              transferredFields.style.display = 'none';
+              // Auto-populate current datetime if empty
+              if (!releasedAtInput.value) {
+                const now = new Date();
+                releasedAtInput.value = now.toISOString().slice(0, 16);
+              }
+            } else if (selectedStatus === 'Transferred') {
+              releasedFields.style.display = 'none';
+              transferredFields.style.display = 'block';
+              // Auto-populate current datetime if empty
+              if (!transferredAtInput.value) {
+                const now = new Date();
+                transferredAtInput.value = now.toISOString().slice(0, 16);
+              }
+            } else {
+              releasedFields.style.display = 'none';
+              transferredFields.style.display = 'none';
+            }
+          });
+        }
+        
         // Add responsive behavior to dropdowns
         const selects = document.querySelectorAll('select');
         selects.forEach(select => {
@@ -1543,6 +1617,10 @@ document.addEventListener('DOMContentLoaded', () => {
           cell_id: parseInt(document.getElementById('i-cell').value) || null,
           status: document.getElementById('i-status').value,
           admissionDate: document.getElementById('i-admission-date').value,
+          // Status tracking timestamps
+          releasedAt: document.getElementById('i-released-at')?.value || null,
+          transferredAt: document.getElementById('i-transferred-at')?.value || null,
+          transferDestination: document.getElementById('i-transfer-destination')?.value.trim() || null,
           // Medical Information
           medicalStatus: document.getElementById('i-medical-status').value || 'Not Assessed',
           lastMedicalCheck: document.getElementById('i-last-medical').value || null,
@@ -2964,6 +3042,34 @@ async function openUnifiedInmateModal(inmate) {
               <dt class="${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Crime Committed</dt><dd class="${isDarkMode ? 'text-gray-200' : 'text-gray-900'}">${inmate.crime}</dd>
               <dt class="${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Sentence</dt><dd class="${isDarkMode ? 'text-gray-200' : 'text-gray-900'}">${formatSentenceWithReduction(inmate, true)}</dd>
               <dt class="${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Cell Assignment</dt><dd class="${isDarkMode ? 'text-gray-200' : 'text-gray-900'}">${inmate.cell ? `${inmate.cell.name} (${inmate.cell.location || 'Location N/A'})` : 'Not Assigned'}</dd>
+              ${inmate.status === 'Released' && inmate.releasedAt ? `
+                <dt class="${isDarkMode ? 'text-amber-400' : 'text-amber-600'}">Released On</dt>
+                <dd class="${isDarkMode ? 'text-amber-200' : 'text-amber-800'} font-semibold">
+                  ${new Date(inmate.releasedAt).toLocaleString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </dd>
+              ` : ''}
+              ${inmate.status === 'Transferred' && inmate.transferredAt ? `
+                <dt class="${isDarkMode ? 'text-blue-400' : 'text-blue-600'}">Transferred On</dt>
+                <dd class="${isDarkMode ? 'text-blue-200' : 'text-blue-800'} font-semibold">
+                  ${new Date(inmate.transferredAt).toLocaleString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </dd>
+              ` : ''}
+              ${inmate.status === 'Transferred' && inmate.transferDestination ? `
+                <dt class="${isDarkMode ? 'text-blue-400' : 'text-blue-600'}">Transfer Destination</dt>
+                <dd class="${isDarkMode ? 'text-blue-200' : 'text-blue-800'}">${inmate.transferDestination}</dd>
+              ` : ''}
               <dt class="${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Additional</dt><dd class="${isDarkMode ? 'text-gray-200' : 'text-gray-900'}">ID #${inmate.id.toString().padStart(4,'0')} • ${daysInCustody(inmate)} days in custody</dd>
             </dl>
           </div>

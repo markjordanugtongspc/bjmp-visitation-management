@@ -22,28 +22,17 @@ async function initDonutChart() {
   if (!donutSvg) return;
 
   try {
-    // Fetch all visitors
-    const response = await fetch('/api/visitors');
-    if (!response.ok) throw new Error('Failed to fetch visitors');
+    // Fetch visitation statistics
+    const response = await fetch('/api/visitors/statistics');
+    if (!response.ok) throw new Error('Failed to fetch statistics');
     
     const json = await response.json();
-    const visitors = json?.data || [];
+    const stats = json?.data || {};
 
-    // Calculate statistics based on latest_log status
-    // Status: 1 = Approved, 2 = Pending, 0 = Declined/Rejected
-    const approved = visitors.filter(v => 
-      v.latest_log && (v.latest_log.status === 1 || v.latest_log.status === '1')
-    ).length;
-    
-    const pending = visitors.filter(v => 
-      v.latest_log && (v.latest_log.status === 2 || v.latest_log.status === '2')
-    ).length;
-    
-    const rejected = visitors.filter(v => 
-      v.latest_log && (v.latest_log.status === 0 || v.latest_log.status === '0')
-    ).length;
-
-    const total = approved + pending + rejected;
+    const approved = stats.approved || 0;
+    const pending = stats.pending || 0;
+    const rejected = stats.rejected || 0;
+    const total = stats.total || 0;
 
     console.log('Donut Chart Data:', { approved, pending, rejected, total });
 

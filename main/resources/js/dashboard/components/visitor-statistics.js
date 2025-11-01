@@ -13,37 +13,20 @@ export async function initVisitorStatistics() {
   if (!approvedVisitsEl && !pendingRequestsEl && !totalVisitorsEl && !todayVisitsEl) return;
 
   try {
-    // Fetch all visitors
-    const response = await fetch('/api/visitors');
-    if (!response.ok) throw new Error('Failed to fetch visitors');
+    // Fetch statistics from dedicated endpoint
+    const response = await fetch('/api/visitors/statistics');
+    if (!response.ok) throw new Error('Failed to fetch statistics');
     
     const json = await response.json();
-    const visitors = json?.data || [];
+    const stats = json?.data || {};
 
-    // Calculate statistics
-    const totalVisitors = visitors.length;
+    // Get counts from statistics
+    const totalVisitors = stats.total || 0;
+    const approvedVisits = stats.approved || 0;
+    const pendingRequests = stats.pending || 0;
     
-    // Count approved visits (visitors with latest_log.status === 1)
-    const approvedVisits = visitors.filter(v => 
-      v.latest_log && v.latest_log.status === 1
-    ).length;
-    
-    // Count pending requests (visitors with latest_log.status === 2)
-    const pendingRequests = visitors.filter(v => 
-      v.latest_log && v.latest_log.status === 2
-    ).length;
-    
-    // Count today's visits (visitors with schedule today)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const todayVisits = visitors.filter(v => {
-      if (!v.latest_log || !v.latest_log.schedule) return false;
-      const scheduleDate = new Date(v.latest_log.schedule);
-      return scheduleDate >= today && scheduleDate < tomorrow;
-    }).length;
+    // TODO: Add today's visits to statistics endpoint
+    const todayVisits = 0;
 
     // Update DOM
     if (totalVisitorsEl) totalVisitorsEl.textContent = String(totalVisitors);

@@ -60,10 +60,20 @@
         </div>
 
         <!-- Footer -->
-        <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-800">
-            <a href="#" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+        <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+            <a 
+                id="view-all-notifications"
+                href="#" 
+                class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer"
+                style="display: none;">
                 View all notifications
             </a>
+            <button 
+                id="clear-all-notifications"
+                type="button"
+                class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium cursor-pointer">
+                Clear All
+            </button>
         </div>
     </div>
 </div>

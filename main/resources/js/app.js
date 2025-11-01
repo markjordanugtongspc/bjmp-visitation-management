@@ -19,4 +19,10 @@ window.CommonUtils = CommonUtils;
 import ThemeManager from './theme-manager';
 window.ThemeManager = ThemeManager;
 
+// Import bump message system for Assistant Warden
+import './dashboard/components/bump-message';
+
+// Import warden notifications system
+import './dashboard/components/warden-notifications';
+
 // Slideshow is loaded only on pages that include it explicitly

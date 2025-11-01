@@ -10,26 +10,33 @@ class OfficerSeeder extends Seeder
 {
     public function run(): void
     {
+        // Role ID to username mapping based on role_id
+        $roleUsernames = [
+            1 => 'warden',
+            2 => 'asst.warden',
+            3 => 'custodial',
+            4 => 'ict',
+            5 => 'sjo',
+            6 => 'health',
+            7 => 'nurse',
+            8 => 'searcher',
+        ];
+
         $officers = [
             ['full_name' => 'Juan Warden', 'email' => 'warden@bjmp.gov.ph', 'title' => 'Warden', 'subtitle' => 'Jail Management', 'role_id' => 1],
             ['full_name' => 'Ms. Warden', 'email' => 'asst.warden@bjmp.gov.ph', 'title' => 'Assistant Warden', 'subtitle' => 'Operations', 'role_id' => 2],
-            ['full_name' => 'Sir Chief', 'email' => 'custodial@bjmp.gov.ph', 'title' => 'Chief Custodial', 'subtitle' => 'Security', 'role_id' => 2],
-            ['full_name' => 'Chief ICT', 'email' => 'ict@bjmp.gov.ph', 'title' => 'Chief ICT', 'subtitle' => 'Information Systems', 'role_id' => 2],
-            ['full_name' => 'Senior Jail Officer', 'email' => 'sjo@bjmp.gov.ph', 'title' => 'Unit Executive Senior Jail Officer', 'subtitle' => 'Administration', 'role_id' => 2],
+            ['full_name' => 'Sir Chief', 'email' => 'custodial@bjmp.gov.ph', 'title' => 'Chief Custodial', 'subtitle' => 'Security', 'role_id' => 3],
+            ['full_name' => 'Chief ICT', 'email' => 'ict@bjmp.gov.ph', 'title' => 'Chief ICT', 'subtitle' => 'Information Systems', 'role_id' => 4],
+            ['full_name' => 'Senior Jail Officer', 'email' => 'sjo@bjmp.gov.ph', 'title' => 'Unit Executive Senior Jail Officer', 'subtitle' => 'Administration', 'role_id' => 5],
             ['full_name' => 'Chief Nurse', 'email' => 'health@bjmp.gov.ph', 'title' => 'Chief Health Nurse', 'subtitle' => 'Medical Services', 'role_id' => 6],
             ['full_name' => 'Jail Nurse', 'email' => 'nurse@bjmp.gov.ph', 'title' => 'Jail Nurse', 'subtitle' => 'Medical Services', 'role_id' => 7],
+            ['full_name' => 'Jail Searcher', 'email' => 'searcher@bjmp.gov.ph', 'title' => 'Jail Searcher', 'subtitle' => 'Gate Operations', 'role_id' => 8],
         ];
 
         foreach ($officers as $index => $o) {
-            // Create a safe unique username from name or email prefix
-            $baseUsername = strtolower(preg_replace('/[^a-z0-9]+/i', '.', explode('@', $o['email'])[0] ?: ('officer'.($index+1))));
-            $username = $baseUsername;
-            $suffix = 1;
-            while (User::where('username', $username)->exists()) {
-                $username = $baseUsername . $suffix;
-                $suffix++;
-            }
-
+            // Use the predefined username based on role_id
+            $username = $roleUsernames[$o['role_id']] ?? strtolower(preg_replace('/[^a-z0-9]+/i', '.', explode('@', $o['email'])[0] ?: ('officer'.($index+1))));
+            
             // Upsert by email
             $user = User::where('email', $o['email'])->first();
             if (!$user) {
