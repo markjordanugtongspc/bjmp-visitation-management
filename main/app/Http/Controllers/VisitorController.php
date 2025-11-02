@@ -916,4 +916,195 @@ $visitor->setAttribute('latest_log', null);
             ], 500);
         }
     }
+
+    /**
+     * Get weekly visitor traffic for line chart (last 7 days)
+     */
+    public function weeklyVisitorTraffic()
+    {
+        try {
+            if (!Schema::hasTable('visitation_logs')) {
+                return response()->json([
+                    'success' => true,
+                    'data' => []
+                ]);
+            }
+
+            // Get data for the last 7 days
+            $endDate = Carbon::now();
+            $startDate = Carbon::now()->subDays(6);
+
+            $traffic = DB::table('visitation_logs')
+                ->select(
+                    DB::raw('DATE(created_at) as date'),
+                    DB::raw('COUNT(*) as count')
+                )
+                ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+                ->groupBy(DB::raw('DATE(created_at)'))
+                ->orderBy('date', 'asc')
+                ->get();
+
+            // Create array with all 7 days (fill missing days with 0)
+            $data = [];
+            for ($i = 0; $i < 7; $i++) {
+                $date = Carbon::now()->subDays(6 - $i);
+                $dateStr = $date->format('Y-m-d');
+                $dayName = $date->format('D'); // Mon, Tue, Wed, etc.
+                
+                $count = 0;
+                foreach ($traffic as $item) {
+                    if ($item->date === $dateStr) {
+                        $count = $item->count;
+                        break;
+                    }
+                }
+
+                $data[] = [
+                    'date' => $dateStr,
+                    'day' => $dayName,
+                    'count' => $count
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch weekly traffic: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get monthly visits for bar chart (current year)
+     */
+    public function monthlyVisits()
+    {
+        try {
+            if (!Schema::hasTable('visitation_logs')) {
+                return response()->json([
+                    'success' => true,
+                    'data' => []
+                ]);
+            }
+
+            $currentYear = Carbon::now()->year;
+
+            $visits = DB::table('visitation_logs')
+                ->select(
+                    DB::raw('MONTH(created_at) as month'),
+                    DB::raw('COUNT(*) as count')
+                )
+                ->whereYear('created_at', $currentYear)
+                ->groupBy(DB::raw('MONTH(created_at)'))
+                ->orderBy('month', 'asc')
+                ->get();
+
+            // Create array with all 12 months (fill missing months with 0)
+            $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            $data = [];
+            
+            for ($i = 1; $i <= 12; $i++) {
+                $count = 0;
+                foreach ($visits as $visit) {
+                    if ($visit->month == $i) {
+                        $count = $visit->count;
+                        break;
+                    }
+                }
+
+                $data[] = [
+                    'month' => $i,
+                    'monthName' => $monthNames[$i - 1],
+                    'count' => $count
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'year' => $currentYear
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch monthly visits: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get upcoming schedules (next 3 scheduled visits)
+     */
+    public function upcomingSchedules()
+    {
+        try {
+            if (!Schema::hasTable('visitation_logs')) {
+                return response()->json([
+                    'success' => true,
+                    'data' => []
+                ]);
+            }
+
+            $now = Carbon::now();
+
+            // Get upcoming schedules (schedule >= now), ordered by schedule datetime
+            $schedules = DB::table('visitation_logs')
+                ->select('visitation_logs.*', 'visitors.name as visitor_name', 'visitors.relationship')
+                ->leftJoin('visitors', 'visitation_logs.visitor_id', '=', 'visitors.id')
+                ->where('visitation_logs.schedule', '>=', $now)
+                ->whereNull('visitation_logs.time_in') // Not yet started
+                ->orderBy('visitation_logs.schedule', 'asc')
+                ->orderBy('visitation_logs.created_at', 'asc')
+                ->limit(3)
+                ->get();
+
+            $data = $schedules->map(function($schedule) use ($now) {
+                $scheduleDate = Carbon::parse($schedule->schedule);
+                $isToday = $scheduleDate->isToday();
+                
+                // Determine badge status
+                $badgeStatus = 'pending';
+                $badgeText = 'Pending';
+                
+                if ($isToday) {
+                    $badgeStatus = 'today';
+                    $badgeText = 'Today';
+                } elseif ($schedule->status == 1) {
+                    $badgeStatus = 'approved';
+                    $badgeText = 'Approved';
+                }
+
+                return [
+                    'id' => $schedule->id,
+                    'visitor_name' => $schedule->visitor_name ?? 'Unknown Visitor',
+                    'relationship' => $schedule->relationship ?? 'N/A',
+                    'reason_for_visit' => $schedule->reason_for_visit ?? 'General Visit',
+                    'schedule' => $schedule->schedule,
+                    'formatted_date' => $scheduleDate->format('D, g A'), // Wed, 3 PM
+                    'formatted_full_date' => $scheduleDate->format('M d, Y g:i A'),
+                    'status' => $schedule->status,
+                    'badge_status' => $badgeStatus,
+                    'badge_text' => $badgeText,
+                    'is_today' => $isToday
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch upcoming schedules: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

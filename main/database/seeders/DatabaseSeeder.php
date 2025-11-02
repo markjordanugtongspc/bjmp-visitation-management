@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminSeeder::class,
             OfficerSeeder::class,
-            CellSeeder::class,
+            // CellSeeder::class, // Removed: Cells should be created manually by users
         ]);
     }
 }

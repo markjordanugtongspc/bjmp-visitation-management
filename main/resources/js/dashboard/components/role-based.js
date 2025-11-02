@@ -541,133 +541,227 @@ class NavigationManager {
     }
 
     /**
-     * Generate page and role-specific informational card
+     * Generate page and role-specific informational card with randomized facts
      */
     generateInformationalCard() {
         // Get current page context
         const currentPath = window.location.pathname;
         const pageContext = this.getPageContext(currentPath);
         
+        /**
+         * TEMPLATE FOR ADDING NEW FACTS:
+         * ================================
+         * Each role/page combination should have an array of 3+ facts.
+         * Facts are randomly selected on page load.
+         * 
+         * Format:
+         * roleName: {
+         *     pageName: {
+         *         icon: 'SVG_ICON_HERE',
+         *         facts: [
+         *             'First interesting fact about this page',
+         *             'Second useful tip or information',
+         *             'Third educational or helpful insight'
+         *         ]
+         *     }
+         * }
+         */
+        
         // Page and role-specific cards configuration
         const contextualCards = {
             // Admin role cards (role_id: 0)
             0: {
                 dashboard: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586l-2 2V6H5v12h6.586l-2 2H4a1 1 0 01-1-1V4z"/><path d="M17.414 8L19 9.586 11.586 17H10v-1.586L17.414 8z"/></svg>`,
-                    text: 'Admin Dashboard: Monitor system overview and key metrics daily for optimal facility management.'
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24"><rect width="24" height="24" fill="none"/><g fill="none" fill-rule="evenodd"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1 2.062V5a1 1 0 0 1-1.993.117L11 5v-.938a8.005 8.005 0 0 0-6.902 6.68L4.062 11H5a1 1 0 0 1 .117 1.993L5 13h-.938a8.001 8.001 0 0 0 15.84.25l.036-.25H19a1 1 0 0 1-.117-1.993L19 11h.938a7.98 7.98 0 0 0-2.241-4.617l-2.424 4.759l-.155.294l-.31.61c-.37.72-.772 1.454-1.323 2.005c-.972.971-2.588 1.089-3.606.07c-1.019-1.018-.901-2.634.07-3.606c.472-.472 1.078-.835 1.696-1.162l.919-.471l.849-.444l4.203-2.135A7.98 7.98 0 0 0 13 4.062m.162 6.776l-.21.112l-.216.113c-.402.209-.822.426-1.172.698l-.201.17l-.073.084c-.193.26-.135.554.003.692s.432.196.692.003l.086-.074l.168-.2c.217-.28.4-.605.571-.93l.127-.242q.112-.22.225-.426" stroke-width="0.3" stroke="currentColor"/></g></svg>`,
+                    facts: [
+                        'Monitor system metrics daily for optimal facility management and early issue detection.',
+                        'Real-time analytics help identify trends and improve operational efficiency across all departments.',
+                        'Dashboard widgets automatically refresh to provide the most current facility statistics.',
+                        'Administrative overview enables strategic decision-making with comprehensive data visualization.',
+                        'System health indicators provide instant visibility into critical infrastructure performance.'
+                    ]
                 },
                 inmates: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`,
-                    text: 'Admin Inmates: Facial recognition technology replaces QR scanning for enhanced security.'
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24"><rect width="24" height="24" fill="none"/><path fill="currentColor" d="M14.654 21q-.529 0-.9-.37t-.37-.9V15.5q0-.529.37-.899t.9-.37h1.269l.846-.847h1.693l.846.847h1.269q.529 0 .899.37t.37.899v4.23q0 .53-.37.9t-.899.37zm2.962-1.692q.69 0 1.19-.501t.502-1.192t-.501-1.191t-1.191-.501t-1.192.501t-.501 1.191t.501 1.192t1.192.5M11.973 9.5q-1.046 0-1.773.727T9.473 12q0 .796.416 1.408q.415.611 1.111.904v-1.135q-.238-.2-.383-.532T10.473 12q0-.625.438-1.062t1.062-.438q.35 0 .635.138q.284.137.484.362h1.154q-.286-.677-.891-1.088T11.973 9.5M10.134 21l-.361-2.892q-.479-.145-1.035-.454q-.557-.31-.947-.664l-2.668 1.135l-1.865-3.25l2.306-1.739q-.045-.27-.073-.558q-.03-.288-.03-.559q0-.252.03-.53q.028-.278.073-.626L3.258 9.126l1.865-3.212L7.771 7.03q.448-.373.97-.673q.52-.3 1.013-.464L10.134 3h3.732l.361 2.912q.575.202 1.016.463t.909.654l2.725-1.115l1.865 3.211l-2.278 1.721q.019.038.019.077t.019.077h-1.179q-.025-.125-.04-.234q-.016-.108-.066-.233l2.227-1.683l-.994-1.7l-2.552 1.07q-.454-.499-1.193-.935q-.74-.435-1.4-.577L13 4h-1.994l-.312 2.689q-.756.161-1.39.52q-.633.358-1.26.985L5.55 7.15l-.994 1.7l2.169 1.62q-.125.336-.175.73t-.05.82q0 .38.05.755t.156.73l-2.15 1.645l.994 1.7l2.475-1.05q.6.606 1.36 1.002t1.615.579V21z"/></svg>`,
+                    facts: [
+                        'Facial recognition technology replaces traditional QR scanning for enhanced security verification.',
+                        'Digital records reduce paperwork by 70% while improving data accuracy and accessibility.',
+                        'Automated alerts notify staff of important inmate status changes and scheduled events.',
+                        'Segregated housing units maintain proper classification and security protocols for female inmates.',
+                        'Comprehensive inmate profiles include medical history, behavioral records, and rehabilitation progress.'
+                    ]
                 },
                 officers: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zM4 18v-6h3v-2.5c0-1.1.9-2 2-2h2V6H9.5C8.67 6 8 5.33 8 4.5S8.67 3 9.5 3h5c.83 0 1.5.67 1.5 1.5S15.33 6 14.5 6H13v1.5h2c1.1 0 2 .9 2 2V12h3v6H4z"/></svg>`,
-                    text: 'Admin Officers: Manage officer schedules, duty assignments, and performance evaluations.'
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 512 512"><rect width="512" height="512" fill="none"/><path fill="currentColor" d="M256 25c21 0 34.936 10.482 53.63 20.867c17.717 9.843 39.99 18.284 71.4 11.87c14.906 14.9 30.05 29.803 46.2 39.896c13.216 8.26 28.067 13.18 42.88 10.855c-4.25 33.44-24.556 66.15-45.784 83.272c-55.98-18.552-112.1-27.832-168.22-27.832c-56.172 0-112.343 9.297-168.374 27.883c-21.25-17.108-41.59-49.85-45.843-83.322c14.81 2.326 29.664-2.596 42.88-10.855c16.15-10.093 31.292-24.995 46.2-39.895c31.407 6.413 53.683-2.028 71.4-11.87C221.065 35.48 235 25 256 25m.105 19.54c-19.815 0-53.17 26.778-53.17 26.778s21.22 80.334 53.17 80.334c31.952 0 53.172-80.334 53.172-80.334S275.92 44.54 256.105 44.54m0 137.32c52.79 0 105.584 8.63 158.504 25.734c2.18 13.47-1.51 23.48-9.448 32.736c-8.86 10.333-23.732 19.103-41.36 25.71c-35.26 13.218-80.983 17.896-107.697 17.896s-72.434-4.678-107.693-17.895c-17.63-6.607-32.5-15.377-41.36-25.71c-7.94-9.257-11.632-19.265-9.45-32.736c52.92-17.105 105.713-25.735 158.503-25.735zm173.227 57.146c9.82 2.382 26.932 7.775 30.006 16.994c8.402 25.197-16.92 63.795-36.07 88.15c5.276-22.004 8.12-45.41 8.12-69.68c0-12.058-.706-23.9-2.056-35.464m-346.45 0a306 306 0 0 0-2.056 35.463c0 24.27 2.843 47.676 8.12 69.68c-19.15-24.355-44.473-62.953-36.07-88.15c3.073-9.22 20.186-14.612 30.005-16.994zm330.03 19.172c.305 5.377.475 10.806.475 16.29c0 59.374-18.13 112.958-46.903 151.305c-28.772 38.347-67.703 61.313-110.38 61.313c-42.674 0-81.606-22.966-110.377-61.313s-46.9-91.93-46.9-151.304c0-5.486.17-10.915.474-16.292c8.2 7.656 18.216 13.868 29.235 19.03c-4.27 18.2.266 40.838 12.098 52.665c21.774 21.765 70.605 21.765 92.38 0c6.744-6.743 9.637-17.487 9.255-28.268c4.934.216 9.6.33 13.837.33c4.238 0 8.905-.114 13.84-.33c-.383 10.78 2.51 21.525 9.256 28.268c21.775 21.765 70.604 21.765 92.378 0c11.832-11.827 16.368-34.462 12.098-52.662c11.02-5.162 21.038-11.376 29.236-19.032zM256.105 376.043c-23.094 36.936-69.282 41.553-92.376 41.553c23.093 18.468 92.375 18.468 92.375 0c0 18.468 69.285 18.468 92.38 0c-23.095 0-69.285-4.617-92.38-41.553z"/></svg>`,
+                    facts: [
+                        'Performance evaluations use data-driven metrics to ensure fair and objective assessments.',
+                        'Shift scheduling algorithms optimize coverage while considering officer preferences and certifications.',
+                        'Training compliance tracking helps maintain professional standards and regulatory requirements.',
+                        'Officer management system streamlines personnel records, assignments, and certification tracking.',
+                        'Automated roster management ensures adequate staffing levels based on facility requirements.'
+                    ]
+                },
+                visitors: {
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`,
+                    facts: [
+                        'Visitor management system integrates with background checks for enhanced security screening.',
+                        'Automated approval workflows reduce processing time while maintaining security protocols.',
+                        'Digital visitor logs provide comprehensive audit trails for compliance and security review.',
+                        'Pre-registration system enables faster check-in processing and reduced wait times.',
+                        'Visitor analytics help identify peak visitation periods and optimize resource allocation.'
+                    ]
                 },
                 profile: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>`,
-                    text: 'Admin Profile: Update your administrator profile and security settings for system access.'
+                    facts: [
+                        'Two-factor authentication adds an extra security layer to protect sensitive administrative data.',
+                        'Regular profile updates ensure accurate contact information for emergency communications.',
+                        'Activity logs track all system changes for audit compliance and security monitoring.',
+                        'Administrative privileges can be customized based on specific role requirements and responsibilities.',
+                        'Profile synchronization ensures consistent access across all facility management systems.'
+                    ]
                 }
             },
             // Warden role cards (role_id: 1)
             1: {
                 dashboard: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>`,
-                    text: 'Warden Dashboard: Oversee facility operations and monitor staff performance metrics.'
+                    facts: [
+                        'Comprehensive facility oversight enables strategic planning and resource optimization.',
+                        'Real-time operational metrics provide instant visibility into facility performance indicators.',
+                        'Staff performance analytics help identify training needs and operational improvements.',
+                        'Executive dashboard consolidates critical information for high-level decision making.',
+                        'Automated reporting system generates daily, weekly, and monthly operational summaries.'
+                    ]
                 },
                 inmates: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2m0 10c2.7 0 5.8 1.29 6 2H6c.23-.72 3.31-2 6-2m0-12C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 10c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`,
-                    text: 'Warden Inmates: Review inmate classifications, housing assignments, and behavioral reports.'
+                    facts: [
+                        'Population management system tracks inmate classifications and housing assignments efficiently.',
+                        'Behavioral monitoring tools help identify patterns and prevent potential security incidents.',
+                        'Segregated facility management ensures appropriate housing for different inmate classifications.',
+                        'Comprehensive inmate records include disciplinary history and rehabilitation progress tracking.',
+                        'Automated population alerts notify warden of critical changes in inmate status or behavior.'
+                    ]
                 },
                 supervision: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 16H9V7h9v14z"/></svg>`,
-                    text: 'Warden Supervision: Monitor supervision reports, incident logs, and security protocols.'
+                    facts: [
+                        'Supervision analytics provide comprehensive oversight of daily facility operations and security.',
+                        'Incident reporting system enables real-time documentation and escalation of security events.',
+                        'Security protocol monitoring ensures compliance with institutional and regulatory standards.',
+                        'Staff supervision tools track officer performance and adherence to operational procedures.',
+                        'Automated supervision reports highlight trends and areas requiring administrative attention.'
+                    ]
                 },
                 officers: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
-                    text: 'Warden Officers: Evaluate officer performance and conduct comprehensive reviews.'
+                    facts: [
+                        'Performance evaluation system provides objective metrics for officer assessment and development.',
+                        'Staff management tools enable efficient scheduling, assignment, and resource allocation.',
+                        'Training compliance tracking ensures all officers maintain required certifications and skills.',
+                        'Disciplinary oversight system maintains professional standards and accountability across the force.',
+                        'Leadership analytics help identify high-performing officers and potential promotion candidates.'
+                    ]
+                },
+                visitors: {
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`,
+                    facts: [
+                        'Visitor management oversight ensures security protocols are maintained while facilitating family connections.',
+                        'Visitation analytics help optimize scheduling and resource allocation for visitor processing.',
+                        'Security screening coordination integrates visitor processing with facility safety requirements.',
+                        'Request approval system streamlines visitor authorization while maintaining necessary security checks.',
+                        'Family connection programs support rehabilitation goals through monitored and structured visitation.'
+                    ]
                 },
                 profile: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>`,
-                    text: 'Warden Profile: Manage your warden credentials and administrative access levels.'
+                    facts: [
+                        'Executive profile management ensures secure access to high-level administrative functions.',
+                        'Leadership credentials maintain proper authority levels for facility oversight responsibilities.',
+                        'Administrative settings enable customization of system preferences and reporting parameters.',
+                        'Security protocols protect sensitive warden information while ensuring system accessibility.',
+                        'Profile synchronization maintains consistent access across all facility management platforms.'
+                    ]
                 }
             },
-            // Assistant Warden role cards (role_id: 2)
-            2: {
-                dashboard: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>`,
-                    text: 'Assistant Warden Dashboard: Assist with facility operations and support the warden in daily tasks.'
-                },
-                inmates: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2m0 10c2.7 0 5.8 1.29 6 2H6c.23-.72 3.31-2 6-2m0-12C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 10c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`,
-                    text: 'Assistant Warden Inmates: Help manage inmate classifications and behavioral monitoring.'
-                },
-                supervision: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 16H9V7h9v14z"/></svg>`,
-                    text: 'Assistant Warden Supervision: Support supervision reports and assist with incident management.'
-                },
-                officers: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
-                    text: 'Assistant Warden Officers: Assist with officer evaluations and staff coordination.'
-                },
-                profile: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>`,
-                    text: 'Assistant Warden Profile: Manage your profile and administrative credentials.'
-                }
-            },
-            // Staff role cards (role_id: 3)
-            3: {
-                dashboard: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>`,
-                    text: 'Staff Dashboard: Support daily operations efficiently and effectively for smooth workflow.'
-                },
-                inmates: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
-                    text: 'Staff Inmates: Assist with inmate processing and administrative documentation tasks.'
-                },
-                officers: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>`,
-                    text: 'Staff Officers: Provide administrative support to officers and management teams.'
-                },
-                profile: {
-                    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>`,
-                    text: 'Staff Profile: Maintain your staff profile and work schedule preferences.'
-                }
-            },
+            // Searcher role cards (role_id: 8)
             8: {
                 dashboard: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>`,
-                    text: 'Searcher Dashboard: Manage gate entry, verify visitors, and track visitation activity.'
+                    facts: [
+                        'Gate management system provides real-time visitor processing and security verification.',
+                        'Facial recognition technology enhances security while streamlining visitor check-in procedures.',
+                        'Digital visitor logs maintain comprehensive records for security and compliance purposes.',
+                        'Real-time visitation tracking helps manage facility capacity and security protocols effectively.',
+                        'Automated screening processes reduce wait times while maintaining thorough security checks.'
+                    ]
                 },
                 visitors: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5M4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5S5.5 6.57 5.5 8.5S7.07 12 9 12m0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7m7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44M15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35c.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35" stroke-width="0.3" stroke="currentColor"/></svg>`,
-                    text: 'Visitors: Accept/decline requests and record manual registrations at the gate.'
+                    facts: [
+                        'Visitor request management enables efficient processing of visitation applications and approvals.',
+                        'Manual registration system provides flexible visitor processing for special circumstances.',
+                        'Background check integration ensures comprehensive security screening for all visitors.',
+                        'Real-time request tracking provides instant status updates for visitors and facility staff.',
+                        'Visitor analytics help identify peak periods and optimize gate staffing and resources.'
+                    ]
                 },
                 profile: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>`,
-                    text: 'Searcher Profile: Maintain your credentials and update account information.'
+                    facts: [
+                        'Gate officer credentials maintain proper security clearance for visitor processing responsibilities.',
+                        'Profile management ensures accurate identification and access control for security operations.',
+                        'Training certification tracking maintains compliance with security and facility protocols.',
+                        'Activity monitoring provides accountability for all visitor processing and security decisions.',
+                        'System synchronization ensures consistent access across all gate management and security platforms.'
+                    ]
                 }
             },
             // Jail Head Nurse role cards (role_id: 6)
             6: {
                 dashboard: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
-                    text: 'Medical Dashboard: Manage inmate medical records and schedule medical visits efficiently.'
+                    facts: [
+                        'Medical management system oversees inmate healthcare delivery and treatment coordination.',
+                        'Electronic health records maintain comprehensive medical histories and treatment documentation.',
+                        'Medical scheduling optimizes healthcare provider allocation and patient appointment management.',
+                        'Pharmaceutical inventory tracking ensures proper medication management and dispensing protocols.',
+                        'Health analytics provide insights into population health trends and resource utilization patterns.'
+                    ]
                 },
                 profile: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>`,
-                    text: 'Nurse Profile: Update your medical credentials and professional information.'
+                    facts: [
+                        'Medical leadership credentials maintain proper authority for healthcare management and supervision.',
+                        'Professional certification tracking ensures compliance with healthcare regulatory requirements.',
+                        'Clinical privileges management maintains appropriate access levels for medical decision-making.',
+                        'Continuing education records support ongoing professional development and medical competency.',
+                        'Healthcare profile synchronization ensures consistent access across all medical management systems.'
+                    ]
                 }
             },
             // Jail Nurse role cards (role_id: 7)
             7: {
                 dashboard: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
-                    text: 'Medical Dashboard: Provide medical care and maintain inmate health records.'
+                    facts: [
+                        'Patient care management provides comprehensive medical treatment and health monitoring services.',
+                        'Medical documentation system maintains accurate records of all patient interactions and treatments.',
+                        'Medication administration tracking ensures proper dosing and timing for all prescribed treatments.',
+                        'Vital signs monitoring helps identify health trends and potential medical concerns early.',
+                        'Emergency response coordination enables quick medical intervention for urgent health situations.'
+                    ]
                 },
                 profile: {
                     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>`,
-                    text: 'Nurse Profile: Update your nursing credentials and contact information.'
+                    facts: [
+                        'Nursing credentials maintain proper licensing and certification for clinical practice within the facility.',
+                        'Medical profile management ensures accurate professional information and specialty certifications.',
+                        'Training records track ongoing medical education and skill development requirements.',
+                        'Clinical access control maintains appropriate permissions for patient care and medical documentation.',
+                        'Healthcare system synchronization provides consistent access to medical records and treatment tools.'
+                    ]
                 }
             }
         };
@@ -679,6 +773,17 @@ class NavigationManager {
         const card = roleCards[pageContext] || roleCards['dashboard']; // Fallback to dashboard
         if (!card) return '';
 
+        // Randomly select a fact from the facts array (if available), otherwise use text
+        let displayText = '';
+        if (card.facts && Array.isArray(card.facts) && card.facts.length > 0) {
+            const randomIndex = Math.floor(Math.random() * card.facts.length);
+            displayText = card.facts[randomIndex];
+        } else if (card.text) {
+            displayText = card.text;
+        } else {
+            return ''; // No text available
+        }
+
         return `
             <div class="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
                 <div class="flex items-start gap-3">
@@ -686,7 +791,7 @@ class NavigationManager {
                         ${card.icon}
                     </div>
                     <div class="flex-1 text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
-                        ${card.text}
+                        ${displayText}
                     </div>
                 </div>
             </div>

@@ -568,4 +568,53 @@ class CellController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get cells capacity for dashboard (top 5 cells sorted by occupancy percentage)
+     */
+    public function getCellsCapacity(): JsonResponse
+    {
+        try {
+            // Get top 5 cells with their capacity information
+            $cells = Cell::select('id', 'name', 'capacity', 'current_count', 'status')
+                ->where('status', 'Active')
+                ->get()
+                ->map(function ($cell) {
+                    $occupancyPercentage = $cell->capacity > 0 
+                        ? round(($cell->current_count / $cell->capacity) * 100, 1) 
+                        : 0;
+
+                    // Determine color based on occupancy
+                    $color = 'blue';
+                    if ($occupancyPercentage >= 90) {
+                        $color = 'red';
+                    } elseif ($occupancyPercentage >= 70) {
+                        $color = 'amber';
+                    }
+
+                    return [
+                        'id' => $cell->id,
+                        'name' => $cell->name,
+                        'capacity' => $cell->capacity,
+                        'current_count' => $cell->current_count,
+                        'occupancy_percentage' => $occupancyPercentage,
+                        'color' => $color
+                    ];
+                })
+                ->sortByDesc('occupancy_percentage')
+                ->take(5)
+                ->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => $cells
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch cells capacity: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

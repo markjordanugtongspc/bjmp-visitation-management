@@ -55,6 +55,7 @@ Route::prefix('cells')->middleware(['web'])->group(function () {
     // Static/specific routes first
     Route::get('/available', [CellController::class, 'getAvailableCells'])->name('api.cells.available');
     Route::get('/by-gender', [CellController::class, 'getCellsByGender'])->name('api.cells.by-gender');
+    Route::get('/capacity', [CellController::class, 'getCellsCapacity'])->name('api.cells.capacity');
     Route::post('/batch-update-occupancy', [CellController::class, 'batchUpdateOccupancy'])->name('api.cells.batch-update-occupancy');
 
     // Dynamic routes after
@@ -73,6 +74,9 @@ Route::prefix('supervision')->group(function () {
 Route::prefix('visitors')->middleware(['web'])->group(function () {
     Route::get('/', [VisitorController::class, 'index'])->name('api.visitors.index');
     Route::get('/statistics', [VisitorController::class, 'statistics'])->name('api.visitors.statistics');
+    Route::get('/weekly-traffic', [VisitorController::class, 'weeklyVisitorTraffic'])->name('api.visitors.weekly-traffic');
+    Route::get('/monthly-visits', [VisitorController::class, 'monthlyVisits'])->name('api.visitors.monthly-visits');
+    Route::get('/upcoming-schedules', [VisitorController::class, 'upcomingSchedules'])->name('api.visitors.upcoming-schedules');
     Route::post('/', [VisitorController::class, 'store'])->name('api.visitors.store');
     Route::get('/{id}', [VisitorController::class, 'show'])->name('api.visitors.show');
     Route::patch('/{id}', [VisitorController::class, 'update'])->name('api.visitors.update');
