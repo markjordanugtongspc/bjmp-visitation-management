@@ -12,9 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inmates', function (Blueprint $table) {
-            $table->string('avatar_path')->nullable()->after('current_points');
-            $table->string('avatar_filename')->nullable()->after('avatar_path');
-            $table->string('avatar_disk')->default('public')->nullable()->after('avatar_filename');
+            if (!Schema::hasColumn('inmates', 'avatar_path')) {
+                $table->string('avatar_path')->nullable()->after('current_points');
+            }
+            if (!Schema::hasColumn('inmates', 'avatar_filename')) {
+                $table->string('avatar_filename')->nullable()->after('avatar_path');
+            }
+            if (!Schema::hasColumn('inmates', 'avatar_disk')) {
+                $table->string('avatar_disk')->default('public')->nullable()->after('avatar_filename');
+            }
         });
     }
 

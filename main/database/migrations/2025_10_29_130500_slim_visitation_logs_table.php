@@ -9,11 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('visitation_logs', function (Blueprint $table) {
-            try { $table->dropForeign('visitation_logs_created_by_user_id_foreign'); } catch (\Throwable $e) {}
-            try { $table->dropForeign('visitation_logs_updated_by_user_id_foreign'); } catch (\Throwable $e) {}
-        });
+        // Drop foreign keys if they exist
+        try { DB::statement('ALTER TABLE visitation_logs DROP FOREIGN KEY visitation_logs_created_by_user_id_foreign'); } catch (\Throwable $e) {}
+        try { DB::statement('ALTER TABLE visitation_logs DROP FOREIGN KEY visitation_logs_updated_by_user_id_foreign'); } catch (\Throwable $e) {}
 
+        // Drop indexes if they exist
         try { DB::statement('ALTER TABLE visitation_logs DROP INDEX visitation_logs_inmate_id_visit_date_index'); } catch (\Throwable $e) {}
         try { DB::statement('ALTER TABLE visitation_logs DROP INDEX visitation_logs_visit_date_index'); } catch (\Throwable $e) {}
 

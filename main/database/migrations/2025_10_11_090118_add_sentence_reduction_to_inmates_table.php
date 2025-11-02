@@ -12,10 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inmates', function (Blueprint $table) {
-            $table->integer('original_sentence_days')->nullable()->after('sentence');
-            $table->integer('reduced_sentence_days')->default(0)->after('original_sentence_days');
-            $table->date('expected_release_date')->nullable()->after('reduced_sentence_days');
-            $table->date('adjusted_release_date')->nullable()->after('expected_release_date');
+            if (!Schema::hasColumn('inmates', 'original_sentence_days')) {
+                $table->integer('original_sentence_days')->nullable()->after('sentence');
+            }
+            if (!Schema::hasColumn('inmates', 'reduced_sentence_days')) {
+                $table->integer('reduced_sentence_days')->default(0)->after('original_sentence_days');
+            }
+            if (!Schema::hasColumn('inmates', 'expected_release_date')) {
+                $table->date('expected_release_date')->nullable()->after('reduced_sentence_days');
+            }
+            if (!Schema::hasColumn('inmates', 'adjusted_release_date')) {
+                $table->date('adjusted_release_date')->nullable()->after('expected_release_date');
+            }
         });
     }
 
