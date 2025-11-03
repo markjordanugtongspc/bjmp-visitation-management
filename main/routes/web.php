@@ -18,6 +18,10 @@ Route::get('/', function () {
 Route::view('/visitation/request/visitor', 'visitation.request.visitor')
     ->name('visitation.request.visitor');
 
+// Public BJMP overview page
+Route::view('/bjmp-overview', 'navigations.bjmp-overview')
+    ->name('bjmp.overview');
+
 // Role-based dashboard routes
 Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])

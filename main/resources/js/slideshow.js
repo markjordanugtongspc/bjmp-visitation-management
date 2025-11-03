@@ -51,7 +51,9 @@ export function mountSlideshow(root) {
       img.onload = () => {
         temp.style.backgroundImage = `url("${images[index]}")`;
         temp.style.backgroundSize = 'cover';
-        temp.style.backgroundPosition = 'center';
+        // Mobile-first background positioning for better subject focus
+        // Small screens: top-center; md and up: center
+        temp.style.backgroundPosition = (window.innerWidth < 640) ? 'center top' : 'center';
         temp.style.backgroundRepeat = 'no-repeat';
         temp.style.transform = prefersReduced ? 'none' : 'scale(1.02)';
         temp.style.zIndex = '0';
@@ -95,6 +97,14 @@ export function mountSlideshow(root) {
   // Pause when tab not visible
   const onVisibility = () => { document.hidden ? stop() : start(); };
   document.addEventListener('visibilitychange', onVisibility);
+
+  // Responsiveness: adjust background positioning on resize
+  let resizeTimer = null;
+  const onResize = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => restart(), 200);
+  };
+  window.addEventListener('resize', onResize, { passive: true });
 
   // Touch swipe for mobile
   let touchX = 0, touchY = 0, touchTime = 0;
