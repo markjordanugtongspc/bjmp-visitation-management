@@ -154,10 +154,10 @@
                         <div class="flex-1"></div>
                         <div class="flex gap-2">
                             <select id="visitors-status-filter" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                                <option value="">All Status</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Approved">Approved</option>
-                                <option value="Rejected">Rejected</option>
+                                <option value="">All Life Status</option>
+                                <option value="Alive">Alive</option>
+                                <option value="Deceased">Deceased</option>
+                                <option value="Unknown">Unknown</option>
                             </select>
                         </div>
                     </div>

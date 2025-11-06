@@ -78,9 +78,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const st = (statusFilter?.value || '').trim();
 
     const filtered = visitors.filter(v => {
-      const matchesStatus = !st || v.status === st;
-      const pdlName = (v.pdlDetails?.name || '').toLowerCase();
-      const matchesQuery = !q || `${v.visitor} ${pdlName}`.toLowerCase().includes(q);
+      // Status filter matching - handle normalized status values
+      const normalizeStatus = (s) => {
+        if (typeof s === 'number') return s === 1 ? 'Approved' : (s === 0 ? 'Rejected' : 'Pending');
+        if (s === 'Rejected' || s === 'Denied' || s === 'Declined') return 'Rejected';
+        return s || 'Pending';
+      };
+      const normalizedStatus = normalizeStatus(v.status);
+      const matchesStatus = !st || normalizedStatus === st;
+
+      // Enhanced search matching - search across visitor name, PDL name, and relationship
+      let matchesQuery = true;
+      if (q) {
+        const visitorName = (v.visitor || '').toLowerCase();
+        const pdlName = (v.pdlDetails?.name || '').toLowerCase();
+        const relationship = (v.visitorDetails?.relationship || '').toLowerCase();
+        const reasonForVisit = (v.reason_for_visit || '').toLowerCase();
+        
+        // Match if query appears in any of these fields
+        matchesQuery = visitorName.includes(q) || 
+                      pdlName.includes(q) || 
+                      relationship.includes(q) ||
+                      reasonForVisit.includes(q);
+      }
+
       return matchesStatus && matchesQuery;
     });
 
@@ -367,11 +388,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (statusFilter) statusFilter.addEventListener('change', render);
-  if (searchInput) searchInput.addEventListener('input', () => {
-    // simple debounce
-    clearTimeout(searchInput.__debounceId);
-    searchInput.__debounceId = setTimeout(render, 250);
-  });
+  if (searchInput) {
+    let debounceId = null;
+    searchInput.addEventListener('input', () => {
+      // Debounce search with 300ms delay for better performance
+      clearTimeout(debounceId);
+      debounceId = setTimeout(() => {
+        render();
+      }, 300);
+    });
+  }
 
   // Hook: Open Manual Registration modal
   const openManualBtn = document.getElementById('open-manual-registration');
