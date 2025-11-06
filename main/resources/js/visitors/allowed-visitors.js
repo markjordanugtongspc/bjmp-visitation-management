@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tableBody = document.getElementById('visitors-table-body');
   const mobileCards = document.getElementById('visitors-cards-mobile');
   const searchInput = document.getElementById('visitors-search');
+  const lifeStatusFilter = document.getElementById('visitors-status-filter');
   const totalAllowedEl = document.getElementById('allowed-visitors-total');
   const inmatesWithoutEl = document.getElementById('inmates-without-allowed');
   const totalInmatesEl = document.getElementById('inmates-total');
@@ -13,9 +14,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function render() {
     const q = (searchInput?.value || '').trim().toLowerCase();
-    const filtered = q
-      ? rows.filter(r => `${r.name} ${r.inmate?.full_name || ''} ${r.relationship || ''}`.toLowerCase().includes(q))
-      : rows;
+    const lifeStatus = (lifeStatusFilter?.value || '').trim();
+
+    // Enhanced search - match across visitor name, inmate name, and relationship
+    let filtered = rows;
+    
+    // Apply search filter
+    if (q) {
+      filtered = rows.filter(r => {
+        const visitorName = (r.name || '').toLowerCase();
+        const inmateName = r.inmate?.full_name || 
+                          (r.inmate?.first_name && r.inmate?.last_name ? `${r.inmate.first_name} ${r.inmate.last_name}` : '') ||
+                          '';
+        const inmateNameLower = inmateName.toLowerCase();
+        const relationship = (r.relationship || '').toLowerCase();
+        
+        // Match if query appears in any of these fields
+        return visitorName.includes(q) || 
+               inmateNameLower.includes(q) || 
+               relationship.includes(q);
+      });
+    }
+
+    // Apply life status filter
+    if (lifeStatus) {
+      filtered = filtered.filter(r => {
+        const status = String(r.life_status || 'unknown').toLowerCase();
+        const filterValue = lifeStatus.toLowerCase();
+        return status === filterValue;
+      });
+    }
+
     renderTable(filtered);
     renderMobileCards(filtered);
   }
@@ -490,11 +519,20 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadData();
   }
 
+  // Wire search input with debouncing (300ms delay)
   if (searchInput) {
+    let debounceId = null;
     searchInput.addEventListener('input', () => {
-      clearTimeout(searchInput.__tid);
-      searchInput.__tid = setTimeout(render, 200);
+      clearTimeout(debounceId);
+      debounceId = setTimeout(() => {
+        render();
+      }, 300);
     });
+  }
+
+  // Wire life status filter
+  if (lifeStatusFilter) {
+    lifeStatusFilter.addEventListener('change', render);
   }
 
   // Registration modal
