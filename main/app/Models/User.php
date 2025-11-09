@@ -115,10 +115,28 @@ class User extends Authenticatable
         return match($this->role_id) {
             0 => 'Admin',
             1 => 'Warden',
-            8 => 'Searcher',
+            2 => 'Assistant Warden',
             6 => 'Jail Head Nurse',
             7 => 'Jail Nurse',
+            8 => 'Searcher',
             default => 'User'
+        };
+    }
+
+    /**
+     * Get the dashboard route for the user's role.
+     *
+     * @return string
+     */
+    public function getDashboardRoute()
+    {
+        return match($this->role_id) {
+            0 => 'admin.dashboard',           // Admin
+            1 => 'warden.dashboard',          // Warden
+            2 => 'assistant-warden.dashboard', // Assistant Warden
+            6, 7 => 'nurse.dashboard',        // Jail Head Nurse, Jail Nurse
+            8 => 'searcher.dashboard',        // Searcher
+            default => 'admin.dashboard',     // Fallback to admin dashboard
         };
     }
     

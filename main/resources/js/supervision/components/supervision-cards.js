@@ -25,8 +25,8 @@ async function initializeSupervisionCardsPage() {
 const staticSupervisionData = [];
 
 // Fetch supervision data page from API
-async function fetchSupervisionPage(offset = 0, limit = 3) {
-  const cacheKey = `${offset}:${limit}`;
+async function fetchSupervisionPage(offset = 0, limit = 3, category = null) {
+  const cacheKey = `${offset}:${limit}:${category || 'all'}`;
   if (supervisionPageCache.has(cacheKey)) {
     return supervisionPageCache.get(cacheKey);
   }
@@ -40,8 +40,15 @@ async function fetchSupervisionPage(offset = 0, limit = 3) {
       throw new Error('API endpoint not configured');
     }
 
+    // Build URL with category filter if provided
+    let url = listUrl;
+    if (category) {
+      const separator = listUrl.includes('?') ? '&' : '?';
+      url = `${listUrl}${separator}category=${encodeURIComponent(category)}`;
+    }
+
     // Fetch data from API
-    const response = await fetch(listUrl, {
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -60,7 +67,12 @@ async function fetchSupervisionPage(offset = 0, limit = 3) {
       throw new Error(result.message || 'Failed to fetch data');
     }
 
-    const allSupervisionData = result.data || [];
+    // Filter by category if provided (client-side filtering as backup)
+    let allSupervisionData = result.data || [];
+    if (category && allSupervisionData.length > 0) {
+      allSupervisionData = allSupervisionData.filter(item => item.category === category);
+    }
+    
     const total = allSupervisionData.length;
     const supervision = allSupervisionData.slice(offset, offset + limit);
 
@@ -82,15 +94,36 @@ async function fetchSupervisionPage(offset = 0, limit = 3) {
 }
 
 // Render supervision cards
-async function renderSupervisionCards() {
-  const container = document.getElementById('supervision-cards-container');
+async function renderSupervisionCards(category = null) {
+  // Determine container based on category
+  let containerId = 'supervision-cards-container';
+  if (category) {
+    // Map category to tab ID
+    const categoryMap = {
+      'Operations': 'ops',
+      'Intake': 'intake',
+      'Safety': 'safety',
+      'Medical': 'medical',
+      'Visitation': 'visitation',
+      'Training': 'training',
+      'Discipline': 'discipline',
+      'Emergency': 'emergency',
+      'Conjugal': 'conjugal'
+    };
+    const tabId = categoryMap[category];
+    if (tabId) {
+      containerId = `supervision-cards-container-${tabId}`;
+    }
+  }
+  
+  const container = document.getElementById(containerId) || document.getElementById('supervision-cards-container');
   if (!container) {
-    console.warn('Supervision cards container not found');
+    console.warn('Supervision cards container not found:', containerId);
     return;
   }
 
   try {
-    const { supervision, pagination } = await fetchSupervisionPage(0, 3);
+    const { supervision, pagination } = await fetchSupervisionPage(0, 3, category);
     
     if (supervision.length === 0) {
       renderEmptyState(container);
@@ -253,7 +286,8 @@ function createSupervisionCard(item, index) {
     'Visitation': 'indigo',
     'Training': 'fuchsia',
     'Discipline': 'teal',
-    'Emergency': 'red'
+    'Emergency': 'red',
+    'Conjugal': 'pink'
   };
 
   const iconColors = {
@@ -264,7 +298,8 @@ function createSupervisionCard(item, index) {
     indigo: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 ring-indigo-500/10',
     fuchsia: 'bg-fuchsia-50 dark:bg-fuchsia-950/30 text-fuchsia-600 dark:text-fuchsia-400 ring-fuchsia-500/10',
     teal: 'bg-teal-50 dark:bg-teal-950/30 text-teal-600 dark:text-teal-400 ring-teal-500/10',
-    red: 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 ring-red-500/10'
+    red: 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 ring-red-500/10',
+    pink: 'bg-pink-50 dark:bg-pink-950/30 text-pink-600 dark:text-pink-400 ring-pink-500/10'
   };
 
   const colorKey = categoryColors[item.category] || 'blue';
@@ -400,24 +435,18 @@ function attachModalInteractions() {
     const fileId = e.target.dataset.fileId;
     
     if (!fileId) {
-      themedToast({
-        icon: 'error',
-        title: 'Delete failed',
-        text: 'File ID not available',
-        background: isDarkMode() ? PALETTE.darkBg : '#fff',
-        color: isDarkMode() ? '#E5E7EB' : '#111827',
-        iconColor: PALETTE.danger,
-      });
+      if (themeManager && themeManager.showError) {
+        themeManager.showError('File ID not available', 'Delete failed');
+      }
       return;
     }
     
-    const result = await themedConfirm({
+    const result = await (themeManager && themeManager.showConfirm ? themeManager.showConfirm({
       title: 'Delete file?',
       text: `Are you sure you want to delete "${title}"? This action cannot be undone.`,
       icon: 'warning',
-      confirmButtonText: 'Delete',
-      confirmButtonColor: PALETTE.danger,
-    });
+      confirmButtonText: 'Delete'
+    }) : Promise.resolve({ isConfirmed: confirm(`Delete "${title}"?`) }));
     
     if (result.isConfirmed) {
       try {
@@ -486,13 +515,28 @@ function attachModalInteractions() {
 
 }
 
+// Filter supervision by category
+export async function filterSupervisionByCategory(category) {
+  try {
+    // Clear cache for this category
+    supervisionPageCache.clear();
+    
+    // Render cards with category filter
+    await renderSupervisionCards(category);
+    
+    console.log('Supervision filtered by category:', category || 'All');
+  } catch (error) {
+    console.error('Error filtering supervision by category:', error);
+  }
+}
+
 // Refresh supervision data
 export async function refreshSupervisionData() {
   try {
     // Clear cache
     supervisionPageCache.clear();
     
-    // Re-render supervision cards
+    // Re-render supervision cards (no category filter)
     await renderSupervisionCards();
     
     // Show toast notification if SweetAlert2 is available

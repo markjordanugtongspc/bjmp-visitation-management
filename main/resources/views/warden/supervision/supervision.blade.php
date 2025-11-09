@@ -189,10 +189,28 @@
                             <button class="inline-block p-2 sm:p-3 border-b-2 border-transparent rounded-t-lg cursor-pointer text-gray-700 hover:text-blue-600 hover:border-blue-300 dark:text-gray-200 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none focus:text-blue-700 focus:border-blue-700" id="ops-tab" data-tabs-target="#ops" type="button" role="tab" aria-controls="ops" aria-selected="false">Operations</button>
                         </li>
                         <li class="mr-2" role="presentation">
+                            <button class="inline-block p-2 sm:p-3 border-b-2 border-transparent rounded-t-lg cursor-pointer text-gray-700 hover:text-blue-600 hover:border-blue-300 dark:text-gray-200 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none focus:text-blue-700 focus:border-blue-700" id="intake-tab" data-tabs-target="#intake" type="button" role="tab" aria-controls="intake" aria-selected="false">Intake</button>
+                        </li>
+                        <li class="mr-2" role="presentation">
                             <button class="inline-block p-2 sm:p-3 border-b-2 border-transparent rounded-t-lg cursor-pointer text-gray-700 hover:text-blue-600 hover:border-blue-300 dark:text-gray-200 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none focus:text-blue-700 focus:border-blue-700" id="safety-tab" data-tabs-target="#safety" type="button" role="tab" aria-controls="safety" aria-selected="false">Safety</button>
                         </li>
-                        <li role="presentation">
+                        <li class="mr-2" role="presentation">
                             <button class="inline-block p-2 sm:p-3 border-b-2 border-transparent rounded-t-lg cursor-pointer text-gray-700 hover:text-blue-600 hover:border-blue-300 dark:text-gray-200 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none focus:text-blue-700 focus:border-blue-700" id="medical-tab" data-tabs-target="#medical" type="button" role="tab" aria-controls="medical" aria-selected="false">Medical</button>
+                        </li>
+                        <li class="mr-2" role="presentation">
+                            <button class="inline-block p-2 sm:p-3 border-b-2 border-transparent rounded-t-lg cursor-pointer text-gray-700 hover:text-blue-600 hover:border-blue-300 dark:text-gray-200 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none focus:text-blue-700 focus:border-blue-700" id="visitation-tab" data-tabs-target="#visitation" type="button" role="tab" aria-controls="visitation" aria-selected="false">Visitation</button>
+                        </li>
+                        <li class="mr-2" role="presentation">
+                            <button class="inline-block p-2 sm:p-3 border-b-2 border-transparent rounded-t-lg cursor-pointer text-gray-700 hover:text-blue-600 hover:border-blue-300 dark:text-gray-200 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none focus:text-blue-700 focus:border-blue-700" id="training-tab" data-tabs-target="#training" type="button" role="tab" aria-controls="training" aria-selected="false">Training</button>
+                        </li>
+                        <li class="mr-2" role="presentation">
+                            <button class="inline-block p-2 sm:p-3 border-b-2 border-transparent rounded-t-lg cursor-pointer text-gray-700 hover:text-blue-600 hover:border-blue-300 dark:text-gray-200 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none focus:text-blue-700 focus:border-blue-700" id="discipline-tab" data-tabs-target="#discipline" type="button" role="tab" aria-controls="discipline" aria-selected="false">Discipline</button>
+                        </li>
+                        <li class="mr-2" role="presentation">
+                            <button class="inline-block p-2 sm:p-3 border-b-2 border-transparent rounded-t-lg cursor-pointer text-gray-700 hover:text-blue-600 hover:border-blue-300 dark:text-gray-200 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none focus:text-blue-700 focus:border-blue-700" id="emergency-tab" data-tabs-target="#emergency" type="button" role="tab" aria-controls="emergency" aria-selected="false">Emergency</button>
+                        </li>
+                        <li role="presentation">
+                            <button class="inline-block p-2 sm:p-3 border-b-2 border-transparent rounded-t-lg cursor-pointer text-gray-700 hover:text-blue-600 hover:border-blue-300 dark:text-gray-200 dark:hover:text-blue-400 dark:hover:border-blue-400 focus:outline-none focus:text-blue-700 focus:border-blue-700" id="conjugal-tab" data-tabs-target="#conjugal" type="button" role="tab" aria-controls="conjugal" aria-selected="false">Conjugal</button>
                         </li>
                     </ul>
                 </div>

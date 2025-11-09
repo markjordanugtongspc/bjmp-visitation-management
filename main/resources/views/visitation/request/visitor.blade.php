@@ -75,6 +75,7 @@
                     <div class="flex items-center gap-2 text-gray-500">
                         <span class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400"><span class="size-2 rounded-full bg-blue-500"></span> Today</span>
                         <span class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400"><span class="size-2 rounded-full bg-emerald-500"></span> Open</span>
+                        <span class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400"><span class="size-2 rounded-full bg-orange-700 dark:bg-orange-800"></span> Paabot Only</span>
                         <span class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400"><span class="size-2 rounded-full bg-rose-500"></span> Closed</span>
                     </div>
                 </div>
@@ -93,10 +94,11 @@
                     @for ($d = 1; $d <= $daysInMonth; $d++)
                         @php
                             $isToday = $d === (int) $today->day;
-                            // Tuesday to Sunday are allowed (2,3,4,5,6,0)
+                            // Saturday & Sunday (6,0) and Tuesday to Thursday (2,3,4) are allowed
                             $date = $today->copy()->day($d);
                             $dow = (int) $date->dayOfWeek; // 0 Sun ... 6 Sat
-                            $isOpen = in_array($dow, [2,3,4,5,6,0]); // Tue-Sun
+                            $isOpen = in_array($dow, [0, 2, 3, 4, 6]); // Sun, Tue, Wed, Thu, Sat
+                            $isUnavailable = in_array($dow, [1, 5]); // Mon, Fri
                             $dateString = $date->format('Y-m-d');
                         @endphp
                         <button type="button"
@@ -109,11 +111,14 @@
                            data-calendar-year="{{ $year }}"
                            data-is-open="{{ $isOpen ? 'true' : 'false' }}"
                            data-date="{{ $dateString }}"
+                           @if($isUnavailable) title="Paabot Only" @endif
 >                        
                            <span class="relative transform transition-transform duration-200 ease-out {{ $isOpen ? 'hover:scale-105 hover:font-bold' : '' }}">
                             {{ $d }}
                             @if ($isOpen)
                               <span class="absolute -right-2 -top-2 size-1.5 rounded-full bg-emerald-500"></span>
+                            @elseif($isUnavailable)
+                              <span class="absolute -right-2 -top-2 size-1.5 rounded-full bg-orange-500"></span>
                             @else
                               <span class="absolute -right-2 -top-2 size-1.5 rounded-full bg-rose-500"></span>
                             @endif
@@ -149,8 +154,9 @@
                 <div class="rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-gray-900 p-6 shadow-md">
                     <h4 class="text-base font-semibold text-gray-900 dark:text-gray-50">Visitation Information</h4>
                     <ul class="mt-3 space-y-2 text-sm text-gray-700 dark:text-gray-300 list-disc ms-5">
-                        <li>Available visiting days: <strong>Tuesday to Sunday</strong>.</li>
-                        <li>Available visiting hours: <strong>9:00 AM - 12:00 PM</strong> and <strong>2:00 PM - 5:00 PM</strong>.</li>
+                        <li>Available visiting days: <strong>Saturday, Sunday, Tuesday to Thursday</strong>.</li>
+                        <li>Visiting hours: <strong>Saturday & Sunday</strong> - <strong>8:00 AM - 4:00 PM</strong>; <strong>Tuesday to Thursday</strong> - <strong>12:00 NN - 4:00 PM</strong>.</li>
+                        <li><strong>Monday & Friday</strong> are not available for visitation requests (Paabot Only).</li>
                         <li>Cut-off time for requests: 3:00 PM the day before.</li>
                         <li>Maximum visitors per schedule: 2 adults (children allowed with guardian).</li>
                         <li>Bring a valid government-issued ID and your request reference code.</li>
@@ -163,6 +169,13 @@
         <!-- Footer note -->
         <p class="mt-8 text-center text-xs text-gray-600 dark:text-gray-400">This page is a work in progress. We will iterate on features and design over time.</p>
     </div>
-    @vite(['resources/js/visitation/request/visitmodal.js', 'resources/js/visitation/calendar-handler.js', 'resources/js/theme-manager.js']) <!-- Ingon ani pag tawag sa JS script gamit ng VITE -->
+    @vite([
+        'resources/js/visitation/request/visitmodal.js',
+        'resources/js/visitation/calendar-handler.js',
+        'resources/js/visitation/conjugal-visit-handler.js',
+        'resources/js/visitation/conjugal-requests-modal.js',
+        'resources/js/visitation/conjugal-requests-init.js',
+        'resources/js/theme-manager.js'
+    ]) <!-- Ingon ani pag tawag sa JS script gamit ng VITE -->
 </body>
 </html>

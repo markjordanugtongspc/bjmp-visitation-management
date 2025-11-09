@@ -145,6 +145,23 @@ async function uploadFileToCategory(file, category, title, summary) {
       return response.json();
     })
     .then(data => {
+      try {
+        if (data && data.success && data.data) {
+          console.info('[Supervision Upload] Stored:', {
+            id: data.data.id,
+            title: data.data.title,
+            category: data.data.category,
+            storage_type: data.data.storage_type,
+            file_path: data.data.file_path,
+            public_url: data.data.public_url,
+            api_preview_url: data.data.api_preview_url
+          });
+        } else {
+          console.warn('[Supervision Upload] Unexpected response shape:', data);
+        }
+      } catch (e) {
+        console.warn('[Supervision Upload] Log error:', e);
+      }
       resolve(data);
     })
     .catch(error => {
@@ -160,15 +177,20 @@ async function uploadFileToCategory(file, category, title, summary) {
  */
 function showUploadProgress(message) {
   if (typeof window !== 'undefined' && window.Swal) {
-    window.Swal.fire({
+    const base = window.ThemeManager ? window.ThemeManager.getSwalConfig({
       title: 'Uploading...',
       html: message,
       allowOutsideClick: false,
       showConfirmButton: false,
-      didOpen: () => {
-        window.Swal.showLoading();
-      }
-    });
+      didOpen: () => { window.Swal.showLoading(); }
+    }) : {
+      title: 'Uploading...',
+      html: message,
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => { window.Swal.showLoading(); }
+    };
+    window.Swal.fire(base);
   }
 }
 
@@ -179,7 +201,7 @@ function showUploadProgress(message) {
  */
 function showUploadSuccess(message, result) {
   if (typeof window !== 'undefined' && window.Swal) {
-    window.Swal.fire({
+    const cfg = window.ThemeManager ? window.ThemeManager.getSwalConfig({
       icon: 'success',
       title: 'Success!',
       text: message,
@@ -188,7 +210,17 @@ function showUploadSuccess(message, result) {
       timerProgressBar: true,
       toast: true,
       position: 'top-end'
-    });
+    }) : {
+      icon: 'success',
+      title: 'Success!',
+      text: message,
+      timer: 1500,
+      showConfirmButton: false,
+      timerProgressBar: true,
+      toast: true,
+      position: 'top-end'
+    };
+    window.Swal.fire(cfg);
   }
 }
 
@@ -198,14 +230,22 @@ function showUploadSuccess(message, result) {
  */
 function showUploadError(message) {
   if (typeof window !== 'undefined' && window.Swal) {
-    window.Swal.fire({
+    const cfg = window.ThemeManager ? window.ThemeManager.getSwalConfig({
       icon: 'error',
       title: 'Upload Error',
       text: message,
       timer: 3000,
       showConfirmButton: true,
       confirmButtonText: 'OK'
-    });
+    }) : {
+      icon: 'error',
+      title: 'Upload Error',
+      text: message,
+      timer: 3000,
+      showConfirmButton: true,
+      confirmButtonText: 'OK'
+    };
+    window.Swal.fire(cfg);
   }
 }
 

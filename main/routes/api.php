@@ -4,6 +4,7 @@ use App\Http\Controllers\InmateController;
 use App\Http\Controllers\CellController;
 use App\Http\Controllers\SupervisionController;
 use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\ConjugalVisitController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +69,8 @@ Route::prefix('cells')->middleware(['web'])->group(function () {
 // Supervision API routes
 Route::prefix('supervision')->group(function () {
     Route::get('/', [SupervisionController::class, 'index'])->name('api.supervision.index');
+    Route::get('/{id}/preview', [SupervisionController::class, 'previewApi'])->name('api.supervision.preview');
+    Route::get('/diagnostics', [SupervisionController::class, 'diagnostics'])->name('api.supervision.diagnostics');
 });
 
 // Visitors API routes
@@ -97,6 +100,8 @@ Route::prefix('visitation-requests')->middleware(['web'])->group(function () {
 // Visitation Logs API routes
 Route::prefix('visitation-logs')->group(function () {
     Route::post('/', [VisitorController::class, 'createVisitationLog'])->name('api.visitation-logs.store');
+    Route::get('/availability', [VisitorController::class, 'getDateAvailability'])->name('api.visitation-logs.availability');
+    Route::get('/check-availability', [VisitorController::class, 'checkTimeSlotAvailability'])->name('api.visitation-logs.check-availability');
 });
 
 // Metrics related to visitors/inmates
@@ -122,4 +127,23 @@ Route::prefix('warden-messages')->middleware(['web'])->group(function () {
     Route::patch('/{id}/read', [\App\Http\Controllers\AssistantWardenController::class, 'markAsRead'])->name('api.warden-messages.mark-read');
     Route::patch('/mark-all-read', [\App\Http\Controllers\AssistantWardenController::class, 'markAllAsRead'])->name('api.warden-messages.mark-all-read');
     Route::get('/unread-count', [\App\Http\Controllers\AssistantWardenController::class, 'getUnreadCount'])->name('api.warden-messages.unread-count');
+});
+
+// Conjugal Visit API routes
+Route::prefix('conjugal-visits')->middleware(['web'])->group(function () {
+    Route::get('/check-registration', [ConjugalVisitController::class, 'checkRegistration'])->name('api.conjugal-visits.check-registration');
+    Route::post('/register', [ConjugalVisitController::class, 'storeRegistration'])->name('api.conjugal-visits.register');
+    Route::post('/request-visit', [ConjugalVisitController::class, 'storeVisitLog'])->name('api.conjugal-visits.request-visit');
+    Route::get('/inmate/{inmateId}/logs', [ConjugalVisitController::class, 'getInmateLogs'])->name('api.conjugal-visits.inmate-logs');
+    Route::patch('/logs/{logId}/payment', [ConjugalVisitController::class, 'updatePaymentStatus'])->name('api.conjugal-visits.update-payment');
+    Route::patch('/logs/{logId}/status', [ConjugalVisitController::class, 'updateLogStatus'])->name('api.conjugal-visits.update-status');
+    Route::get('/logs/pending', [ConjugalVisitController::class, 'getPendingLogs'])->name('api.conjugal-visits.pending');
+    Route::get('/logs/visitor', [ConjugalVisitController::class, 'getVisitorLogs'])->name('api.conjugal-visits.visitor-logs');
+    Route::get('/registrations/pending', [ConjugalVisitController::class, 'getPendingRegistrations'])->name('api.conjugal-visits.registrations.pending');
+    Route::patch('/registrations/{id}/status', [ConjugalVisitController::class, 'updateRegistrationStatus'])->name('api.conjugal-visits.registrations.update-status');
+    Route::get('/{id}/documents', [ConjugalVisitController::class, 'getDocuments'])->name('api.conjugal-visits.documents');
+    Route::get('/{id}/documents/{type}/view', [ConjugalVisitController::class, 'viewDocument'])->name('api.conjugal-visits.documents.view');
+    Route::get('/{id}/documents/{type}/download', [ConjugalVisitController::class, 'downloadDocument'])->name('api.conjugal-visits.documents.download');
+    Route::delete('/{id}/documents/{type}', [ConjugalVisitController::class, 'deleteDocument'])->name('api.conjugal-visits.documents.delete');
+    Route::get('/check-eligibility', [ConjugalVisitController::class, 'checkConjugalVisitEligibility'])->name('api.conjugal-visits.check-eligibility');
 });

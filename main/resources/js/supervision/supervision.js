@@ -7,6 +7,7 @@ import { initSupervisionForm } from './components/supervision-form.js';
 import { initFlowbiteComponents } from './components/flowbite-init.js';
 import { initFilePreview } from './components/file-preview.js';
 import { initFileUploader } from './components/file-uploader.js';
+import { initCategoryFilter } from './components/category-filter.js';
 
 function ready(fn) {
   if (document.readyState === 'loading') {
@@ -86,6 +87,9 @@ ready(() => {
   
   // Initialize supervision-specific behaviors
   initSupervisionModalInteractions();
+  
+  // Initialize category filter (must be before cards initialization)
+  initCategoryFilter();
   
   // Initialize supervision cards carousel
   initializeSupervisionCards();

@@ -6,6 +6,8 @@ import { initializeInmateCells } from './components/inmate-cells.js';
 import { createCellCounterManager } from './components/cell-counter-manager.js';
 import { createPointsSystemManager } from './components/points-system.js';
 import { createMedicalRecordsManager } from './components/medical-records-system.js';
+import { getDocumentInfo, viewDocument, downloadDocument, deleteDocument } from '../modules/conjugal-document-manager.js';
+import { checkEligibility, getValidationStatusBadge, formatYearsSinceDate } from '../modules/conjugal-validation-helper.js';
 // Female-specific entrypoint is loaded separately on the female page
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
@@ -769,6 +771,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Get theme-aware colors from ThemeManager
     const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    const relationshipStartDateValue = visitor.relationship_start_date || visitor.relationshipStartDate || '';
+    const existingCohabitationPath = visitor.cohabitation_cert_path || visitor.cohabitationCertPath || '';
+    const existingMarriagePath = visitor.marriage_contract_path || visitor.marriageContractPath || '';
+    const existingCohabitationName = visitor.cohabitation_cert_filename || visitor.cohabitationCertFilename || (existingCohabitationPath ? existingCohabitationPath.split('/').pop() : '');
+    const existingMarriageName = visitor.marriage_contract_filename || visitor.marriageContractFilename || (existingMarriagePath ? existingMarriagePath.split('/').pop() : '');
+    const conjugalInputClasses = isDarkMode
+      ? 'bg-gray-900 text-white border-gray-600'
+      : 'bg-white text-gray-900 border-gray-300';
     const palette = window.ThemeManager ? window.ThemeManager.getPalette() : {
       background: '#111827',
       text: '#F9FAFB',
@@ -1899,6 +1909,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Get theme-aware colors from ThemeManager
     const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+    const conjugalInputClasses = isDarkMode
+      ? 'bg-gray-900 text-white border-gray-600'
+      : 'bg-white text-gray-900 border-gray-300';
+    
+    // Extract conjugal visit data from visitor object
+    const relationshipStartDateValue = visitor.relationship_start_date || visitor.relationshipStartDate || '';
+    const existingCohabitationPath = visitor.cohabitation_cert_path || visitor.cohabitationCertPath || '';
+    const existingMarriagePath = visitor.marriage_contract_path || visitor.marriageContractPath || '';
+    const existingCohabitationName = visitor.cohabitation_cert_filename || visitor.cohabitationCertFilename || (existingCohabitationPath ? existingCohabitationPath.split('/').pop() : '');
+    const existingMarriageName = visitor.marriage_contract_filename || visitor.marriageContractFilename || (existingMarriagePath ? existingMarriagePath.split('/').pop() : '');
 
     // Hide empty state when adding visitors
     if (emptyState) {
@@ -1960,6 +1980,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="Father" ${visitor.relationship === 'Father' ? 'selected' : ''}>Father</option>
             <option value="Mother" ${visitor.relationship === 'Mother' ? 'selected' : ''}>Mother</option>
             <option value="Spouse" ${visitor.relationship === 'Spouse' ? 'selected' : ''}>Spouse</option>
+            <option value="Wife" ${visitor.relationship === 'Wife' ? 'selected' : ''}>Wife</option>
+            <option value="Husband" ${visitor.relationship === 'Husband' ? 'selected' : ''}>Husband</option>
             <option value="Sibling" ${visitor.relationship === 'Sibling' ? 'selected' : ''}>Sibling</option>
             <option value="Child" ${visitor.relationship === 'Child' ? 'selected' : ''}>Child</option>
             <option value="Friend" ${visitor.relationship === 'Friend' ? 'selected' : ''}>Friend</option>
@@ -2026,6 +2048,40 @@ document.addEventListener('DOMContentLoaded', () => {
                value="${visitor.address || ''}" data-field="address" placeholder="Visitor's address" />
       </div>
 
+      <!-- Conjugal Visit Requirements -->
+      <div data-conjugal-section class="hidden mb-4 rounded-xl border border-pink-500/30 bg-pink-500/5 px-4 py-4 transition-all">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-pink-500/20 text-pink-600 dark:text-pink-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m2-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h5 class="text-sm font-semibold text-pink-600 dark:text-pink-400">Conjugal Visit Requirements</h5>
+            <p class="text-xs text-pink-600/80 dark:text-pink-300/80">Provide your marriage/live-in start date and upload the required documents. Couples must be married or living together for at least 6 years.</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2 font-medium">Marriage/Live-in Start Date <span class="text-pink-600">*</span></label>
+            <input type="date" data-field="relationshipStartDate" class="w-full rounded-lg ${conjugalInputClasses} px-3 py-2.5 text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors" value="${relationshipStartDateValue}" />
+            <p class="mt-2 text-[11px] text-pink-600/80 dark:text-pink-300/80">Must be at least 6 years prior to the current date.</p>
+          </div>
+          <div>
+            <label class="block text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2 font-medium">Cohabitation Certificate <span class="text-pink-600">*</span></label>
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" data-field="cohabitationCert" class="block w-full rounded-lg ${conjugalInputClasses} px-3 py-2 text-xs sm:text-sm cursor-pointer file:cursor-pointer file:border-0 file:rounded-md file:bg-pink-600 file:text-white file:px-4 file:py-2 file:text-xs hover:file:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors" />
+            <p class="mt-2 text-[11px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}" data-field="cohabitationHint">Upload PDF/JPG/PNG up to 10MB.</p>
+            <input type="hidden" data-field="cohabitationExisting" value="">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2 font-medium">Marriage Contract <span class="text-pink-600">*</span></label>
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" data-field="marriageContract" class="block w-full rounded-lg ${conjugalInputClasses} px-3 py-2 text-xs sm:text-sm cursor-pointer file:cursor-pointer file:border-0 file:rounded-md file:bg-pink-600 file:text-white file:px-4 file:py-2 file:text-xs hover:file:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors" />
+            <p class="mt-2 text-[11px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}" data-field="marriageHint">Upload PDF/JPG/PNG up to 10MB.</p>
+            <input type="hidden" data-field="marriageExisting" value="">
+          </div>
+        </div>
+      </div>
+
       <!-- Visitor Footer with Status -->
       <div class="mt-3 pt-3 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}">
         <div class="flex items-center justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">
@@ -2038,6 +2094,78 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
     container.appendChild(visitorDiv);
+
+    const relationshipSelect = /** @type {HTMLSelectElement|null} */(visitorDiv.querySelector('[data-field="relationship"]'));
+    const conjugalSection = visitorDiv.querySelector('[data-conjugal-section]');
+    const relationshipStartDateInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="relationshipStartDate"]'));
+    const cohabitationInputField = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="cohabitationCert"]'));
+    const marriageInputField = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="marriageContract"]'));
+    const cohabitationHint = visitorDiv.querySelector('[data-field="cohabitationHint"]');
+    const marriageHint = visitorDiv.querySelector('[data-field="marriageHint"]');
+    const cohabitationExistingInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="cohabitationExisting"]'));
+    const marriageExistingInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="marriageExisting"]'));
+
+    if (relationshipStartDateInput && relationshipStartDateValue) {
+      relationshipStartDateInput.value = relationshipStartDateValue;
+    }
+    if (cohabitationExistingInput) {
+      cohabitationExistingInput.value = existingCohabitationPath || '';
+    }
+    if (marriageExistingInput) {
+      marriageExistingInput.value = existingMarriagePath || '';
+    }
+    if (cohabitationHint && existingCohabitationName) {
+      cohabitationHint.textContent = `Current: ${existingCohabitationName}`;
+    }
+    if (marriageHint && existingMarriageName) {
+      marriageHint.textContent = `Current: ${existingMarriageName}`;
+    }
+
+    const toggleConjugalSection = () => {
+      if (!relationshipSelect || !conjugalSection) return;
+      const value = relationshipSelect.value;
+      if (value === 'Wife' || value === 'Husband' || value === 'Spouse') {
+        conjugalSection.classList.remove('hidden');
+      } else {
+        conjugalSection.classList.add('hidden');
+      }
+    };
+    if (relationshipSelect) {
+      relationshipSelect.addEventListener('change', toggleConjugalSection);
+    }
+    toggleConjugalSection();
+
+    if (cohabitationInputField && cohabitationHint) {
+      const defaultHint = 'Upload PDF/JPG/PNG up to 10MB.';
+      cohabitationInputField.addEventListener('change', () => {
+        if (cohabitationInputField.files && cohabitationInputField.files[0]) {
+          cohabitationHint.textContent = `Selected: ${cohabitationInputField.files[0].name}`;
+          if (cohabitationExistingInput) {
+            cohabitationExistingInput.value = '';
+          }
+        } else if (existingCohabitationName) {
+          cohabitationHint.textContent = `Current: ${existingCohabitationName}`;
+        } else {
+          cohabitationHint.textContent = defaultHint;
+        }
+      });
+    }
+
+    if (marriageInputField && marriageHint) {
+      const defaultHint = 'Upload PDF/JPG/PNG up to 10MB.';
+      marriageInputField.addEventListener('change', () => {
+        if (marriageInputField.files && marriageInputField.files[0]) {
+          marriageHint.textContent = `Selected: ${marriageInputField.files[0].name}`;
+          if (marriageExistingInput) {
+            marriageExistingInput.value = '';
+          }
+        } else if (existingMarriageName) {
+          marriageHint.textContent = `Current: ${existingMarriageName}`;
+        } else {
+          marriageHint.textContent = defaultHint;
+        }
+      });
+    }
 
     // Avatar preview handler
     const fileInput = visitorDiv.querySelector('[data-field="avatar"]');
@@ -2089,6 +2217,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const avatarDataUrl = previewEl ? String(previewEl.getAttribute('src') || '') : '';
     const avatarInput = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="avatar"]'));
     const avatarFilename = avatarInput && avatarInput.files && avatarInput.files[0] ? avatarInput.files[0].name : '';
+    const relationshipStartDate = getVal('[data-field="relationshipStartDate"]');
+    const cohabitationInputField = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="cohabitationCert"]'));
+    const marriageInputField = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="marriageContract"]'));
+    const cohabitationExistingInput = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="cohabitationExisting"]'));
+    const marriageExistingInput = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="marriageExisting"]'));
+    const cohabitationFilename = cohabitationInputField && cohabitationInputField.files && cohabitationInputField.files[0]
+      ? cohabitationInputField.files[0].name
+      : (cohabitationExistingInput?.value ? cohabitationExistingInput.value.split('/').pop() : '');
+    const marriageFilename = marriageInputField && marriageInputField.files && marriageInputField.files[0]
+      ? marriageInputField.files[0].name
+      : (marriageExistingInput?.value ? marriageExistingInput.value.split('/').pop() : '');
 
     return {
       name: getVal('[data-field="name"]'),
@@ -2100,7 +2239,10 @@ document.addEventListener('DOMContentLoaded', () => {
       address: getVal('[data-field\="address\"]'),
       avatarFilename: avatarFilename,
       avatarPath: 'images/visitors/profiles',
-      avatarDataUrl: avatarDataUrl
+      avatarDataUrl: avatarDataUrl,
+      relationshipStartDate,
+      cohabitationCertName: cohabitationFilename,
+      marriageContractName: marriageFilename
     };
   }
 
@@ -2124,8 +2266,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const previewEl = /** @type {HTMLImageElement|null} */(visitorDiv.querySelector('[data-field="avatarPreview"]'));
       const avatarDataUrl = previewEl ? String(previewEl.getAttribute('src') || '') : '';
 
+      const relationshipStartDateInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="relationshipStartDate"]'));
+      const cohabitationInputField = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="cohabitationCert"]'));
+      const marriageInputField = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="marriageContract"]'));
+      const cohabitationExistingInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="cohabitationExisting"]'));
+      const marriageExistingInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="marriageExisting"]'));
+      const relationshipStartDate = relationshipStartDateInput ? relationshipStartDateInput.value : '';
+      const relationshipLower = relationship ? relationship.toLowerCase() : '';
+
       if (name && relationship) {
-        visitors.push({
+        const visitorPayload = {
           name: name,
           phone: phone,
           email: email,
@@ -2135,8 +2285,28 @@ document.addEventListener('DOMContentLoaded', () => {
           address: address,
           avatarFilename: avatarFilename,
           avatarPath: avatarPath,
-          avatarDataUrl: avatarDataUrl
-        });
+          avatarDataUrl: avatarDataUrl,
+        };
+
+        if (relationshipLower === 'wife' || relationshipLower === 'husband' || relationshipLower === 'spouse') {
+          if (relationshipStartDate) {
+            visitorPayload.relationship_start_date = relationshipStartDate;
+          }
+
+          if (cohabitationInputField && cohabitationInputField.files && cohabitationInputField.files[0]) {
+            visitorPayload.cohabitation_cert = cohabitationInputField.files[0];
+          } else if (cohabitationExistingInput && cohabitationExistingInput.value) {
+            visitorPayload.cohabitation_cert_path = cohabitationExistingInput.value;
+          }
+
+          if (marriageInputField && marriageInputField.files && marriageInputField.files[0]) {
+            visitorPayload.marriage_contract = marriageInputField.files[0];
+          } else if (marriageExistingInput && marriageExistingInput.value) {
+            visitorPayload.marriage_contract_path = marriageExistingInput.value;
+          }
+        }
+
+        visitors.push(visitorPayload);
       }
     });
     return visitors;
@@ -4150,7 +4320,7 @@ async function openUnifiedInmateModal(inmate) {
 // ===============================
 // VISITOR INFO MODAL (SweetAlert2)
 // ===============================
-function openVisitorModal(visitor) {
+async function openVisitorModal(visitor) {
   // Get theme-aware colors from ThemeManager
   const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
   
@@ -4171,6 +4341,59 @@ function openVisitorModal(visitor) {
   const email = visitor?.email || '';
   const address = visitor?.address || '';
 
+  const visitorId = visitor?.id || visitor?.visitor_id || null;
+  const inmateIdForConjugal = visitor?.inmate_id || visitor?.inmate?.id || null;
+  const relationshipLower = (relationship || '').toLowerCase();
+  const shouldShowConjugalSection = relationshipLower === 'wife' || relationshipLower === 'husband' || relationshipLower === 'spouse';
+  let conjugalDetails = null;
+  let hasConjugalRegistration = false;
+
+  if (shouldShowConjugalSection && visitorId && inmateIdForConjugal) {
+    try {
+      const eligibilityResponse = await checkEligibility(visitorId, inmateIdForConjugal);
+      
+      // Debug logging
+      console.log('Conjugal eligibility response:', eligibilityResponse);
+      
+      // Check if conjugal visit registration exists
+      hasConjugalRegistration = eligibilityResponse?.conjugal_visit && eligibilityResponse.conjugal_visit.id;
+      const conjugalVisitId = hasConjugalRegistration ? eligibilityResponse.conjugal_visit.id : null;
+      
+      console.log('Has conjugal registration:', hasConjugalRegistration, 'ID:', conjugalVisitId);
+      
+      let documentsResponse = null;
+
+      if (conjugalVisitId) {
+        try {
+          documentsResponse = await getDocumentInfo(conjugalVisitId);
+          console.log('Document info loaded:', documentsResponse);
+        } catch (docError) {
+          console.error('Failed to load document info:', docError);
+          // Continue even if document info fails
+        }
+      }
+
+      conjugalDetails = {
+        eligibility: eligibilityResponse,
+        documents: documentsResponse,
+        conjugalVisitId,
+        hasRegistration: hasConjugalRegistration,
+      };
+      
+      console.log('Conjugal details prepared:', conjugalDetails);
+    } catch (error) {
+      console.error('Failed to load conjugal visit data:', error);
+      // Even if there's an error, we should still show the section for Wife/Husband/Spouse
+      conjugalDetails = {
+        eligibility: null,
+        documents: null,
+        conjugalVisitId: null,
+        hasRegistration: false,
+        error: error.message,
+      };
+    }
+  }
+
   const headerHTML = `
     <div class="flex items-start gap-4">
       <div class="shrink-0">
@@ -4184,6 +4407,7 @@ function openVisitorModal(visitor) {
   `;
 // [Romarc Dre 2/2]
   // Get visitor status and time data from latest log
+  const hasVisitationLog = visitor?.latestLog && (visitor.latestLog.status !== undefined || visitor.latestLog.time_in || visitor.latestLog.time_out);
   const status = visitor?.latestLog?.status !== undefined ? visitor.latestLog.status : null;
   const timeIn = visitor?.latestLog?.time_in || null;
   const timeOut = visitor?.latestLog?.time_out || null;
@@ -4213,18 +4437,339 @@ function openVisitorModal(visitor) {
   
   const timeInFormatted = formatTime(timeIn);
   const timeOutFormatted = formatTime(timeOut);
-  
-  const bodyHTML = `
-    <div class="mt-4 grid grid-cols-1 gap-3">
-      <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} p-3 sm:p-4">
-        <h3 class="text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-2">Contact</h3>
-        <div class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} space-y-1">
-          <div>${phone ? `📞 ${phone}` : '—'}</div>
-          <div>${email ? `✉️ ${email}` : '—'}</div>
-          <div class="break-words">${address ? `📍 ${address}` : '—'}</div>
+
+  const textMuted = isDarkMode ? 'text-gray-400' : 'text-gray-500';
+  let conjugalCardHTML = '';
+
+  if (shouldShowConjugalSection) {
+    // Check if we have conjugal registration data
+    const hasRegistration = conjugalDetails?.hasRegistration || false;
+    const conjugalVisitId = conjugalDetails?.conjugalVisitId || null;
+    
+    console.log('Building conjugal section - hasRegistration:', hasRegistration, 'conjugalVisitId:', conjugalVisitId);
+    
+    // Get status from multiple possible locations
+    const conjugalVisit = conjugalDetails?.eligibility?.conjugal_visit || null;
+    console.log('Conjugal visit object:', conjugalVisit);
+    
+    // Try to get numeric status from multiple sources
+    let conjugalStatusNumeric = null;
+    if (conjugalVisit) {
+      // Status can be in conjugal_visit.status (integer) or as a property
+      conjugalStatusNumeric = conjugalVisit.status !== undefined && conjugalVisit.status !== null 
+        ? parseInt(conjugalVisit.status) 
+        : null;
+      console.log('Status from conjugalVisit.status:', conjugalStatusNumeric);
+    }
+    // Fallback to status from eligibility response
+    if (conjugalStatusNumeric === null || isNaN(conjugalStatusNumeric)) {
+      const statusFromResponse = conjugalDetails?.eligibility?.status;
+      console.log('Status from eligibility response:', statusFromResponse, typeof statusFromResponse);
+      if (typeof statusFromResponse === 'number') {
+        conjugalStatusNumeric = statusFromResponse;
+      } else if (typeof statusFromResponse === 'string') {
+        // Convert string status to number
+        const statusLower = statusFromResponse.toLowerCase();
+        if (statusLower === 'pending') conjugalStatusNumeric = 2;
+        else if (statusLower === 'approved') conjugalStatusNumeric = 1;
+        else if (statusLower === 'denied') conjugalStatusNumeric = 0;
+      }
+    }
+    
+    console.log('Final conjugalStatusNumeric:', conjugalStatusNumeric);
+    
+    // Determine status flags
+    const isPending = conjugalStatusNumeric === 2;
+    const isApproved = conjugalStatusNumeric === 1;
+    const isDenied = conjugalStatusNumeric === 0;
+    
+    console.log('Status flags - isPending:', isPending, 'isApproved:', isApproved, 'isDenied:', isDenied);
+    
+    // Get validation and eligibility data
+    const validation = conjugalDetails?.eligibility?.validation || null;
+    const startDateRaw = conjugalDetails?.eligibility?.relationship_start_date || conjugalVisit?.relationship_start_date || '';
+    const startDateFormatted = startDateRaw ? new Date(startDateRaw).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'N/A';
+    const yearsAgo = startDateRaw ? formatYearsSinceDate(startDateRaw) : 'N/A';
+    const validationBadge = validation ? getValidationStatusBadge(validation) : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Not Available</span>';
+    const eligible = Boolean(conjugalDetails?.eligibility?.eligible);
+    const eligibleLabel = eligible ? 'Eligible' : 'Not Eligible';
+    const eligibleClasses = eligible
+      ? (isDarkMode ? 'text-emerald-300' : 'text-emerald-600')
+      : (isDarkMode ? 'text-rose-300' : 'text-rose-600');
+    
+    // Get document data
+    const documentsData = conjugalDetails?.documents?.documents || {};
+    const cohabDoc = documentsData.cohabitation_cert || null;
+    const marriageDoc = documentsData.marriage_contract || null;
+    const baseDocTextClass = isDarkMode ? 'text-gray-300' : 'text-gray-700';
+    const actionBtnBase = 'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold cursor-pointer transition-colors';
+    const viewBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-blue-600/80 hover:bg-blue-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`;
+    const downloadBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-emerald-600/80 hover:bg-emerald-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`;
+    const deleteBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-rose-600/80 hover:bg-rose-600 text-white' : 'bg-rose-500 hover:bg-rose-600 text-white'}`;
+    const approveBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-green-600/80 hover:bg-green-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`;
+    const rejectBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-red-600/80 hover:bg-red-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`;
+
+    const renderDocRow = (label, type, doc) => {
+      if (!conjugalVisitId) {
+        return `
+          <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/30' : 'border-gray-200 bg-gray-100'} px-3 py-2 text-sm ${baseDocTextClass}">
+            <p class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${label}</p>
+            <p class="text-xs ${textMuted}">Registration pending approval. Documents not yet available.</p>
+          </div>
+        `;
+      }
+
+      if (!doc || !doc.exists) {
+        return `
+          <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/30' : 'border-gray-200 bg-gray-100'} px-3 py-2 text-sm ${baseDocTextClass}">
+            <p class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${label}</p>
+            <p class="text-xs ${textMuted}">Not uploaded.</p>
+          </div>
+        `;
+      }
+
+      const filename = doc.filename || 'Available document';
+
+      return `
+        <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/30' : 'border-gray-200 bg-gray-100'} px-3 py-2 text-sm ${baseDocTextClass}">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${label}</p>
+              <p class="text-xs ${textMuted}">${filename}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button data-conjugal-doc="view" data-conjugal-type="${type}" data-conjugal-id="${conjugalVisitId}" class="${viewBtnClass}" title="View document">View</button>
+              <button data-conjugal-doc="download" data-conjugal-type="${type}" data-conjugal-id="${conjugalVisitId}" class="${downloadBtnClass}" title="Download document">Download</button>
+              <button data-conjugal-doc="delete" data-conjugal-type="${type}" data-conjugal-id="${conjugalVisitId}" class="${deleteBtnClass}" title="Delete document">Delete</button>
+            </div>
+          </div>
         </div>
-      </div>
-      
+      `;
+    };
+
+    // Determine status badge
+    const conjugalStatusBadge = hasRegistration 
+      ? (isPending 
+        ? '<span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-1 text-xs font-medium">Pending</span>'
+        : isApproved
+        ? '<span class="inline-flex items-center rounded-full bg-green-500/10 text-green-500 px-2 py-1 text-xs font-medium">Approved</span>'
+        : isDenied
+        ? '<span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-2 py-1 text-xs font-medium">Denied</span>'
+        : '<span class="inline-flex items-center rounded-full bg-gray-500/10 text-gray-500 px-2 py-1 text-xs font-medium">Unknown</span>')
+      : '';
+
+    // Action buttons (styled like Time In/Time Out buttons) - ALWAYS show when registration exists
+    // Show buttons if we have a registration ID, regardless of status (to allow status changes)
+    let actionButtonsHTML = '';
+    console.log('Building action buttons - hasRegistration:', hasRegistration, 'conjugalVisitId:', conjugalVisitId);
+    
+    if (hasRegistration && conjugalVisitId) {
+      console.log('Creating action buttons for conjugal visit ID:', conjugalVisitId, 'Status:', conjugalStatusNumeric);
+      // Always show buttons - determine which ones based on current status
+      if (isPending || conjugalStatusNumeric === null) {
+        // Show both Approve and Reject buttons when Pending
+        console.log('Creating Pending/Unknown status buttons (both Approve and Reject)');
+        actionButtonsHTML = `
+          <div class="flex items-center gap-2">
+            <button 
+              data-conjugal-approve 
+              data-conjugal-id="${conjugalVisitId}"
+              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors cursor-pointer"
+              title="Approve Registration"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#10b981' : '#059669'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}">Approve</span>
+              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-green-400' : 'text-green-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Approve</span>
+            </button>
+            <button 
+              data-conjugal-reject 
+              data-conjugal-id="${conjugalVisitId}"
+              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors cursor-pointer"
+              title="Reject Registration"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#ef4444' : '#dc2626'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-red-400' : 'text-red-700'}">Reject</span>
+              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-red-400' : 'text-red-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Reject</span>
+            </button>
+          </div>
+        `;
+      } else if (isApproved) {
+        // Show only Reject button when Approved (to allow rejection if needed)
+        console.log('Creating Approved status buttons (only Reject)');
+        actionButtonsHTML = `
+          <div class="flex items-center gap-2">
+            <button 
+              data-conjugal-reject 
+              data-conjugal-id="${conjugalVisitId}"
+              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors cursor-pointer"
+              title="Reject Registration"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#ef4444' : '#dc2626'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-red-400' : 'text-red-700'}">Reject</span>
+              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-red-400' : 'text-red-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Reject</span>
+            </button>
+          </div>
+        `;
+      } else if (isDenied) {
+        // Show only Approve button when Denied (to allow approval)
+        console.log('Creating Denied status buttons (only Approve)');
+        actionButtonsHTML = `
+          <div class="flex items-center gap-2">
+            <button 
+              data-conjugal-approve 
+              data-conjugal-id="${conjugalVisitId}"
+              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors cursor-pointer"
+              title="Approve Registration"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#10b981' : '#059669'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}">Approve</span>
+              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-green-400' : 'text-green-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Approve</span>
+            </button>
+          </div>
+        `;
+      } else {
+        // Unknown status or any other status - show both buttons to allow status change
+        console.log('Creating Unknown status buttons (both Approve and Reject)');
+        actionButtonsHTML = `
+          <div class="flex items-center gap-2">
+            <button 
+              data-conjugal-approve 
+              data-conjugal-id="${conjugalVisitId}"
+              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors cursor-pointer"
+              title="Approve Registration"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#10b981' : '#059669'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}">Approve</span>
+              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-green-400' : 'text-green-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Approve</span>
+            </button>
+            <button 
+              data-conjugal-reject 
+              data-conjugal-id="${conjugalVisitId}"
+              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors cursor-pointer"
+              title="Reject Registration"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#ef4444' : '#dc2626'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-red-400' : 'text-red-700'}">Reject</span>
+              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-red-400' : 'text-red-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Reject</span>
+            </button>
+          </div>
+        `;
+      }
+    } else if (hasRegistration) {
+      // If we have registration but no ID (shouldn't happen, but handle it), show both buttons anyway
+      console.warn('Conjugal visit registration exists but ID is missing', conjugalDetails);
+    }
+    
+    console.log('Final actionButtonsHTML:', actionButtonsHTML ? 'EXISTS' : 'EMPTY', actionButtonsHTML ? actionButtonsHTML.substring(0, 100) : '');
+
+    // Build conjugal card HTML
+    if (hasRegistration) {
+
+      conjugalCardHTML = `
+        <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} p-3 sm:p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}">Conjugal Visit Information</h3>
+            ${conjugalStatusBadge}
+          </div>
+          <div class="space-y-3 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">
+            ${startDateRaw ? `
+              <div class="flex items-center justify-between">
+                <span class="${textMuted}">Relationship Duration:</span>
+                <span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${yearsAgo}</span>
+              </div>
+              <div>
+                <p><span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Start Date:</span> ${startDateFormatted}</p>
+              </div>
+            ` : ''}
+            ${validation ? `
+              <div class="flex items-center justify-between">
+                <span class="${textMuted}">Validation:</span>
+                ${validationBadge}
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="${textMuted}">Eligibility:</span>
+                <span class="${eligibleClasses} font-semibold">${eligibleLabel}</span>
+              </div>
+            ` : ''}
+            
+            ${(cohabDoc || marriageDoc) ? `
+              <div class="pt-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}">
+                <p class="text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2">Submitted Documents:</p>
+                ${renderDocRow('Cohabitation Certificate', 'cohabitation_cert', cohabDoc)}
+                <div class="mt-2"></div>
+                ${renderDocRow('Marriage Contract', 'marriage_contract', marriageDoc)}
+              </div>
+            ` : ''}
+            
+            ${hasRegistration && conjugalVisitId ? `
+              <div class="pt-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">Actions:</span>
+                  ${actionButtonsHTML || `
+                    <div class="flex items-center gap-2">
+                      <button 
+                        data-conjugal-approve 
+                        data-conjugal-id="${conjugalVisitId}"
+                        class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors cursor-pointer"
+                        title="Approve Registration"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#10b981' : '#059669'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}">Approve</span>
+                        <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-green-400' : 'text-green-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Approve</span>
+                      </button>
+                      <button 
+                        data-conjugal-reject 
+                        data-conjugal-id="${conjugalVisitId}"
+                        class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors cursor-pointer"
+                        title="Reject Registration"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#ef4444' : '#dc2626'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-red-400' : 'text-red-700'}">Reject</span>
+                        <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-red-400' : 'text-red-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Reject</span>
+                      </button>
+                    </div>
+                  `}
+                </div>
+              </div>
+            ` : ''}
+            
+            <p class="text-xs ${textMuted} mt-2">Documents are maintained by the records team. Contact an administrator to upload updated copies.</p>
+          </div>
+        </div>
+      `;
+    } else {
+      // No registration found
+      conjugalCardHTML = `
+        <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} p-3 sm:p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}">Conjugal Visit Registration</h3>
+          </div>
+          <p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">No conjugal visit registration found for this visitor. Ask the records officer to complete the registration during visitor onboarding.</p>
+        </div>
+      `;
+    }
+  }
+  
+  // Build Visit Status HTML (only show if visitation log exists)
+  let visitStatusHTML = '';
+  if (hasVisitationLog) {
+    visitStatusHTML = `
       <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} p-3 sm:p-4">
         <h3 class="text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-3">Visit Status</h3>
         <div class="space-y-3">
@@ -4240,7 +4785,7 @@ function openVisitorModal(visitor) {
               <button 
                 data-time-in-btn
                 data-visitor-id="${visitor?.id || ''}"
-                class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border-green-600/40' : 'bg-green-50 hover:bg-green-100 border-green-300'} transition-colors ${timeIn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+                class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors ${timeIn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
                 ${timeIn ? 'disabled' : ''}
                 title="Record Time In"
               >
@@ -4253,7 +4798,7 @@ function openVisitorModal(visitor) {
               <button 
                 data-time-out-btn
                 data-visitor-id="${visitor?.id || ''}"
-                class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border-red-600/40' : 'bg-red-50 hover:bg-red-100 border-red-300'} transition-colors ${!timeIn || timeOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+                class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors ${!timeIn || timeOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
                 ${!timeIn || timeOut ? 'disabled' : ''}
                 title="Record Time Out"
               >
@@ -4265,6 +4810,22 @@ function openVisitorModal(visitor) {
           </div>
         </div>
       </div>
+    `;
+  }
+
+  const bodyHTML = `
+    <div class="mt-4 grid grid-cols-1 gap-3">
+      <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} p-3 sm:p-4">
+        <h3 class="text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-2">Contact</h3>
+        <div class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} space-y-1">
+          <div>${phone ? `📞 ${phone}` : '—'}</div>
+          <div>${email ? `✉️ ${email}` : '—'}</div>
+          <div class="break-words">${address ? `📍 ${address}` : '—'}</div>
+        </div>
+      </div>
+      
+      ${visitStatusHTML}
+      ${conjugalCardHTML}
     </div>
   `;
 // [Romarc Last Dre 2/2] 
@@ -4293,6 +4854,171 @@ function openVisitorModal(visitor) {
       confirmButton: 'cursor-pointer'
     },
     didOpen: () => {
+      // Attach document management button handlers
+      const docButtons = document.querySelectorAll('[data-conjugal-doc]');
+      docButtons.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const action = btn.getAttribute('data-conjugal-doc');
+          const docType = btn.getAttribute('data-conjugal-type');
+          const conjugalVisitId = btn.getAttribute('data-conjugal-id');
+          
+          if (!conjugalVisitId || !docType) return;
+          
+          try {
+            if (action === 'view') {
+              await viewDocument(conjugalVisitId, docType);
+            } else if (action === 'download') {
+              await downloadDocument(conjugalVisitId, docType);
+            } else if (action === 'delete') {
+              const result = await deleteDocument(conjugalVisitId, docType);
+              if (result) {
+                // Reload the modal with updated data
+                openVisitorModal(visitor);
+              }
+            }
+          } catch (error) {
+            console.error('Error handling document action:', error);
+            const Swal = (await import('sweetalert2')).default;
+            await Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: error.message || 'Failed to perform action',
+              background: isDarkMode ? '#111827' : '#FFFFFF',
+              color: isDarkMode ? '#F9FAFB' : '#111827',
+            });
+          }
+        });
+      });
+
+      // Attach approval/rejection button handlers
+      const approveBtn = document.querySelector('[data-conjugal-approve]');
+      const rejectBtn = document.querySelector('[data-conjugal-reject]');
+      
+      if (approveBtn) {
+        approveBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const conjugalVisitId = approveBtn.getAttribute('data-conjugal-id');
+          if (!conjugalVisitId) return;
+
+          const result = await window.Swal.fire({
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Approve Registration</span>`,
+            html: `<p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">Are you sure you want to approve this conjugal visit registration?</p>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Approve',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6b7280',
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
+          });
+
+          if (result.isConfirmed) {
+            try {
+              const response = await fetch(`/api/conjugal-visits/registrations/${conjugalVisitId}/status`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                  'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ status: 1 }), // 1 = Approved
+              });
+
+              if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to approve registration');
+              }
+
+              await window.Swal.fire({
+                icon: 'success',
+                title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Approved</span>`,
+                text: 'Conjugal visit registration has been approved successfully.',
+                background: isDarkMode ? '#111827' : '#FFFFFF',
+                color: isDarkMode ? '#F9FAFB' : '#111827',
+                confirmButtonColor: '#10b981',
+              });
+
+              // Reload the modal with updated data
+              openVisitorModal(visitor);
+            } catch (error) {
+              console.error('Error approving conjugal visit registration:', error);
+              await window.Swal.fire({
+                icon: 'error',
+                title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
+                text: error.message || 'Failed to approve registration. Please try again.',
+                background: isDarkMode ? '#111827' : '#FFFFFF',
+                color: isDarkMode ? '#F9FAFB' : '#111827',
+                confirmButtonColor: '#ef4444',
+              });
+            }
+          }
+        });
+      }
+
+      if (rejectBtn) {
+        rejectBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const conjugalVisitId = rejectBtn.getAttribute('data-conjugal-id');
+          if (!conjugalVisitId) return;
+
+          const result = await window.Swal.fire({
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Reject Registration</span>`,
+            html: `<p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">Are you sure you want to reject this conjugal visit registration?</p>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Reject',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            background: isDarkMode ? '#111827' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
+          });
+
+          if (result.isConfirmed) {
+            try {
+              const response = await fetch(`/api/conjugal-visits/registrations/${conjugalVisitId}/status`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                  'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ status: 0 }), // 0 = Denied
+              });
+
+              if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to reject registration');
+              }
+
+              await window.Swal.fire({
+                icon: 'success',
+                title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Rejected</span>`,
+                text: 'Conjugal visit registration has been rejected.',
+                background: isDarkMode ? '#111827' : '#FFFFFF',
+                color: isDarkMode ? '#F9FAFB' : '#111827',
+                confirmButtonColor: '#ef4444',
+              });
+
+              // Reload the modal with updated data
+              openVisitorModal(visitor);
+            } catch (error) {
+              console.error('Error rejecting conjugal visit registration:', error);
+              await window.Swal.fire({
+                icon: 'error',
+                title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
+                text: error.message || 'Failed to reject registration. Please try again.',
+                background: isDarkMode ? '#111827' : '#FFFFFF',
+                color: isDarkMode ? '#F9FAFB' : '#111827',
+                confirmButtonColor: '#ef4444',
+              });
+            }
+          }
+        });
+      }
+      
       // Attach Time In button handler
       const timeInBtn = document.querySelector('[data-time-in-btn]');
       if (timeInBtn && !timeInBtn.disabled) {

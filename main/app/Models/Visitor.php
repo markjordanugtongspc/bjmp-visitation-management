@@ -58,6 +58,22 @@ class Visitor extends Model
     }
 
     /**
+     * Get conjugal visits for this visitor
+     */
+    public function conjugalVisits(): HasMany
+    {
+        return $this->hasMany(ConjugalVisit::class);
+    }
+
+    /**
+     * Get conjugal visit logs for this visitor
+     */
+    public function conjugalVisitLogs(): HasMany
+    {
+        return $this->hasMany(ConjugalVisitLog::class);
+    }
+
+    /**
      * Get the user who created this visitor
      */
     public function createdBy(): BelongsTo

@@ -3,7 +3,7 @@
 // Contains placeholder functionality that can be replaced with backend integration
 
 // Configuration constants
-const FILE_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB in bytes
+const FILE_SIZE_LIMIT = 15 * 1024 * 1024; // 15MB in bytes
 const ALLOWED_FILE_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
 const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.docx', '.doc'];
 const DESCRIPTION_MIN_LENGTH = 50;
@@ -17,7 +17,8 @@ const CATEGORIES = [
   { value: 'Visitation', label: 'Visitation', color: 'indigo' },
   { value: 'Training', label: 'Training', color: 'fuchsia' },
   { value: 'Discipline', label: 'Discipline', color: 'teal' },
-  { value: 'Emergency', label: 'Emergency', color: 'red' }
+  { value: 'Emergency', label: 'Emergency', color: 'red' },
+  { value: 'Conjugal', label: 'Conjugal', color: 'pink' }
 ];
 
 // Category-based icon mapping
@@ -29,7 +30,8 @@ const CATEGORY_ICONS = {
   'Visitation': 'M7 7h10v2H7zM7 11h10v2H7zM7 15h10v2H7z',
   'Training': 'M12 2a7 7 0 00-7 7v2a7 7 0 0014 0V9a7 7 0 00-7-7zm0 12a3 3 0 113-3 3 3 0 01-3 3z',
   'Discipline': 'M5 3a2 2 0 00-2 2v9.764A3.236 3.236 0 006.236 18H18a3 3 0 003-3V5a2 2 0 00-2-2z M7 21a1 1 0 01-1-1v-2h12v2a1 1 0 01-1 1z',
-  'Emergency': 'M12 2a9 9 0 00-9 9v4a3 3 0 003 3h1v2a1 1 0 001.555.832L12 19h6a3 3 0 003-3v-4a9 9 0 00-9-9z'
+  'Emergency': 'M12 2a9 9 0 00-9 9v4a3 3 0 003 3h1v2a1 1 0 001.555.832L12 19h6a3 3 0 003-3v-4a9 9 0 00-9-9z',
+  'Conjugal': 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'
 };
 
 // Initialize the form functionality
@@ -147,6 +149,11 @@ function setupFileUpload() {
     if (helpText) {
       helpText.textContent = `Upload PDF, DOC, or DOCX (max ${FILE_SIZE_LIMIT / (1024 * 1024)}MB)`;
     }
+  }
+  // Also update explicit help element if present
+  const explicitHelp = document.getElementById('file_input_help');
+  if (explicitHelp) {
+    explicitHelp.textContent = `PDF, DOC, or DOCX only (MAX. ${FILE_SIZE_LIMIT / (1024 * 1024)}MB).`;
   }
   
   // Create file info element if it doesn't exist
@@ -306,7 +313,8 @@ function setupCategorySelector() {
         indigo: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300',
         fuchsia: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900 dark:text-fuchsia-300',
         teal: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300',
-        red: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+        red: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+        pink: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300'
       };
       
       const badge = document.createElement('span');

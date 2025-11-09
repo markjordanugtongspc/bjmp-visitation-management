@@ -22,6 +22,11 @@
 
         <!-- Main content -->
         <div class="flex-1 min-h-screen bg-gray-50 dark:bg-gray-950">
+            <!-- Session Error Message (hidden, handled by JavaScript) -->
+            @if (session('error'))
+            <div data-session-error="{{ session('error') }}" class="hidden"></div>
+            @endif
+            
             <!-- Hope UI–style Header -->
             <header class="">
                 <div class="h-14 sm:h-16 px-3 sm:px-4 flex items-center gap-3">
@@ -380,4 +385,6 @@
     @vite('resources/js/dashboard/components/visitor-statistics.js')
     @vite('resources/js/dashboard/components/chart.js')
     @vite('resources/js/dashboard/components/notifications.js')
+    @vite('resources/js/dashboard/components/session-messages.js')
+    @vite('resources/js/theme-manager.js')
 </x-app-layout>

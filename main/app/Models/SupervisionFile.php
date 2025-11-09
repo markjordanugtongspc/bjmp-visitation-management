@@ -10,6 +10,7 @@ class SupervisionFile extends Model
     protected $fillable = [
         'title',
         'category',
+        'storage_type',
         'summary',
         'file_path',
         'file_name',
@@ -67,5 +68,34 @@ class SupervisionFile extends Model
     public function scopeByUploader($query, int $userId)
     {
         return $query->where('uploaded_by', $userId);
+    }
+
+    /**
+     * Scope to filter by storage type
+     */
+    public function scopeByStorageType($query, string $storageType)
+    {
+        return $query->where('storage_type', $storageType);
+    }
+
+    /**
+     * Get full file URL based on storage type
+     */
+    public function getFileUrlAttribute(): string
+    {
+        if ($this->storage_type === 'public') {
+            return asset('storage/' . $this->file_path . '/' . $this->file_name);
+        }
+        
+        // For private files, use a route that checks permissions
+        return route('warden.supervision.preview', ['id' => $this->id]);
+    }
+
+    /**
+     * Check if file is publicly accessible
+     */
+    public function isPublic(): bool
+    {
+        return $this->storage_type === 'public';
     }
 }

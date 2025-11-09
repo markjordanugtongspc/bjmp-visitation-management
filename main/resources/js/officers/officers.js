@@ -42,6 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return officers.find(o => Number(o.id) === Number(id));
   }
 
+  // Helper to get ThemeManager config for SweetAlert2
+  function getSwalConfig(options = {}) {
+    if (window.ThemeManager) {
+      return window.ThemeManager.getSwalConfig(options);
+    }
+    // Fallback if ThemeManager not available
+    return options;
+  }
+
   async function openOfficerModal(initial = {}) {
     await ensureSwal();
     const name = initial.name || '';
@@ -53,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Responsive width for the modal - standard sizes
     const width = isMobile() ? '95%' : '42rem'; // 672px max on desktop (max-w-2xl)
 
-    return window.Swal.fire({
+    // Build modal configuration
+    const modalConfig = {
       title: initial.id ? 'Edit Officer' : 'Add Officer',
       html: `
         <div class="space-y-3 text-left">
@@ -182,7 +192,220 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return v;
       },
+    };
+
+    // Merge with ThemeManager config
+    const themeConfig = getSwalConfig({});
+    const finalConfig = {
+      ...themeConfig,
+      ...modalConfig,
+      customClass: {
+        ...(themeConfig.customClass || {}),
+        ...modalConfig.customClass,
+      },
+    };
+
+    return window.Swal.fire(finalConfig);
+  }
+
+  /**
+   * Generate SVG avatar based on officer name
+   * @param {string} name - Officer name
+   * @returns {string} - SVG data URL
+   */
+  function generateOfficerAvatarSVG(name) {
+    const initials = name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+    
+    const colors = [
+      ['#3B82F6', '#2563EB'], // Blue
+      ['#10B981', '#059669'], // Green
+      ['#F59E0B', '#D97706'], // Amber
+      ['#EF4444', '#DC2626'], // Red
+      ['#8B5CF6', '#7C3AED'], // Purple
+    ];
+    const colorIndex = name.charCodeAt(0) % colors.length;
+    const [bgColor, textColor] = colors[colorIndex];
+    
+    const svg = `
+      <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="100" fill="${bgColor}" rx="50"/>
+        <text x="50" y="50" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="${textColor}" text-anchor="middle" dominant-baseline="central">${initials}</text>
+      </svg>
+    `;
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+  }
+
+  /**
+   * Get officer avatar URL with fallback
+   * @param {Object} officer - Officer object
+   * @returns {string} - Avatar URL
+   */
+  function getOfficerAvatarUrl(officer) {
+    if (officer.profile_picture_url) {
+      return officer.profile_picture_url;
+    }
+    
+    // Fallback to generated SVG
+    const name = officer.name || 'Officer';
+    return generateOfficerAvatarSVG(name);
+  }
+
+  /**
+   * Open file manager to upload avatar for an officer
+   * @param {number} userId - ID of the officer
+   * @param {string} userName - Name of the officer
+   */
+  function openOfficerAvatarUpload(userId, userName) {
+    // Create hidden file input
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.style.display = 'none';
+    
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Validate file size
+        if (file.size > 5 * 1024 * 1024) {
+          if (window.ThemeManager) {
+            window.ThemeManager.showError('File size must be less than 5MB');
+          } else {
+            alert('File size must be less than 5MB');
+          }
+          return;
+        }
+        
+        // Upload immediately
+        await uploadOfficerAvatar(userId, file, userName);
+      }
     });
+    
+    // Add to DOM and click to open file manager
+    document.body.appendChild(input);
+    input.click();
+    
+    // Clean up
+    setTimeout(() => {
+      if (document.body.contains(input)) {
+        document.body.removeChild(input);
+      }
+    }, 100);
+  }
+
+  /**
+   * Upload officer avatar to server
+   * @param {number} userId - ID of the officer
+   * @param {File} file - Image file to upload
+   * @param {string} userName - Name of the officer
+   */
+  async function uploadOfficerAvatar(userId, file, userName) {
+    try {
+      // Show loading using ThemeManager
+      if (window.ThemeManager) {
+        window.Swal.fire(window.ThemeManager.getSwalConfig({
+          title: 'Uploading...',
+          text: 'Please wait while we upload the avatar',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            window.Swal.showLoading();
+          }
+        }));
+      }
+
+      // Get upload URL based on current route
+      const addButton = document.querySelector('[data-add-officer]');
+      if (!addButton) {
+        throw new Error('Cannot find upload endpoint');
+      }
+
+      // Determine route prefix from update URL
+      const updateUrl = addButton.getAttribute('data-update-url') || '';
+      let uploadUrl = '';
+      
+      if (updateUrl.includes('/admin/officers/')) {
+        uploadUrl = `/admin/officers/${userId}/upload-avatar`;
+      } else if (updateUrl.includes('/warden/officers/')) {
+        uploadUrl = `/warden/officers/${userId}/upload-avatar`;
+      } else if (updateUrl.includes('/assistant-warden/officers/')) {
+        uploadUrl = `/assistant-warden/officers/${userId}/upload-avatar`;
+      } else {
+        throw new Error('Cannot determine upload route');
+      }
+
+      const formData = new FormData();
+      formData.append('avatar', file);
+      formData.append('_token', addButton.getAttribute('data-csrf') || document.querySelector('meta[name="csrf-token"]')?.content || '');
+
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Close loading
+        window.Swal.close();
+        
+        // Show success message
+        if (window.ThemeManager) {
+          window.ThemeManager.showSuccess('Avatar uploaded successfully');
+        } else {
+          await ensureSwal();
+          window.Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Avatar uploaded successfully',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+        
+        // Update the officer in the list
+        const officer = getOfficerById(userId);
+        if (officer) {
+          officer.profile_picture_url = data.profile_picture_url || data.image_url;
+          renderOrUpdateViews(officer);
+        } else {
+          // Refresh the list
+          const listUrl = addButton.getAttribute('data-list-url');
+          if (listUrl) {
+            const resp = await fetch(listUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+            if (resp.ok) {
+              const items = await resp.json();
+              if (Array.isArray(items)) {
+                items.forEach(it => renderOrUpdateViews(it));
+              }
+            }
+          }
+        }
+      } else {
+        throw new Error(data.message || 'Upload failed');
+      }
+    } catch (error) {
+      window.Swal.close();
+      console.error('Error uploading avatar:', error);
+      
+      if (window.ThemeManager) {
+        window.ThemeManager.showError(error.message || 'Failed to upload avatar');
+      } else {
+        await ensureSwal();
+        window.Swal.fire({
+          icon: 'error',
+          title: 'Upload Failed',
+          text: error.message || 'Failed to upload avatar. Please try again.'
+        });
+      }
+    }
   }
 
   // Update both desktop and mobile views
@@ -207,11 +430,15 @@ document.addEventListener('DOMContentLoaded', () => {
       row = document.createElement('tr');
       row.setAttribute('data-row-id', String(data.id));
       row.className = 'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors';
+      const avatarUrl = getOfficerAvatarUrl(data);
       row.innerHTML = `
         <td class="px-4 py-3 whitespace-nowrap">
           <div class="flex items-center gap-3">
-            <div class="h-9 w-9 rounded-full bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
+            <div class="relative group h-9 w-9 rounded-full overflow-hidden ring-2 ring-blue-500/20 flex items-center justify-center cursor-pointer" data-avatar-upload data-user-id="${data.id}">
+              <img src="${avatarUrl}" alt="${data.name}" class="h-full w-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="h-9 w-9 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center" style="display:none;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
+              </div>
             </div>
             <div>
               <div class="font-medium text-gray-900 dark:text-gray-50" data-o-name></div>
@@ -248,6 +475,22 @@ document.addEventListener('DOMContentLoaded', () => {
     statusEl.textContent = data.status;
     statusEl.className = `inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${statusClass}`;
 
+    // Update avatar
+    const avatarContainer = row.querySelector('[data-avatar-upload]');
+    if (avatarContainer) {
+      const avatarUrl = getOfficerAvatarUrl(data);
+      const img = avatarContainer.querySelector('img');
+      if (img) {
+        img.src = avatarUrl;
+        img.style.display = '';
+      }
+      const fallback = avatarContainer.querySelector('div[style*="display:none"]');
+      if (fallback) {
+        fallback.style.display = 'none';
+      }
+      avatarContainer.setAttribute('data-user-id', String(data.id));
+    }
+
     // Add event listener to edit button
     const editBtn = row.querySelector('[data-edit-officer]');
     editBtn.onclick = async () => {
@@ -283,20 +526,30 @@ document.addEventListener('DOMContentLoaded', () => {
           Object.assign(data, updated);
           renderOrUpdateViews(data);
           await ensureSwal();
-          window.Swal.fire({
-            icon: 'success',
-            title: 'Saved',
-            timer: 900,
-            showConfirmButton: false,
-            width: isMobile() ? '90%' : '32rem',
-          });
+          
+          if (window.ThemeManager) {
+            window.ThemeManager.showSuccess('Officer updated successfully');
+          } else {
+            window.Swal.fire(getSwalConfig({
+              icon: 'success',
+              title: 'Saved',
+              timer: 900,
+              showConfirmButton: false,
+              width: isMobile() ? '90%' : '32rem',
+            }));
+          }
         } catch (e) {
           await ensureSwal();
-          window.Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: e.message || 'Unable to update officer',
-          });
+          
+          if (window.ThemeManager) {
+            window.ThemeManager.showError(e.message || 'Unable to update officer');
+          } else {
+            window.Swal.fire(getSwalConfig({
+              icon: 'error',
+              title: 'Error',
+              text: e.message || 'Unable to update officer',
+            }));
+          }
         }
       }
     };
@@ -315,11 +568,15 @@ document.addEventListener('DOMContentLoaded', () => {
       card = document.createElement('div');
       card.className = 'p-4 space-y-3';
       card.setAttribute('data-card-id', String(data.id));
+      const avatarUrl = getOfficerAvatarUrl(data);
       card.innerHTML = `
         <div class="flex justify-between items-start">
           <div class="flex items-center gap-3">
-            <div class="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
+            <div class="relative group h-10 w-10 rounded-full overflow-hidden ring-2 ring-blue-500/20 flex items-center justify-center cursor-pointer" data-avatar-upload data-user-id="${data.id}">
+              <img src="${avatarUrl}" alt="${data.name}" class="h-full w-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center" style="display:none;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
+              </div>
             </div>
             <div>
               <div class="font-medium text-gray-900 dark:text-gray-50" data-o-name></div>
@@ -358,6 +615,22 @@ document.addEventListener('DOMContentLoaded', () => {
     statusEl.textContent = data.status;
     statusEl.className = `inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusClass}`;
 
+    // Update avatar
+    const avatarContainer = card.querySelector('[data-avatar-upload]');
+    if (avatarContainer) {
+      const avatarUrl = getOfficerAvatarUrl(data);
+      const img = avatarContainer.querySelector('img');
+      if (img) {
+        img.src = avatarUrl;
+        img.style.display = '';
+      }
+      const fallback = avatarContainer.querySelector('div[style*="display:none"]');
+      if (fallback) {
+        fallback.style.display = 'none';
+      }
+      avatarContainer.setAttribute('data-user-id', String(data.id));
+    }
+
     // Add event listener to edit button
     const editBtn = card.querySelector('[data-edit-officer]');
     editBtn.onclick = async () => {
@@ -393,28 +666,30 @@ document.addEventListener('DOMContentLoaded', () => {
           Object.assign(data, updated);
           renderOrUpdateViews(data);
           await ensureSwal();
-          const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
           
-          window.Swal.fire({
-            icon: 'success',
-            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Saved</span>`,
-            timer: 900,
-            showConfirmButton: false,
-            background: isDarkMode ? '#111827' : '#FFFFFF',
-            color: isDarkMode ? '#F9FAFB' : '#111827',
-            width: isMobile() ? '90%' : '32rem',
-          });
+          if (window.ThemeManager) {
+            window.ThemeManager.showSuccess('Officer updated successfully');
+          } else {
+            window.Swal.fire(getSwalConfig({
+              icon: 'success',
+              title: 'Saved',
+              timer: 900,
+              showConfirmButton: false,
+              width: isMobile() ? '90%' : '32rem',
+            }));
+          }
         } catch (e) {
           await ensureSwal();
-          const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
           
-          window.Swal.fire({
-            icon: 'error',
-            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
-            text: e.message || 'Unable to update officer',
-            background: isDarkMode ? '#111827' : '#FFFFFF',
-            color: isDarkMode ? '#F9FAFB' : '#111827',
-          });
+          if (window.ThemeManager) {
+            window.ThemeManager.showError(e.message || 'Unable to update officer');
+          } else {
+            window.Swal.fire(getSwalConfig({
+              icon: 'error',
+              title: 'Error',
+              text: e.message || 'Unable to update officer',
+            }));
+          }
         }
       }
     };
@@ -438,6 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tableBody?.querySelectorAll('tr[data-row-id]')?.forEach(row => {
       const id = Number(row.getAttribute('data-row-id'));
       if (!Number.isNaN(id)) {
+        const avatarImg = row.querySelector('[data-avatar-upload] img');
         officers.push({
           id,
           name: row.querySelector('[data-o-name]')?.textContent || '',
@@ -445,6 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
           title: row.querySelector('[data-o-title]')?.textContent || '',
           subtitle: row.querySelector('[data-o-subtitle]')?.textContent || '',
           status: row.querySelector('[data-o-status]')?.textContent || 'Active',
+          profile_picture_url: avatarImg ? avatarImg.src : null,
         });
       }
     });
@@ -453,6 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
       mobileCardsContainer?.querySelectorAll('[data-card-id]')?.forEach(card => {
         const id = Number(card.getAttribute('data-card-id'));
         if (!Number.isNaN(id)) {
+          const avatarImg = card.querySelector('[data-avatar-upload] img');
           officers.push({
             id,
             name: card.querySelector('[data-o-name]')?.textContent || '',
@@ -460,6 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: card.querySelector('[data-o-title]')?.textContent || '',
             subtitle: card.querySelector('[data-o-subtitle]')?.textContent || '',
             status: card.querySelector('[data-o-status]')?.textContent || 'Active',
+            profile_picture_url: avatarImg ? avatarImg.src : null,
           });
         }
       });
@@ -474,6 +753,8 @@ document.addEventListener('DOMContentLoaded', () => {
       let maxId = 0;
       officers.forEach(o => { if (Number(o.id) > maxId) maxId = Number(o.id); });
       nextId = Math.max(8, maxId + 1);
+      // Add avatar click handlers even without backend
+      attachAvatarClickHandlers();
       return;
     }
 
@@ -496,10 +777,50 @@ document.addEventListener('DOMContentLoaded', () => {
         let maxId = 0;
         existingIds.forEach(id => { if (id > maxId) maxId = id; });
         nextId = Math.max(8, maxId + 1);
+        
+        // Add avatar click handlers
+        attachAvatarClickHandlers();
       })
       .finally(() => {
         startPollingList();
       });
+  }
+
+  // Flag to track if avatar click handler is attached
+  let avatarHandlerAttached = false;
+
+  /**
+   * Attach event delegation for avatar click handlers
+   */
+  function attachAvatarClickHandlers() {
+    // Only attach once using event delegation
+    if (avatarHandlerAttached) return;
+    avatarHandlerAttached = true;
+    
+    // Use event delegation for avatar clicks (single listener for all avatars)
+    document.addEventListener('click', (e) => {
+      const avatarUpload = e.target.closest('[data-avatar-upload]');
+      if (avatarUpload) {
+        e.preventDefault();
+        e.stopPropagation();
+        const userId = avatarUpload.getAttribute('data-user-id');
+        if (!userId) return;
+        
+        // Find officer data
+        const officer = getOfficerById(Number(userId));
+        if (officer) {
+          openOfficerAvatarUpload(Number(userId), officer.name);
+        } else {
+          // If officer not found in cache, try to get name from DOM
+          const row = document.querySelector(`tr[data-row-id="${userId}"], [data-card-id="${userId}"]`);
+          if (row) {
+            const nameEl = row.querySelector('[data-o-name]');
+            const officerName = nameEl ? nameEl.textContent : 'Officer';
+            openOfficerAvatarUpload(Number(userId), officerName);
+          }
+        }
+      }
+    });
   }
 
   function startPollingList() {
@@ -569,6 +890,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize the page
   initializeExistingItems();
+  
+  // Attach avatar click handlers on page load
+  attachAvatarClickHandlers();
 
   // Handle add officer button clicks
   addButtons.forEach((btn) => {
@@ -605,20 +929,30 @@ document.addEventListener('DOMContentLoaded', () => {
           // Update nextId to be at least created.id + 1
           nextId = Math.max(nextId, Number(created.id) + 1, 8);
           await ensureSwal();
-          window.Swal.fire({
-            icon: 'success',
-            title: 'Officer added',
-            timer: 900,
-            showConfirmButton: false,
-            width: isMobile() ? '90%' : '32rem',
-          });
+          
+          if (window.ThemeManager) {
+            window.ThemeManager.showSuccess('Officer added successfully');
+          } else {
+            window.Swal.fire(getSwalConfig({
+              icon: 'success',
+              title: 'Officer added',
+              timer: 900,
+              showConfirmButton: false,
+              width: isMobile() ? '90%' : '32rem',
+            }));
+          }
         } catch (e) {
           await ensureSwal();
-          window.Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: e.message || 'Unable to add officer',
-          });
+          
+          if (window.ThemeManager) {
+            window.ThemeManager.showError(e.message || 'Unable to add officer');
+          } else {
+            window.Swal.fire(getSwalConfig({
+              icon: 'error',
+              title: 'Error',
+              text: e.message || 'Unable to add officer',
+            }));
+          }
         }
       }
     });

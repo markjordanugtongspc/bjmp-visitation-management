@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Visitor;
 use App\Models\Inmate;
+use App\Models\ConjugalVisit;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Support\Facades\Log;
 
 class VisitorController extends Controller
 {
@@ -26,6 +29,8 @@ class VisitorController extends Controller
             $query->byInmate($request->inmate_id);
         }
 
+        // Only filter by is_allowed if explicitly provided and not empty
+        // This allows fetching ALL visitors when no filter is provided
         if ($request->has('is_allowed') && $request->is_allowed !== null && $request->is_allowed !== '') {
             $query->where('is_allowed', (int) $request->is_allowed === 1);
         }
@@ -107,7 +112,42 @@ class VisitorController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'life_status' => 'nullable|in:alive,deceased,unknown',
             'is_allowed' => 'nullable|boolean',
+            'relationship_start_date' => 'nullable|date',
+            'cohabitation_cert' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'marriage_contract' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $relationship = strtolower((string) $request->input('relationship', ''));
+            $requiresConjugal = in_array($relationship, ['wife', 'husband', 'spouse'], true);
+
+            if (!$requiresConjugal) {
+                return;
+            }
+
+            if (!$request->filled('relationship_start_date')) {
+                $validator->errors()->add('relationship_start_date', 'Relationship start date is required for conjugal visits.');
+            } else {
+                try {
+                    $startDate = Carbon::parse($request->input('relationship_start_date'));
+                    if ($startDate->isFuture()) {
+                        $validator->errors()->add('relationship_start_date', 'Relationship start date cannot be in the future.');
+                    } elseif ($startDate->diffInYears(Carbon::now()) < 6) {
+                        $validator->errors()->add('relationship_start_date', 'Couples must be married or living together for at least 6 years to request conjugal visits.');
+                    }
+                } catch (\Exception $e) {
+                    $validator->errors()->add('relationship_start_date', 'Invalid relationship start date provided.');
+                }
+            }
+
+            if (!$request->hasFile('cohabitation_cert')) {
+                $validator->errors()->add('cohabitation_cert', 'Cohabitation certificate is required for conjugal visits.');
+            }
+
+            if (!$request->hasFile('marriage_contract')) {
+                $validator->errors()->add('marriage_contract', 'Marriage contract is required for conjugal visits.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
@@ -120,12 +160,20 @@ class VisitorController extends Controller
         $data = $validator->validated();
         $data['life_status'] = $data['life_status'] ?? 'alive';
         $data['is_allowed'] = array_key_exists('is_allowed', $data) ? (bool) $data['is_allowed'] : true;
-        
+
+        $relationship = strtolower((string)($data['relationship'] ?? ''));
+        $requiresConjugal = in_array($relationship, ['wife', 'husband', 'spouse'], true);
+        $relationshipStartDate = $request->input('relationship_start_date');
+        $cohabitationCert = $request->file('cohabitation_cert');
+        $marriageContract = $request->file('marriage_contract');
+
+        unset($data['relationship_start_date'], $data['cohabitation_cert'], $data['marriage_contract']);
+
         if ($request->hasFile('avatar')) {
             $avatar = $request->file('avatar');
             $filename = time() . '_' . $avatar->getClientOriginalName();
             $path = $avatar->storeAs('visitors/avatars', $filename, 'public');
-            
+
             $data['avatar_path'] = 'visitors/avatars';
             $data['avatar_filename'] = $filename;
         }
@@ -134,8 +182,39 @@ class VisitorController extends Controller
             $data['created_by_user_id'] = auth()->id();
         }
 
-        $visitor = Visitor::create($data);
-        $visitor->load('inmate');
+        try {
+            DB::beginTransaction();
+
+            $visitor = Visitor::create($data);
+            $visitor->load('inmate');
+
+            $conjugalVisit = null;
+
+            if ($requiresConjugal) {
+                $cohabitationPath = $cohabitationCert?->store('conjugal_visits/cohabitation_certificates', 'public');
+                $marriagePath = $marriageContract?->store('conjugal_visits/marriage_contracts', 'public');
+
+                $conjugalVisit = ConjugalVisit::create([
+                    'visitor_id' => $visitor->id,
+                    'inmate_id' => $data['inmate_id'],
+                    'cohabitation_cert_path' => $cohabitationPath,
+                    'marriage_contract_path' => $marriagePath,
+                    'relationship_start_date' => $relationshipStartDate,
+                    'status' => 2, // Pending approval
+                ]);
+
+                $this->sendConjugalRegistrationNotifications($conjugalVisit);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error registering visitor: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to register visitor. ' . $e->getMessage(),
+            ], 500);
+        }
 
         $schedule = $request->input('schedule');
         if ($schedule && Schema::hasTable('visitation_logs')) {
@@ -173,7 +252,8 @@ class VisitorController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Visitor registered successfully',
-            'data' => $visitor
+            'data' => $visitor,
+            'conjugal_visit' => $conjugalVisit ?? null,
         ], 201);
     }
 
@@ -751,6 +831,26 @@ $visitor->setAttribute('latest_log', null);
                 ], 422);
             }
 
+            // Check time slot availability BEFORE creating
+            $scheduleDateTime = $request->schedule;
+            $maxVisitors = 30;
+            
+            $currentCount = DB::table('visitation_logs')
+                ->where('schedule', $scheduleDateTime)
+                ->whereIn('status', [1, 2]) // Only count Approved (1) and Pending (2)
+                ->count();
+            
+            if ($currentCount >= $maxVisitors) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This time slot is full. Maximum ' . $maxVisitors . ' visitors allowed per time slot.',
+                    'data' => [
+                        'current_count' => $currentCount,
+                        'max_visitors' => $maxVisitors
+                    ]
+                ], 409); // 409 Conflict
+            }
+
             // Auto-generate reference number if not provided (for existing visitors without one)
             // Format: VL-YYYYMMDD-XXXX (e.g., VL-20251031-0001)
             $referenceNumber = $request->reference_number;
@@ -789,8 +889,8 @@ $visitor->setAttribute('latest_log', null);
                 'reference_number' => $referenceNumber,
                 'visitor_id' => $request->visitor_id,
                 'inmate_id' => $request->inmate_id,
-                'schedule' => $request->schedule,
-                'reason_for_visit' => $request->reason_for_visit,
+                'schedule' => $scheduleDateTime,
+                'reason_for_visit' => $request->reason_for_visit ? trim($request->reason_for_visit) : null, // Convert empty string to null
                 'status' => $request->status ?? 2, // Default to pending
                 'created_at' => now(),
                 'updated_at' => now()
@@ -816,6 +916,125 @@ $visitor->setAttribute('latest_log', null);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create visitation request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get availability for all time slots on a specific date
+     */
+    public function getDateAvailability(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'date' => 'required|date',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $date = $request->date;
+            $maxVisitors = 30;
+            
+            // Get all possible time slots
+            $timeSlots = [
+                '08:00', '09:00', '10:00', '11:00', '12:00',
+                '13:00', '14:00', '15:00', '16:00'
+            ];
+            
+            $availability = [];
+            
+            foreach ($timeSlots as $time) {
+                $scheduleDateTime = $date . ' ' . $time . ':00';
+                
+                $currentCount = DB::table('visitation_logs')
+                    ->where('schedule', $scheduleDateTime)
+                    ->whereIn('status', [1, 2]) // Only Approved (1) and Pending (2)
+                    ->count();
+                
+                $available = max(0, $maxVisitors - $currentCount);
+                $percentage = ($currentCount / $maxVisitors) * 100;
+                
+                $availability[] = [
+                    'time' => $time,
+                    'current_count' => $currentCount,
+                    'max_visitors' => $maxVisitors,
+                    'available' => $available,
+                    'percentage' => round($percentage, 1),
+                    'is_full' => $currentCount >= $maxVisitors,
+                    'is_available' => $currentCount < $maxVisitors
+                ];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $availability
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch availability: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check availability for a specific date and time slot
+     */
+    public function checkTimeSlotAvailability(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'date' => 'required|date',
+                'time' => 'required|date_format:H:i', // e.g., "08:00", "12:00"
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $date = $request->date;
+            $time = $request->time;
+            $maxVisitors = 30;
+            
+            // Combine date and time into datetime
+            $scheduleDateTime = $date . ' ' . $time . ':00';
+            
+            // Count approved/pending visits for this time slot
+            $currentCount = DB::table('visitation_logs')
+                ->where('schedule', $scheduleDateTime)
+                ->whereIn('status', [1, 2]) // Only Approved (1) and Pending (2)
+                ->count();
+            
+            $available = max(0, $maxVisitors - $currentCount);
+            $percentage = ($currentCount / $maxVisitors) * 100;
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'date' => $date,
+                    'time' => $time,
+                    'current_count' => $currentCount,
+                    'max_visitors' => $maxVisitors,
+                    'available' => $available,
+                    'percentage' => round($percentage, 1),
+                    'is_full' => $currentCount >= $maxVisitors,
+                    'is_available' => $currentCount < $maxVisitors
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to check availability: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -1187,6 +1406,33 @@ $visitor->setAttribute('latest_log', null);
                 'success' => false,
                 'message' => 'Failed to fetch upcoming schedules: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Notify key users that a conjugal registration has been submitted.
+     */
+    private function sendConjugalRegistrationNotifications(ConjugalVisit $conjugalVisit): void
+    {
+        try {
+            $visitor = Visitor::find($conjugalVisit->visitor_id);
+            $inmate = Inmate::find($conjugalVisit->inmate_id);
+
+            if (!$visitor || !$inmate) {
+                return;
+            }
+
+            $notifiableRoles = [1, 2, 3, 5]; // Admin, Warden, Assistant Warden, Searcher
+            $users = User::whereIn('role_id', $notifiableRoles)->get();
+
+            $message = "New conjugal visit registration request from {$visitor->name} for inmate {$inmate->full_name}";
+
+            foreach ($users as $user) {
+                Log::info("Notification sent to {$user->full_name}: {$message}");
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error sending conjugal registration notifications (VisitorController): ' . $e->getMessage());
         }
     }
 }

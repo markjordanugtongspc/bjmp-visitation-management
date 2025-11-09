@@ -105,6 +105,11 @@
             </header>
 
             <div class="p-4 sm:p-6">
+                <!-- Session Error Message (hidden, handled by JavaScript) -->
+                @if (session('error'))
+                <div data-session-error="{{ session('error') }}" class="hidden"></div>
+                @endif
+                
                 <div class="mb-6">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div class="flex-1">
@@ -228,6 +233,7 @@
     @vite('resources/js/dashboard/components/role-based.js')
     @vite('resources/js/dashboard/components/quick-action-modals.js')
     @vite('resources/js/dashboard/components/notifications.js')
+    @vite('resources/js/dashboard/components/session-messages.js')
     @vite('resources/js/theme-manager.js')
 </x-app-layout>
 

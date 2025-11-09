@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
+use Carbon\Carbon;
 
 class UpdateInmateRequest extends FormRequest
 {
@@ -60,8 +62,76 @@ class UpdateInmateRequest extends FormRequest
             'allowed_visitors.*.id_type' => ['nullable', 'string', 'max:50'],
             'allowed_visitors.*.id_number' => ['nullable', 'string', 'max:50'],
             'allowed_visitors.*.address' => ['nullable', 'string'],
+            'allowed_visitors.*.relationship_start_date' => ['nullable', 'date'],
+            'allowed_visitors.*.cohabitation_cert' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+            'allowed_visitors.*.marriage_contract' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+            'allowed_visitors.*.cohabitation_cert_path' => ['nullable', 'string'],
+            'allowed_visitors.*.marriage_contract_path' => ['nullable', 'string'],
             'recent_visits' => ['nullable', 'array'],
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $allowedVisitors = $this->input('allowed_visitors', []);
+            
+            foreach ($allowedVisitors as $index => $visitor) {
+                $relationship = strtolower((string) ($visitor['relationship'] ?? ''));
+                $requiresConjugal = in_array($relationship, ['wife', 'husband', 'spouse'], true);
+                
+                if ($requiresConjugal) {
+                    // Validate relationship_start_date
+                    if (empty($visitor['relationship_start_date'])) {
+                        $validator->errors()->add(
+                            "allowed_visitors.{$index}.relationship_start_date",
+                            "Relationship start date is required for conjugal visits (Wife/Husband/Spouse relationship)."
+                        );
+                    } else {
+                        try {
+                            $startDate = Carbon::parse($visitor['relationship_start_date']);
+                            if ($startDate->isFuture()) {
+                                $validator->errors()->add(
+                                    "allowed_visitors.{$index}.relationship_start_date",
+                                    "Relationship start date cannot be in the future."
+                                );
+                            } elseif ($startDate->diffInYears(Carbon::now()) < 6) {
+                                $validator->errors()->add(
+                                    "allowed_visitors.{$index}.relationship_start_date",
+                                    "Couples must be married or living together for at least 6 years to request conjugal visits."
+                                );
+                            }
+                        } catch (\Exception $e) {
+                            $validator->errors()->add(
+                                "allowed_visitors.{$index}.relationship_start_date",
+                                "Invalid relationship start date provided."
+                            );
+                        }
+                    }
+                    
+                    // Validate documents - at least one must be provided (file or path)
+                    $hasCohabitationCert = !empty($visitor['cohabitation_cert']) || !empty($visitor['cohabitation_cert_path']);
+                    $hasMarriageContract = !empty($visitor['marriage_contract']) || !empty($visitor['marriage_contract_path']);
+                    
+                    if (!$hasCohabitationCert) {
+                        $validator->errors()->add(
+                            "allowed_visitors.{$index}.cohabitation_cert",
+                            "Cohabitation certificate is required for conjugal visits (Wife/Husband/Spouse relationship)."
+                        );
+                    }
+                    
+                    if (!$hasMarriageContract) {
+                        $validator->errors()->add(
+                            "allowed_visitors.{$index}.marriage_contract",
+                            "Marriage contract is required for conjugal visits (Wife/Husband/Spouse relationship)."
+                        );
+                    }
+                }
+            }
+        });
     }
 
     public function messages(): array
