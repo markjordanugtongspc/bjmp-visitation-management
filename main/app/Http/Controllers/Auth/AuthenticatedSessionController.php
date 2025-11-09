@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
             case 1: // Warden
                 return redirect()->intended(route('warden.dashboard', absolute: false));
             case 2: // Assistant Warden
-                return redirect()->intended(route('warden.dashboard', absolute: false));
+                return redirect()->intended(route('assistant-warden.dashboard', absolute: false));
             case 6: // Jail Head Nurse
                 return redirect()->intended(route('nurse.dashboard', absolute: false));
             case 7: // Jail Nurse

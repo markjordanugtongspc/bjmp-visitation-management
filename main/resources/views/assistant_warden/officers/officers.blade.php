@@ -174,23 +174,18 @@
                                 </tr>
                             </thead>
                             <tbody id="officers-table-body" class="divide-y divide-gray-200 dark:divide-gray-800 text-gray-900 dark:text-gray-200">
-                                @php
-                                    $officers = [
-                                        ['id'=>1,'name'=>'Jail Warden','email'=>'warden@bjmp.gov.ph','title'=>'Warden','subtitle'=>'Jail Management','status'=>'Active'],
-                                        ['id'=>2,'name'=>'Assistant Warden','email'=>'asst.warden@bjmp.gov.ph','title'=>'Assistant Warden','subtitle'=>'Operations','status'=>'Active'],
-                                        ['id'=>3,'name'=>'Chief Custodial','email'=>'custodial@bjmp.gov.ph','title'=>'Chief Custodial','subtitle'=>'Security','status'=>'Active'],
-                                        ['id'=>4,'name'=>'Chief ICT','email'=>'ict@bjmp.gov.ph','title'=>'Chief ICT','subtitle'=>'Information Systems','status'=>'Active'],
-                                        ['id'=>5,'name'=>'Senior Jail Officer','email'=>'sjo@bjmp.gov.ph','title'=>'Unit Executive Senior Jail Officer','subtitle'=>'Administration','status'=>'Active'],
-                                        ['id'=>6,'name'=>'Chief Nurse','email'=>'health@bjmp.gov.ph','title'=>'Chief Health Nurse','subtitle'=>'Medical Services','status'=>'Active'],
-                                    ];
-                                @endphp
-
                                 @foreach($officers as $o)
+                                    @php $active = strtolower($o['status']) === 'active'; @endphp
                                     <tr data-row-id="{{ $o['id'] }}" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <div class="flex items-center gap-3">
-                                                <div class="h-9 w-9 rounded-full bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
+                                                <div class="relative group h-9 w-9 rounded-full overflow-hidden ring-2 ring-blue-500/20 flex items-center justify-center cursor-pointer" data-avatar-upload data-user-id="{{ $o['id'] }}">
+                                                    @if($o['has_profile_picture'] && $o['profile_picture_url'])
+                                                        <img src="{{ $o['profile_picture_url'] }}" alt="{{ $o['name'] }}" class="h-full w-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                                    @endif
+                                                    <div class="h-9 w-9 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center" style="{{ ($o['has_profile_picture'] && $o['profile_picture_url']) ? 'display:none;' : 'display:flex;' }}">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
+                                                    </div>
                                                 </div>
                                                 <div>
                                                     <div class="font-medium text-gray-900 dark:text-gray-50" data-o-name>{{ $o['name'] }}</div>
@@ -203,7 +198,6 @@
                                             <div class="text-xs text-gray-500 dark:text-gray-400" data-o-subtitle>{{ $o['subtitle'] }}</div>
                                         </td>
                                         <td class="px-4 py-3">
-                                            @php $active = strtolower($o['status']) === 'active'; @endphp
                                             <span data-o-status class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] {{ $active ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500' }}">{{ $o['status'] }}</span>
                                         </td>
                                         <td class="px-4 py-3 text-right">
@@ -231,11 +225,17 @@
                     <div class="sm:hidden">
                         <div id="officers-cards-mobile" class="divide-y divide-gray-200 dark:divide-gray-800">
                             @foreach($officers as $o)
+                                @php $active = strtolower($o['status']) === 'active'; @endphp
                                 <div class="p-4 space-y-3" data-card-id="{{ $o['id'] }}">
                                     <div class="flex justify-between items-start">
                                         <div class="flex items-center gap-3">
-                                            <div class="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 ring-2 ring-blue-500/20 flex items-center justify-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
+                                            <div class="relative group h-10 w-10 rounded-full overflow-hidden ring-2 ring-blue-500/20 flex items-center justify-center cursor-pointer" data-avatar-upload data-user-id="{{ $o['id'] }}">
+                                                @if($o['has_profile_picture'] && $o['profile_picture_url'])
+                                                    <img src="{{ $o['profile_picture_url'] }}" alt="{{ $o['name'] }}" class="h-full w-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                                @endif
+                                                <div class="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center" style="{{ ($o['has_profile_picture'] && $o['profile_picture_url']) ? 'display:none;' : 'display:flex;' }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M2 22s4-4 10-4 10 4 10 4-4 2-10 2-10-2-10-2z"/></svg>
+                                                </div>
                                             </div>
                                             <div>
                                                 <div class="font-medium text-gray-900 dark:text-gray-50" data-o-name>{{ $o['name'] }}</div>
@@ -243,7 +243,7 @@
                                             </div>
                                         </div>
                                         <button type="button" data-edit-officer 
-                                            class="bg-blue-500/10 text-blue-500 p-2 rounded-md" 
+                                            class="bg-blue-500/10 text-blue-500 p-2 rounded-md cursor-pointer" 
                                             aria-label="Edit officer" 
                                             data-id="{{ $o['id'] }}"
                                             data-name="{{ $o['name'] }}"
@@ -264,7 +264,6 @@
                                                 <div class="font-medium text-gray-900 dark:text-gray-50" data-o-title>{{ $o['title'] }}</div>
                                                 <div class="text-xs text-gray-500 dark:text-gray-400" data-o-subtitle>{{ $o['subtitle'] }}</div>
                                             </div>
-                                            @php $active = strtolower($o['status']) === 'active'; @endphp
                                             <span data-o-status class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {{ $active ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500' }}">{{ $o['status'] }}</span>
                                         </div>
                                     </div>

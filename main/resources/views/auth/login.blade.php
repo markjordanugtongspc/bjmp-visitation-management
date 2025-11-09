@@ -26,6 +26,13 @@
           <div class="mt-4 text-sm text-green-600">{{ session('status') }}</div>
           @endif
 
+          <!-- Error Message (for unauthorized access or login required) -->
+          @if (session('error'))
+          <div class="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
+            {{ session('error') }}
+          </div>
+          @endif
+
           <form method="POST" action="{{ route('login') }}" class="mt-6">
             @csrf
             
@@ -139,5 +146,62 @@
 
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wait for ThemeManager and SweetAlert2 to be available
+      const checkDependencies = setInterval(() => {
+        if (window.ThemeManager && window.Swal) {
+          clearInterval(checkDependencies);
+          checkForInactiveAccountError();
+          checkForUnauthorizedAccessError();
+        }
+      }, 100);
+
+      function checkForInactiveAccountError() {
+        // Check for error message in email field (server-rendered validation errors)
+        const emailError = document.querySelector('p.text-red-600, p[class*="error"]');
+        if (emailError) {
+          const errorText = emailError.textContent.trim();
+          if (errorText.includes('deactivated') || errorText.includes('inactive')) {
+            // Show SweetAlert2 with ThemeManager theming
+            const config = window.ThemeManager.getSwalConfig({
+              icon: 'error',
+              title: 'Account Inactive',
+              text: 'You cannot login because your account has been marked as inactive or you have resigned. Please contact your administrator.',
+              confirmButtonText: 'OK',
+              confirmButtonColor: window.ThemeManager.getPalette().danger
+            });
+            
+            window.Swal.fire(config);
+            
+            // Hide the error message since we're showing it in SweetAlert2
+            emailError.style.display = 'none';
+          }
+        }
+      }
+
+      function checkForUnauthorizedAccessError() {
+        // Check for session error message (from unauthorized access redirect)
+        const errorDiv = document.querySelector('.bg-red-50, .bg-red-900\\/20');
+        if (errorDiv) {
+          const errorText = errorDiv.textContent.trim();
+          if (errorText && (errorText.includes('Please login') || errorText.includes('permission') || errorText.includes('access'))) {
+            // Show SweetAlert2 with ThemeManager theming
+            const isDarkMode = window.ThemeManager.isDarkMode();
+            window.Swal.fire({
+              icon: 'warning',
+              title: `<span class="${isDarkMode ? 'text-white' : 'text-gray-900'}">Access Denied</span>`,
+              text: errorText,
+              confirmButtonText: 'OK',
+              background: isDarkMode ? '#111827' : '#FFFFFF',
+              color: isDarkMode ? '#F9FAFB' : '#111827',
+              confirmButtonColor: window.ThemeManager.getPalette().primary
+            });
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>

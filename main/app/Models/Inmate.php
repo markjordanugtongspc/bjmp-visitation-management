@@ -106,6 +106,16 @@ class Inmate extends Model
         return $this->hasMany(Visitor::class);
     }
 
+    public function conjugalVisits(): HasMany
+    {
+        return $this->hasMany(ConjugalVisit::class);
+    }
+
+    public function conjugalVisitLogs(): HasMany
+    {
+        return $this->hasMany(ConjugalVisitLog::class);
+    }
+
     public function pointsHistory(): HasMany
     {
         return $this->hasMany(PointsHistory::class)->orderBy('activity_date', 'desc');

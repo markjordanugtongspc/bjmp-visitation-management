@@ -724,17 +724,64 @@ class InmateController extends Controller
                 ], Response::HTTP_BAD_REQUEST);
             }
             
-            // Search for visitor with matching ID
+            // Search for visitor with matching ID number and type
+            // Trim and normalize the inputs for better matching
+            $idNumber = trim($idNumber);
+            $idType = trim($idType);
+            
+            // Try exact match first
             $visitor = \App\Models\Visitor::where('id_number', $idNumber)
                 ->where('id_type', $idType)
-                ->where('is_allowed', true)
                 ->with(['inmate.cell'])
                 ->first();
             
-            if (!$visitor || !$visitor->inmate) {
+            // If not found with exact match, try case-insensitive ID type match
+            if (!$visitor) {
+                $visitor = \App\Models\Visitor::where('id_number', $idNumber)
+                    ->whereRaw('LOWER(id_type) = LOWER(?)', [$idType])
+                    ->with(['inmate.cell'])
+                    ->first();
+            }
+            
+            // Debug: Log search attempt
+            if (!$visitor) {
+                // Check if ID number exists with any type
+                $visitorWithId = \App\Models\Visitor::where('id_number', $idNumber)->first();
+                if ($visitorWithId) {
+                    Log::warning('Visitor found with ID number but type mismatch', [
+                        'id_number' => $idNumber,
+                        'requested_type' => $idType,
+                        'stored_type' => $visitorWithId->id_type,
+                        'visitor_id' => $visitorWithId->id
+                    ]);
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => "ID number found but ID type doesn't match. Please select the correct ID type: {$visitorWithId->id_type}"
+                    ], Response::HTTP_NOT_FOUND);
+                }
+                
+                Log::warning('Visitor not found by ID number', [
+                    'id_number' => $idNumber,
+                    'id_type' => $idType
+                ]);
+                
                 return response()->json([
                     'success' => false,
-                    'message' => 'No matching inmate found for this ID. Please ensure you are registered as an allowed visitor.'
+                    'message' => 'No visitor found with this ID number. Please check your ID number and type.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            if (!$visitor->inmate) {
+                Log::warning('Visitor found but no associated inmate', [
+                    'visitor_id' => $visitor->id,
+                    'id_number' => $idNumber,
+                    'inmate_id' => $visitor->inmate_id
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Visitor found but no inmate is assigned to this visitor.'
                 ], Response::HTTP_NOT_FOUND);
             }
             
@@ -762,7 +809,9 @@ class InmateController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to verify inmate by ID', [
                 'error' => $e->getMessage(),
-                'id_number' => $request->query('id_number')
+                'trace' => $e->getTraceAsString(),
+                'id_number' => $request->query('id_number'),
+                'id_type' => $request->query('id_type')
             ]);
             
             return response()->json([

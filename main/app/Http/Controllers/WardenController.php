@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\JsonResponse;
 
 class WardenController extends Controller
 {
@@ -33,7 +35,35 @@ class WardenController extends Controller
      */
     public function officers()
     {
-        return view('warden.officers.officers');
+        $hasTitle = Schema::hasColumn('users', 'title');
+        $hasSubtitle = Schema::hasColumn('users', 'subtitle');
+
+        $select = ['user_id', 'full_name', 'email', 'is_active', 'profile_picture'];
+        if ($hasTitle) {
+            $select[] = 'title';
+        }
+        if ($hasSubtitle) {
+            $select[] = 'subtitle';
+        }
+
+        $officers = User::query()
+            ->orderBy('user_id')
+            ->get($select)
+            ->map(function (User $user) use ($hasTitle, $hasSubtitle) {
+                $hasProfilePicture = !empty($user->profile_picture) && Storage::disk('public')->exists($user->profile_picture);
+                return [
+                    'id' => $user->user_id,
+                    'name' => $user->full_name,
+                    'email' => $user->email,
+                    'title' => $hasTitle ? ($user->title ?? 'N/A') : 'N/A',
+                    'subtitle' => $hasSubtitle ? ($user->subtitle ?? 'N/A') : 'N/A',
+                    'status' => $user->is_active ? 'Active' : 'Inactive',
+                    'profile_picture_url' => $hasProfilePicture ? Storage::url($user->profile_picture) : null,
+                    'has_profile_picture' => $hasProfilePicture,
+                ];
+            });
+
+        return view('warden.officers.officers', compact('officers'));
     }
     
     /**
@@ -97,6 +127,7 @@ class WardenController extends Controller
             return $user;
         });
 
+        $hasProfilePicture = !empty($user->profile_picture) && Storage::disk('public')->exists($user->profile_picture);
         return response()->json([
             'id' => $user->user_id,
             'name' => $user->full_name,
@@ -104,6 +135,8 @@ class WardenController extends Controller
             'title' => $user->title ?? 'N/A',
             'subtitle' => $user->subtitle ?? 'N/A',
             'status' => $validated['status'],
+            'profile_picture_url' => $hasProfilePicture ? Storage::url($user->profile_picture) : null,
+            'has_profile_picture' => $hasProfilePicture,
         ], 201);
     }
 
@@ -115,7 +148,7 @@ class WardenController extends Controller
         $hasTitle = Schema::hasColumn('users', 'title');
         $hasSubtitle = Schema::hasColumn('users', 'subtitle');
 
-        $select = ['user_id', 'full_name', 'email', 'is_active'];
+        $select = ['user_id', 'full_name', 'email', 'is_active', 'profile_picture'];
         if ($hasTitle) {
             $select[] = 'title';
         }
@@ -128,6 +161,7 @@ class WardenController extends Controller
             ->get($select);
 
         $items = $users->map(function (User $u) use ($hasTitle, $hasSubtitle) {
+            $hasProfilePicture = !empty($u->profile_picture) && Storage::disk('public')->exists($u->profile_picture);
             return [
                 'id' => $u->user_id,
                 'name' => $u->full_name,
@@ -135,6 +169,8 @@ class WardenController extends Controller
                 'title' => $hasTitle ? ($u->title ?? 'N/A') : 'N/A',
                 'subtitle' => $hasSubtitle ? ($u->subtitle ?? 'N/A') : 'N/A',
                 'status' => $u->is_active ? 'Active' : 'Inactive',
+                'profile_picture_url' => $hasProfilePicture ? Storage::url($u->profile_picture) : null,
+                'has_profile_picture' => $hasProfilePicture,
             ];
         });
 
@@ -178,6 +214,52 @@ class WardenController extends Controller
             'title' => $user->title ?? 'N/A',
             'subtitle' => $user->subtitle ?? 'N/A',
             'status' => $user->is_active ? 'Active' : 'Inactive',
+            'profile_picture_url' => $user->profile_picture_url,
         ]);
+    }
+
+    /**
+     * Upload avatar for an officer (user).
+     */
+    public function uploadOfficerAvatar(Request $request, User $user): JsonResponse
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
+        ]);
+
+        try {
+            $file = $request->file('avatar');
+            $extension = $file->getClientOriginalExtension();
+            
+            // Generate filename: {user_id}.{extension}
+            $filename = $user->user_id . '.' . $extension;
+            
+            // Delete old avatar if exists
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+            
+            // Store the new file
+            $path = $file->storeAs('avatars', $filename, 'public');
+            
+            // Update user's profile_picture in database
+            $user->update(['profile_picture' => $path]);
+            
+            // Refresh user to get updated profile_picture
+            $user->refresh();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Avatar uploaded successfully',
+                'image_url' => Storage::url($path),
+                'profile_picture_url' => Storage::url($path),
+                'has_profile_picture' => true
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload avatar: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

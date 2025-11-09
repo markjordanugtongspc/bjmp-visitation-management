@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Visitor;
 use App\Models\Inmate;
+use App\Models\ConjugalVisit;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Support\Facades\Log;
 
 class VisitorController extends Controller
 {
@@ -26,6 +29,8 @@ class VisitorController extends Controller
             $query->byInmate($request->inmate_id);
         }
 
+        // Only filter by is_allowed if explicitly provided and not empty
+        // This allows fetching ALL visitors when no filter is provided
         if ($request->has('is_allowed') && $request->is_allowed !== null && $request->is_allowed !== '') {
             $query->where('is_allowed', (int) $request->is_allowed === 1);
         }
@@ -107,7 +112,42 @@ class VisitorController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'life_status' => 'nullable|in:alive,deceased,unknown',
             'is_allowed' => 'nullable|boolean',
+            'relationship_start_date' => 'nullable|date',
+            'cohabitation_cert' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'marriage_contract' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $relationship = strtolower((string) $request->input('relationship', ''));
+            $requiresConjugal = in_array($relationship, ['wife', 'husband', 'spouse'], true);
+
+            if (!$requiresConjugal) {
+                return;
+            }
+
+            if (!$request->filled('relationship_start_date')) {
+                $validator->errors()->add('relationship_start_date', 'Relationship start date is required for conjugal visits.');
+            } else {
+                try {
+                    $startDate = Carbon::parse($request->input('relationship_start_date'));
+                    if ($startDate->isFuture()) {
+                        $validator->errors()->add('relationship_start_date', 'Relationship start date cannot be in the future.');
+                    } elseif ($startDate->diffInYears(Carbon::now()) < 6) {
+                        $validator->errors()->add('relationship_start_date', 'Couples must be married or living together for at least 6 years to request conjugal visits.');
+                    }
+                } catch (\Exception $e) {
+                    $validator->errors()->add('relationship_start_date', 'Invalid relationship start date provided.');
+                }
+            }
+
+            if (!$request->hasFile('cohabitation_cert')) {
+                $validator->errors()->add('cohabitation_cert', 'Cohabitation certificate is required for conjugal visits.');
+            }
+
+            if (!$request->hasFile('marriage_contract')) {
+                $validator->errors()->add('marriage_contract', 'Marriage contract is required for conjugal visits.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
@@ -120,12 +160,20 @@ class VisitorController extends Controller
         $data = $validator->validated();
         $data['life_status'] = $data['life_status'] ?? 'alive';
         $data['is_allowed'] = array_key_exists('is_allowed', $data) ? (bool) $data['is_allowed'] : true;
-        
+
+        $relationship = strtolower((string)($data['relationship'] ?? ''));
+        $requiresConjugal = in_array($relationship, ['wife', 'husband', 'spouse'], true);
+        $relationshipStartDate = $request->input('relationship_start_date');
+        $cohabitationCert = $request->file('cohabitation_cert');
+        $marriageContract = $request->file('marriage_contract');
+
+        unset($data['relationship_start_date'], $data['cohabitation_cert'], $data['marriage_contract']);
+
         if ($request->hasFile('avatar')) {
             $avatar = $request->file('avatar');
             $filename = time() . '_' . $avatar->getClientOriginalName();
             $path = $avatar->storeAs('visitors/avatars', $filename, 'public');
-            
+
             $data['avatar_path'] = 'visitors/avatars';
             $data['avatar_filename'] = $filename;
         }
@@ -134,8 +182,39 @@ class VisitorController extends Controller
             $data['created_by_user_id'] = auth()->id();
         }
 
-        $visitor = Visitor::create($data);
-        $visitor->load('inmate');
+        try {
+            DB::beginTransaction();
+
+            $visitor = Visitor::create($data);
+            $visitor->load('inmate');
+
+            $conjugalVisit = null;
+
+            if ($requiresConjugal) {
+                $cohabitationPath = $cohabitationCert?->store('conjugal_visits/cohabitation_certificates', 'public');
+                $marriagePath = $marriageContract?->store('conjugal_visits/marriage_contracts', 'public');
+
+                $conjugalVisit = ConjugalVisit::create([
+                    'visitor_id' => $visitor->id,
+                    'inmate_id' => $data['inmate_id'],
+                    'cohabitation_cert_path' => $cohabitationPath,
+                    'marriage_contract_path' => $marriagePath,
+                    'relationship_start_date' => $relationshipStartDate,
+                    'status' => 2, // Pending approval
+                ]);
+
+                $this->sendConjugalRegistrationNotifications($conjugalVisit);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error registering visitor: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to register visitor. ' . $e->getMessage(),
+            ], 500);
+        }
 
         $schedule = $request->input('schedule');
         if ($schedule && Schema::hasTable('visitation_logs')) {
@@ -173,7 +252,8 @@ class VisitorController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Visitor registered successfully',
-            'data' => $visitor
+            'data' => $visitor,
+            'conjugal_visit' => $conjugalVisit ?? null,
         ], 201);
     }
 
@@ -541,113 +621,182 @@ $visitor->setAttribute('latest_log', null);
     public function getVisitationRequests(Request $request)
     {
         try {
-            // Get basic visitation_logs data first
+            // Check if visitation_logs table exists
+            if (!Schema::hasTable('visitation_logs')) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [],
+                    'meta' => [
+                        'current_page' => 1,
+                        'last_page' => 1,
+                        'per_page' => $request->get('per_page', 5),
+                        'total' => 0
+                    ]
+                ]);
+            }
+
+            // Get pagination parameters
+            $perPage = (int) $request->get('per_page', 5);
+            $page = (int) $request->get('page', 1);
+            $perPage = max(1, min(100, $perPage)); // Limit between 1 and 100
+            $page = max(1, $page);
+
+            // Build select columns dynamically based on what exists in the table
+            $selectColumns = ['id', 'inmate_id', 'created_at'];
+            if (Schema::hasColumn('visitation_logs', 'visitor_id')) {
+                $selectColumns[] = 'visitor_id';
+            }
+            if (Schema::hasColumn('visitation_logs', 'schedule')) {
+                $selectColumns[] = 'schedule';
+            }
+            if (Schema::hasColumn('visitation_logs', 'reason_for_visit')) {
+                $selectColumns[] = 'reason_for_visit';
+            }
+            if (Schema::hasColumn('visitation_logs', 'status')) {
+                $selectColumns[] = 'status';
+            }
+            if (Schema::hasColumn('visitation_logs', 'time_in')) {
+                $selectColumns[] = 'time_in';
+            }
+            if (Schema::hasColumn('visitation_logs', 'time_out')) {
+                $selectColumns[] = 'time_out';
+            }
+            if (Schema::hasColumn('visitation_logs', 'reference_number')) {
+                $selectColumns[] = 'reference_number';
+            }
+
+            // Get total count for pagination
+            $total = DB::table('visitation_logs')->count();
+            $lastPage = max(1, (int) ceil($total / $perPage));
+
+            // Apply pagination
+            $offset = ($page - 1) * $perPage;
             $logs = DB::table('visitation_logs')
-                ->select([
-                    'id', 'visitor_id', 'inmate_id', 'schedule', 'reason_for_visit', 
-                    'status', 'time_in', 'time_out', 'created_at', 'reference_number'
-                ])
+                ->select($selectColumns)
                 ->orderByDesc('created_at')
-                ->limit(5)
+                ->offset($offset)
+                ->limit($perPage)
                 ->get();
 
             // Get visitor and inmate information separately
-            $visitorIds = $logs->pluck('visitor_id')->filter()->unique();
-            $inmateIds = $logs->pluck('inmate_id')->filter()->unique();
+            $visitorIds = collect();
+            $inmateIds = collect();
 
-            $visitors = [];
-            if ($visitorIds->isNotEmpty()) {
+            foreach ($logs as $log) {
+                if (property_exists($log, 'visitor_id') && $log->visitor_id) {
+                    $visitorIds->push($log->visitor_id);
+                }
+                if (property_exists($log, 'inmate_id') && $log->inmate_id) {
+                    $inmateIds->push($log->inmate_id);
+                }
+            }
+
+            $visitorIds = $visitorIds->unique();
+            $inmateIds = $inmateIds->unique();
+
+            $visitors = collect();
+            if ($visitorIds->isNotEmpty() && Schema::hasTable('visitors')) {
                 $visitors = DB::table('visitors')
-                    ->whereIn('id', $visitorIds)
+                    ->whereIn('id', $visitorIds->toArray())
                     ->get()
                     ->keyBy('id');
             }
 
-            $inmates = [];
-            if ($inmateIds->isNotEmpty()) {
+            $inmates = collect();
+            if ($inmateIds->isNotEmpty() && Schema::hasTable('inmates')) {
                 $inmates = DB::table('inmates')
-                    ->whereIn('id', $inmateIds)
+                    ->whereIn('id', $inmateIds->toArray())
                     ->get()
                     ->keyBy('id');
             }
 
             // Get all registered visitors for these inmates to extract family information
-            $allVisitors = [];
-            if ($inmateIds->isNotEmpty()) {
+            $allVisitors = collect();
+            if ($inmateIds->isNotEmpty() && Schema::hasTable('visitors')) {
                 $allVisitors = DB::table('visitors')
-                    ->whereIn('inmate_id', $inmateIds)
+                    ->whereIn('inmate_id', $inmateIds->toArray())
                     ->get()
                     ->groupBy('inmate_id');
             }
 
             // Transform the data with related information
             $data = $logs->map(function ($log) use ($visitors, $inmates, $allVisitors) {
-                $visitor = $visitors->get($log->visitor_id);
-                $inmate = $inmates->get($log->inmate_id);
+                $visitorId = property_exists($log, 'visitor_id') ? $log->visitor_id : null;
+                $inmateId = property_exists($log, 'inmate_id') ? $log->inmate_id : null;
+                
+                $visitor = $visitorId ? ($visitors->get($visitorId) ?? null) : null;
+                $inmate = $inmateId ? ($inmates->get($inmateId) ?? null) : null;
                 
                 $inmateName = 'N/A';
                 if ($inmate) {
-                    $inmateName = trim(($inmate->first_name ?? '') . ' ' . ($inmate->last_name ?? ''));
+                    $firstName = property_exists($inmate, 'first_name') ? ($inmate->first_name ?? '') : '';
+                    $lastName = property_exists($inmate, 'last_name') ? ($inmate->last_name ?? '') : '';
+                    $inmateName = trim($firstName . ' ' . $lastName);
                     if (empty($inmateName)) $inmateName = 'N/A';
                 }
                 
+                $visitorName = 'N/A';
+                if ($visitor) {
+                    $visitorName = property_exists($visitor, 'name') ? ($visitor->name ?? 'N/A') : 'N/A';
+                }
+                
                 return [
-                    'id' => $log->id,
-                    'visitor_id' => $log->visitor_id,
-                    'inmate_id' => $log->inmate_id,
-                    'visitor' => $visitor->name ?? 'N/A',
-                    'schedule' => $log->schedule ?? 'N/A',
-                    'reason_for_visit' => $log->reason_for_visit ?? 'N/A',
-                    'reference_number' => $log->reference_number ?? null,
-                    'status' => $log->status ?? 2,
-                    'time_in' => $log->time_in,
-                    'time_out' => $log->time_out,
-                    'created_at' => $log->created_at,
+                    'id' => $log->id ?? null,
+                    'visitor_id' => $visitorId,
+                    'inmate_id' => $inmateId,
+                    'visitor' => $visitorName,
+                    'schedule' => (property_exists($log, 'schedule') && $log->schedule) ? $log->schedule : 'N/A',
+                    'reason_for_visit' => (property_exists($log, 'reason_for_visit') && $log->reason_for_visit) ? $log->reason_for_visit : 'N/A',
+                    'reference_number' => (property_exists($log, 'reference_number') && $log->reference_number) ? $log->reference_number : null,
+                    'status' => (property_exists($log, 'status') && $log->status !== null) ? $log->status : 2,
+                    'time_in' => (property_exists($log, 'time_in') && $log->time_in) ? $log->time_in : null,
+                    'time_out' => (property_exists($log, 'time_out') && $log->time_out) ? $log->time_out : null,
+                    'created_at' => $log->created_at ?? null,
                     'visitorDetails' => [
-                        'name' => $visitor->name ?? 'N/A',
-                        'phone' => $visitor->phone ?? 'N/A',
-                        'email' => $visitor->email ?? 'N/A',
-                        'relationship' => $visitor->relationship ?? 'N/A',
-                        'avatar' => $visitor->avatar ?? null
+                        'name' => $visitorName,
+                        'phone' => ($visitor && property_exists($visitor, 'phone')) ? ($visitor->phone ?? 'N/A') : 'N/A',
+                        'email' => ($visitor && property_exists($visitor, 'email')) ? ($visitor->email ?? 'N/A') : 'N/A',
+                        'relationship' => ($visitor && property_exists($visitor, 'relationship')) ? ($visitor->relationship ?? 'N/A') : 'N/A',
+                        'avatar' => ($visitor && property_exists($visitor, 'avatar')) ? ($visitor->avatar ?? null) : null
                     ],
                     'pdlDetails' => [
                         'name' => $inmateName,
-                        'inmate_id' => $log->inmate_id,
-                        'birthday' => $inmate->birthdate ?? $inmate->date_of_birth ?? null,
-                        'age' => $inmate->birthdate ?? $inmate->date_of_birth ? $this->calculateAge($inmate->birthdate ?? $inmate->date_of_birth) : null,
+                        'inmate_id' => $inmateId,
+                        'birthday' => ($inmate && property_exists($inmate, 'birthdate')) ? ($inmate->birthdate ?? null) : (($inmate && property_exists($inmate, 'date_of_birth')) ? ($inmate->date_of_birth ?? null) : null),
+                        'age' => ($inmate && (property_exists($inmate, 'birthdate') || property_exists($inmate, 'date_of_birth'))) ? $this->calculateAge($inmate->birthdate ?? $inmate->date_of_birth ?? null) : null,
                         'parents' => [
-                            'father' => $this->extractFamilyMember($allVisitors, $log->inmate_id, 'father'),
-                            'mother' => $this->extractFamilyMember($allVisitors, $log->inmate_id, 'mother')
+                            'father' => $this->extractFamilyMember($allVisitors, $inmateId, 'father'),
+                            'mother' => $this->extractFamilyMember($allVisitors, $inmateId, 'mother')
                         ],
-                        'spouse' => $inmate->civil_status === 'Married' ? 'Married' : 'N/A',
-                        'nextOfKin' => $this->extractFamilyMembers($allVisitors, $log->inmate_id, ['sister', 'brother', 'sibling']),
-                        'avatar_path' => $inmate->avatar_path,
-                        'avatar_filename' => $inmate->avatar_filename,
-                        'id' => $inmate->id
+                        'spouse' => ($inmate && property_exists($inmate, 'civil_status') && $inmate->civil_status === 'Married') ? 'Married' : 'N/A',
+                        'nextOfKin' => $this->extractFamilyMembers($allVisitors, $inmateId, ['sister', 'brother', 'sibling']),
+                        'avatar_path' => ($inmate && property_exists($inmate, 'avatar_path')) ? ($inmate->avatar_path ?? null) : null,
+                        'avatar_filename' => ($inmate && property_exists($inmate, 'avatar_filename')) ? ($inmate->avatar_filename ?? null) : null,
+                        'id' => $inmateId
                     ],
                     'inmate' => [
-                        'id' => $log->inmate_id,
-                        'first_name' => $inmate->first_name ?? null,
-                        'last_name' => $inmate->last_name ?? null,
-                        'middle_name' => $inmate->middle_name ?? null,
+                        'id' => $inmateId,
+                        'first_name' => ($inmate && property_exists($inmate, 'first_name')) ? ($inmate->first_name ?? null) : null,
+                        'last_name' => ($inmate && property_exists($inmate, 'last_name')) ? ($inmate->last_name ?? null) : null,
+                        'middle_name' => ($inmate && property_exists($inmate, 'middle_name')) ? ($inmate->middle_name ?? null) : null,
                         'name' => $inmateName,
-                        'birthdate' => $inmate->birthdate ?? null,
-                        'date_of_birth' => $inmate->date_of_birth ?? null,
-                        'civil_status' => $inmate->civil_status ?? null,
-                        'avatar_path' => $inmate->avatar_path,
-                        'avatar_filename' => $inmate->avatar_filename
+                        'birthdate' => ($inmate && property_exists($inmate, 'birthdate')) ? ($inmate->birthdate ?? null) : null,
+                        'date_of_birth' => ($inmate && property_exists($inmate, 'date_of_birth')) ? ($inmate->date_of_birth ?? null) : null,
+                        'civil_status' => ($inmate && property_exists($inmate, 'civil_status')) ? ($inmate->civil_status ?? null) : null,
+                        'avatar_path' => ($inmate && property_exists($inmate, 'avatar_path')) ? ($inmate->avatar_path ?? null) : null,
+                        'avatar_filename' => ($inmate && property_exists($inmate, 'avatar_filename')) ? ($inmate->avatar_filename ?? null) : null
                     ]
                 ];
             });
 
             return response()->json([
                 'success' => true,
-                'data' => $data,
+                'data' => $data->values()->toArray(),
                 'meta' => [
-                    'current_page' => 1,
-                    'last_page' => 1,
-                    'per_page' => 5,
-                    'total' => $data->count()
+                    'current_page' => $page,
+                    'last_page' => $lastPage,
+                    'per_page' => $perPage,
+                    'total' => $total
                 ]
             ]);
 
@@ -680,6 +829,26 @@ $visitor->setAttribute('latest_log', null);
                     'message' => 'Validation failed',
                     'errors' => $validator->errors()
                 ], 422);
+            }
+
+            // Check time slot availability BEFORE creating
+            $scheduleDateTime = $request->schedule;
+            $maxVisitors = 30;
+            
+            $currentCount = DB::table('visitation_logs')
+                ->where('schedule', $scheduleDateTime)
+                ->whereIn('status', [1, 2]) // Only count Approved (1) and Pending (2)
+                ->count();
+            
+            if ($currentCount >= $maxVisitors) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This time slot is full. Maximum ' . $maxVisitors . ' visitors allowed per time slot.',
+                    'data' => [
+                        'current_count' => $currentCount,
+                        'max_visitors' => $maxVisitors
+                    ]
+                ], 409); // 409 Conflict
             }
 
             // Auto-generate reference number if not provided (for existing visitors without one)
@@ -720,8 +889,8 @@ $visitor->setAttribute('latest_log', null);
                 'reference_number' => $referenceNumber,
                 'visitor_id' => $request->visitor_id,
                 'inmate_id' => $request->inmate_id,
-                'schedule' => $request->schedule,
-                'reason_for_visit' => $request->reason_for_visit,
+                'schedule' => $scheduleDateTime,
+                'reason_for_visit' => $request->reason_for_visit ? trim($request->reason_for_visit) : null, // Convert empty string to null
                 'status' => $request->status ?? 2, // Default to pending
                 'created_at' => now(),
                 'updated_at' => now()
@@ -752,6 +921,125 @@ $visitor->setAttribute('latest_log', null);
     }
 
     /**
+     * Get availability for all time slots on a specific date
+     */
+    public function getDateAvailability(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'date' => 'required|date',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $date = $request->date;
+            $maxVisitors = 30;
+            
+            // Get all possible time slots
+            $timeSlots = [
+                '08:00', '09:00', '10:00', '11:00', '12:00',
+                '13:00', '14:00', '15:00', '16:00'
+            ];
+            
+            $availability = [];
+            
+            foreach ($timeSlots as $time) {
+                $scheduleDateTime = $date . ' ' . $time . ':00';
+                
+                $currentCount = DB::table('visitation_logs')
+                    ->where('schedule', $scheduleDateTime)
+                    ->whereIn('status', [1, 2]) // Only Approved (1) and Pending (2)
+                    ->count();
+                
+                $available = max(0, $maxVisitors - $currentCount);
+                $percentage = ($currentCount / $maxVisitors) * 100;
+                
+                $availability[] = [
+                    'time' => $time,
+                    'current_count' => $currentCount,
+                    'max_visitors' => $maxVisitors,
+                    'available' => $available,
+                    'percentage' => round($percentage, 1),
+                    'is_full' => $currentCount >= $maxVisitors,
+                    'is_available' => $currentCount < $maxVisitors
+                ];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $availability
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch availability: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check availability for a specific date and time slot
+     */
+    public function checkTimeSlotAvailability(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'date' => 'required|date',
+                'time' => 'required|date_format:H:i', // e.g., "08:00", "12:00"
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $date = $request->date;
+            $time = $request->time;
+            $maxVisitors = 30;
+            
+            // Combine date and time into datetime
+            $scheduleDateTime = $date . ' ' . $time . ':00';
+            
+            // Count approved/pending visits for this time slot
+            $currentCount = DB::table('visitation_logs')
+                ->where('schedule', $scheduleDateTime)
+                ->whereIn('status', [1, 2]) // Only Approved (1) and Pending (2)
+                ->count();
+            
+            $available = max(0, $maxVisitors - $currentCount);
+            $percentage = ($currentCount / $maxVisitors) * 100;
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'date' => $date,
+                    'time' => $time,
+                    'current_count' => $currentCount,
+                    'max_visitors' => $maxVisitors,
+                    'available' => $available,
+                    'percentage' => round($percentage, 1),
+                    'is_full' => $currentCount >= $maxVisitors,
+                    'is_available' => $currentCount < $maxVisitors
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to check availability: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Calculate age from birthdate
      */
     private function calculateAge($birthdate)
@@ -773,14 +1061,20 @@ $visitor->setAttribute('latest_log', null);
      */
     private function extractFamilyMember($allVisitors, $inmateId, $relationship)
     {
-        if (!isset($allVisitors[$inmateId])) {
+        if (!$inmateId || (!$allVisitors || ($allVisitors instanceof \Illuminate\Support\Collection && !$allVisitors->has($inmateId)) || (!($allVisitors instanceof \Illuminate\Support\Collection) && !isset($allVisitors[$inmateId])))) {
             return 'N/A';
         }
 
-        $visitors = $allVisitors[$inmateId];
+        $visitors = $allVisitors instanceof \Illuminate\Support\Collection ? $allVisitors->get($inmateId) : $allVisitors[$inmateId];
+        
+        if (!$visitors || (is_iterable($visitors) && count($visitors) === 0)) {
+            return 'N/A';
+        }
+
         foreach ($visitors as $visitor) {
-            if ($visitor->relationship && strtolower($visitor->relationship) === strtolower($relationship)) {
-                return $visitor->name ?? 'N/A';
+            $rel = is_object($visitor) && property_exists($visitor, 'relationship') ? $visitor->relationship : null;
+            if ($rel && strtolower($rel) === strtolower($relationship)) {
+                return (is_object($visitor) && property_exists($visitor, 'name')) ? ($visitor->name ?? 'N/A') : 'N/A';
             }
         }
 
@@ -792,19 +1086,26 @@ $visitor->setAttribute('latest_log', null);
      */
     private function extractFamilyMembers($allVisitors, $inmateId, $relationships)
     {
-        if (!isset($allVisitors[$inmateId])) {
+        if (!$inmateId || (!$allVisitors || ($allVisitors instanceof \Illuminate\Support\Collection && !$allVisitors->has($inmateId)) || (!($allVisitors instanceof \Illuminate\Support\Collection) && !isset($allVisitors[$inmateId])))) {
             return 'N/A';
         }
 
-        $visitors = $allVisitors[$inmateId];
+        $visitors = $allVisitors instanceof \Illuminate\Support\Collection ? $allVisitors->get($inmateId) : $allVisitors[$inmateId];
+        
+        if (!$visitors || (is_iterable($visitors) && count($visitors) === 0)) {
+            return 'N/A';
+        }
+
         $names = [];
 
         foreach ($visitors as $visitor) {
-            if ($visitor->relationship) {
-                $rel = strtolower($visitor->relationship);
+            $rel = is_object($visitor) && property_exists($visitor, 'relationship') ? $visitor->relationship : null;
+            if ($rel) {
+                $relLower = strtolower($rel);
                 foreach ($relationships as $targetRel) {
-                    if ($rel === strtolower($targetRel)) {
-                        $names[] = $visitor->name ?? 'Unknown';
+                    if ($relLower === strtolower($targetRel)) {
+                        $name = (is_object($visitor) && property_exists($visitor, 'name')) ? ($visitor->name ?? 'Unknown') : 'Unknown';
+                        $names[] = $name;
                         break;
                     }
                 }
@@ -1105,6 +1406,33 @@ $visitor->setAttribute('latest_log', null);
                 'success' => false,
                 'message' => 'Failed to fetch upcoming schedules: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Notify key users that a conjugal registration has been submitted.
+     */
+    private function sendConjugalRegistrationNotifications(ConjugalVisit $conjugalVisit): void
+    {
+        try {
+            $visitor = Visitor::find($conjugalVisit->visitor_id);
+            $inmate = Inmate::find($conjugalVisit->inmate_id);
+
+            if (!$visitor || !$inmate) {
+                return;
+            }
+
+            $notifiableRoles = [1, 2, 3, 5]; // Admin, Warden, Assistant Warden, Searcher
+            $users = User::whereIn('role_id', $notifiableRoles)->get();
+
+            $message = "New conjugal visit registration request from {$visitor->name} for inmate {$inmate->full_name}";
+
+            foreach ($users as $user) {
+                Log::info("Notification sent to {$user->full_name}: {$message}");
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error sending conjugal registration notifications (VisitorController): ' . $e->getMessage());
         }
     }
 }

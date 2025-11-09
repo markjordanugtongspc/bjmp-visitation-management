@@ -5,12 +5,16 @@ namespace App\Services;
 use App\Models\Inmate;
 use App\Models\Cell;
 use App\Models\Visitor;
+use App\Models\ConjugalVisit;
 use App\Http\Requests\StoreInmateRequest;
 use App\Http\Requests\UpdateInmateRequest;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use Carbon\Carbon;
 
 class InmateService
 {
@@ -336,7 +340,7 @@ class InmateService
             
             // Create new visitors
             foreach ($data['allowed_visitors'] as $visitorData) {
-                Visitor::create([
+                $visitor = Visitor::create([
                     'inmate_id' => $inmate->id,
                     'name' => $visitorData['name'] ?? null,
                     'phone' => $visitorData['phone'] ?? $visitorData['contact_number'] ?? null, // Support both old and new field names
@@ -347,9 +351,42 @@ class InmateService
                     'address' => $visitorData['address'] ?? null,
                     'avatar_path' => $visitorData['avatar_path'] ?? null,
                     'avatar_filename' => $visitorData['avatar_filename'] ?? null,
+                    'life_status' => $visitorData['life_status'] ?? 'alive',
+                    'is_allowed' => isset($visitorData['is_allowed']) ? (bool) $visitorData['is_allowed'] : true,
                     'created_by_user_id' => auth()->id(),
                     'updated_by_user_id' => auth()->id(),
                 ]);
+
+                $relationship = strtolower((string) ($visitorData['relationship'] ?? ''));
+
+                if ($this->requiresConjugalRegistration($relationship)) {
+                    $relationshipStartDate = $visitorData['relationship_start_date'] ?? null;
+                    $this->assertRelationshipStartDate($relationshipStartDate);
+
+                    $cohabitationFile = $visitorData['cohabitation_cert'] ?? null;
+                    $marriageFile = $visitorData['marriage_contract'] ?? null;
+
+                    $cohabitationPath = $cohabitationFile instanceof UploadedFile
+                        ? $this->storeDocument($cohabitationFile, 'conjugal_visits/cohabitation_certificates')
+                        : ($visitorData['cohabitation_cert_path'] ?? null);
+
+                    $marriagePath = $marriageFile instanceof UploadedFile
+                        ? $this->storeDocument($marriageFile, 'conjugal_visits/marriage_contracts')
+                        : ($visitorData['marriage_contract_path'] ?? null);
+
+                    if (!$cohabitationPath || !$marriagePath) {
+                        throw new \RuntimeException('Conjugal visit documents are required for spouse registrations.');
+                    }
+
+                    ConjugalVisit::create([
+                        'visitor_id' => $visitor->id,
+                        'inmate_id' => $inmate->id,
+                        'cohabitation_cert_path' => $cohabitationPath,
+                        'marriage_contract_path' => $marriagePath,
+                        'relationship_start_date' => $relationshipStartDate,
+                        'status' => 2,
+                    ]);
+                }
             }
         }
 
@@ -362,5 +399,37 @@ class InmateService
                 'recent_visits' => $data['recent_visits']
             ]);
         }
+    }
+
+    private function requiresConjugalRegistration(?string $relationship): bool
+    {
+        if (!$relationship) {
+            return false;
+        }
+
+        return in_array(strtolower($relationship), ['wife', 'husband', 'spouse'], true);
+    }
+
+    private function assertRelationshipStartDate(?string $date): void
+    {
+        if (!$date) {
+            throw new \RuntimeException('Relationship start date is required for conjugal visit registrations.');
+        }
+
+        $startDate = Carbon::parse($date);
+        $now = Carbon::now();
+
+        if ($startDate->isFuture()) {
+            throw new \RuntimeException('Relationship start date cannot be in the future.');
+        }
+
+        if ($startDate->diffInYears($now) < 6) {
+            throw new \RuntimeException('Couples must be married or living together for at least 6 years to request conjugal visits.');
+        }
+    }
+
+    private function storeDocument(UploadedFile $file, string $directory): string
+    {
+        return $file->store($directory, 'public');
     }
 }

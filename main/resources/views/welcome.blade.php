@@ -87,11 +87,11 @@
     </header>
     <!-- Banner Section -->
     <section class="w-full relative">
-        <img src="{{ asset('storage/images/landing/banner/bjmp-image.jpg') }}" alt="BJMP Banner" class="w-full md:h-68 lg:h-80 object-cover" style="margin-top: 100px; height: 25vh;">
+        <img src="{{ asset('storage/images/landing/banner/bjmp-image.jpg') }}" alt="BJMP Banner" class="w-full h-37 sm:h-40 md:h-52 md:mt-24 lg:h-64 lg:mt-24 object-cover">
     </section>
 
     <!-- Hero Section with Background Slideshow -->
-    <section class="relative min-h-screen flex items-center justify-center pt-32 pb-16 md:pt-40 lg:pt-48">
+    <section class="relative min-h-screen flex items-center justify-center pt-24 pb-12 md:pt-32 md:pb-16 lg:pt-36 lg:pb-20">
         <!-- Background Slideshow - Images managed by slideshow.js -->
         <div id="hero-slideshow"
             data-bg="true"
@@ -144,8 +144,8 @@
             </button>
 
             <div class="w-full mx-auto text-center bg-black/40 border border-white/25 rounded-2xl shadow-2xl backdrop-blur-md backdrop-saturate-150
-            			p-4 sm:p-6 md:p-8 lg:p-12 xl:p-14
-            			max-w-full sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
+            			p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12
+            			max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl">
                 <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2">
                     BJMP Information Management and Visitation
                 </h1>

@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('inmates', function (Blueprint $table) {
-            //
-        });
+        // This migration is intentionally empty to maintain migration order
+        // The job field is added in 2025_10_02_000000_add_job_field_to_inmates_table.php
+        // This file exists to preserve migration timestamp ordering
+        if (!Schema::hasTable('inmates')) {
+            return;
+        }
+        
+        // No-op: job field already added in earlier migration
     }
 
     /**
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('inmates', function (Blueprint $table) {
-            //
-        });
+        // No-op: job field rollback handled in earlier migration
     }
 };

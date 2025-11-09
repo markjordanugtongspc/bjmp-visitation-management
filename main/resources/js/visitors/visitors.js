@@ -78,9 +78,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const st = (statusFilter?.value || '').trim();
 
     const filtered = visitors.filter(v => {
-      const matchesStatus = !st || v.status === st;
-      const pdlName = (v.pdlDetails?.name || '').toLowerCase();
-      const matchesQuery = !q || `${v.visitor} ${pdlName}`.toLowerCase().includes(q);
+      // Status filter matching - handle normalized status values
+      const normalizeStatus = (s) => {
+        if (typeof s === 'number') return s === 1 ? 'Approved' : (s === 0 ? 'Rejected' : 'Pending');
+        if (s === 'Rejected' || s === 'Denied' || s === 'Declined') return 'Rejected';
+        return s || 'Pending';
+      };
+      const normalizedStatus = normalizeStatus(v.status);
+      const matchesStatus = !st || normalizedStatus === st;
+
+      // Enhanced search matching - search across visitor name, PDL name, and relationship
+      let matchesQuery = true;
+      if (q) {
+        const visitorName = (v.visitor || '').toLowerCase();
+        const pdlName = (v.pdlDetails?.name || '').toLowerCase();
+        const relationship = (v.visitorDetails?.relationship || '').toLowerCase();
+        const reasonForVisit = (v.reason_for_visit || '').toLowerCase();
+        
+        // Match if query appears in any of these fields
+        matchesQuery = visitorName.includes(q) || 
+                      pdlName.includes(q) || 
+                      relationship.includes(q) ||
+                      reasonForVisit.includes(q);
+      }
+
       return matchesStatus && matchesQuery;
     });
 
@@ -247,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Event delegation for actions
-  function handleAction(id, action) {
+  async function handleAction(id, action) {
     const item = visitors.find(v => v.id === id);
     if (!item) return;
     
@@ -275,12 +296,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const isApprove = action === 'approve';
+    
+    // If declining, show decline reason modal
+    if (!isApprove && window.showDeclineReasonModal) {
+      const visitorName = item.visitor || item.visitorDetails?.name || 'Visitor';
+      await window.showDeclineReasonModal(item.id, visitorName, async (declineReason) => {
+        try {
+          let VisitorApiClient;
+          try {
+            ({ default: VisitorApiClient } = await import('./components/visitorClient.js'));
+          } catch (_) {
+            throw new Error('Unable to load API client');
+          }
+          const api = new VisitorApiClient();
+          await api.updateVisitationLogStatus(item.id, 0);
+          
+          // Send decline reason notification (commented function - see calendar-handler.js)
+          // sendDeclineReasonNotification(visitorName, declineReason);
+          
+          // Reload backend data to get fresh data
+          await loadBackendVisitors();
+          
+          window.Swal.fire({
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Request Declined</span>`,
+            text: 'The visitor request has been declined and the reason has been sent to the visitor.',
+            icon: 'success',
+            timer: 1200,
+            showConfirmButton: false,
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
+            heightAuto: false,
+            scrollbarPadding: false,
+            customClass: {
+              popup: 'm-0 w-[90vw] max-w-[24rem] p-4 !rounded-xl',
+              title: isDarkMode ? 'text-white' : 'text-black'
+            }
+          });
+        } catch (e) {
+          window.Swal.fire({
+            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Update failed</span>`,
+            text: 'Could not update status. Please try again.',
+            icon: 'error',
+            background: isDarkMode ? '#1F2937' : '#FFFFFF',
+            color: isDarkMode ? '#F9FAFB' : '#111827',
+            heightAuto: false,
+            scrollbarPadding: false,
+            customClass: {
+              popup: 'm-0 w-[90vw] max-w-[24rem] p-4 !rounded-xl',
+              title: isDarkMode ? 'text-white' : 'text-black'
+            }
+          });
+        }
+      });
+      return;
+    }
+    
+    // For approve action, show simple confirmation
     window.Swal.fire({
-      title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">${isApprove ? 'Approve request?' : 'Decline request?'}</span>`,
-      text: isApprove ? 'This visitor will be marked as Approved.' : 'This visitor will be marked as Declined.',
+      title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Approve request?</span>`,
+      text: 'This visitor will be marked as Approved.',
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: isApprove ? 'Approve' : 'Decline',
+      confirmButtonText: 'Approve',
       cancelButtonText: 'Cancel',
       background: isDarkMode ? '#1F2937' : '#FFFFFF',
       color: isDarkMode ? '#F9FAFB' : '#111827',
@@ -289,9 +366,9 @@ document.addEventListener('DOMContentLoaded', () => {
       buttonsStyling: false,
       customClass: {
         popup: 'm-0 w-[96vw] max-w-[96vw] sm:max-w-[32rem] p-5 !rounded-xl',
-        title: isDarkMode ? 'text-white' : 'text-black', // Ensure title text is theme-aware
+        title: isDarkMode ? 'text-white' : 'text-black',
         confirmButton: 'inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium cursor-pointer',
-        cancelButton: `inline-flex items-center justify-center px-4 py-2 rounded-lg ${isApprove ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-200 hover:bg-gray-300'} ${isApprove ? 'text-white' : 'text-gray-900'} ${isDarkMode && !isApprove ? 'dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100' : ''} text-sm font-medium ml-2 cursor-pointer`
+        cancelButton: `inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium ml-2 cursor-pointer`
       }
     }).then(res => {
       if (res.isConfirmed) {
@@ -304,15 +381,14 @@ document.addEventListener('DOMContentLoaded', () => {
               throw new Error('Unable to load API client');
             }
             const api = new VisitorApiClient();
-            const newStatus = isApprove ? 1 : 0;
-            await api.updateVisitationLogStatus(item.id, newStatus);
+            await api.updateVisitationLogStatus(item.id, 1);
             
             // Reload backend data to get fresh data
             await loadBackendVisitors();
             
             window.Swal.fire({
               title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Updated</span>`,
-              text: `Visitor marked as ${isApprove ? 'Approved' : 'Declined'}.`,
+              text: 'Visitor marked as Approved.',
               icon: 'success',
               timer: 1200,
               showConfirmButton: false,
@@ -367,11 +443,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (statusFilter) statusFilter.addEventListener('change', render);
-  if (searchInput) searchInput.addEventListener('input', () => {
-    // simple debounce
-    clearTimeout(searchInput.__debounceId);
-    searchInput.__debounceId = setTimeout(render, 250);
-  });
+  if (searchInput) {
+    let debounceId = null;
+    searchInput.addEventListener('input', () => {
+      // Debounce search with 300ms delay for better performance
+      clearTimeout(debounceId);
+      debounceId = setTimeout(() => {
+        render();
+      }, 300);
+    });
+  }
 
   // Hook: Open Manual Registration modal
   const openManualBtn = document.getElementById('open-manual-registration');
