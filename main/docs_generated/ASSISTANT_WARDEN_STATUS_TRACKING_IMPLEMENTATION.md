@@ -23,7 +23,7 @@ This document outlines the comprehensive implementation of inmate status trackin
 
 ### Frontend Implementation
 
-#### File: `resources/js/inmates/inmates.js`
+#### File: `resources/js/inmates/inmates.jsx`
 
 **Add/Edit Modal Enhancements:**
 1. **Conditional Fields Display:**
@@ -216,7 +216,7 @@ resources/views/assistant_warden/
 - ✅ Added API routes for messaging
 
 **Frontend:**
-- ✅ Enhanced inmates.js modal with conditional status fields
+- ✅ Enhanced inmates.jsx modal with conditional status fields
 - ✅ Updated view modal to display timestamps
 - ✅ Updated role-based.js navigation for Assistant Warden
 - ✅ Maintained Tailwind CSS v4.1 + SweetAlert2 + Flowbite compatibility

@@ -54,7 +54,7 @@ Quick reference checklist for completing the dark/light mode integration.
 ## 🔧 JavaScript Files - ThemeManager Migration
 
 ### High Priority (Most References)
-- [ ] `inmates/inmates.js` (257 refs)
+- [ ] `inmates/inmates.jsx` (257 refs)
 - [ ] `nurse/components/medical-card.js` (129 refs)
 - [ ] `inmates/components/inmate-cells.js` (60 refs)
 - [ ] `nurse/components/medical-visitation-scheduler.js` (52 refs)

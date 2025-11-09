@@ -1,7 +1,7 @@
 /**
  * Medical Card Component for Nurse Dashboard
  * Displays inmate medical information in a card format (not modal)
- * Adapted from inmates.js modal content
+ * Adapted from inmates.jsx modal content
  */
 
 import { createMedicalRecordsManager } from '../../inmates/components/medical-records-system.js';
@@ -1792,7 +1792,7 @@ export class MedicalCardManager {
         }
     }
 
-    // Utility methods adapted from inmates.js
+    // Utility methods adapted from inmates.jsx
 
     /**
      * Format vitals for display

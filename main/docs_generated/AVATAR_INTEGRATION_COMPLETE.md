@@ -70,7 +70,7 @@ All avatar displays now include proper mobile responsiveness:
 
 ### **Frontend Files Updated**
 
-#### **1. `resources/js/inmates/inmates.js`** ✅
+#### **1. `resources/js/inmates/inmates.jsx`** ✅
 ```javascript
 // Avatar Functions Added:
 - generateAvatarSVG(name)

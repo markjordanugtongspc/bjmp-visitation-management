@@ -303,7 +303,7 @@ export class InmateSelectorManager {
     }
 
     /**
-     * Get CSS classes for inmate status badges (matching inmates.js color scheme)
+     * Get CSS classes for inmate status badges (matching inmates.jsx color scheme)
      * @param {string} status - Inmate status
      * @returns {string} CSS classes for status badge
      */

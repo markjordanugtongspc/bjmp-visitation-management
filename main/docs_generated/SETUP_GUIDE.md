@@ -274,7 +274,7 @@ Verify all these files were created/modified:
 - [x] `routes/api.php` (updated)
 
 ### Frontend
-- [x] `resources/js/inmates/inmates.js` (updated)
+- [x] `resources/js/inmates/inmates.jsx` (updated)
 - [x] `resources/js/dashboard/components/role-based.js` (updated)
 
 ### Views

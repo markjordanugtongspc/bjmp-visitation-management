@@ -1,5 +1,5 @@
 // Female entrypoint: load main logic but ensure page gender is flagged as female via Blade
-import '../inmates.js';
+import '../inmates.jsx';
 
 // Toggle the label text between "Switch to Female" and "Switch to Male" without navigation
 document.addEventListener('DOMContentLoaded', () => {

@@ -414,7 +414,7 @@
     @vite('resources/js/dashboard/home.js')
     @vite('resources/js/profile/edit-profile-modal.js')
     @vite('resources/js/theme-manager.js')
-    @vite('resources/js/inmates/inmates.js')
+    @vite('resources/js/inmates/inmates.jsx')
     @vite('resources/js/dashboard/components/role-based.js')
     @vite('resources/js/dashboard/components/notifications.js')
 </x-app-layout>

@@ -1,4 +1,4 @@
-// Supervision Cards Component - Based on inmates.js carousel pattern
+// Supervision Cards Component - Based on inmates.jsx carousel pattern
 // Displays supervision data in a responsive carousel with 3 cards per page
 
 // Cache for supervision pages

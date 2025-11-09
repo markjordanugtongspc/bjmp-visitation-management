@@ -104,7 +104,7 @@ The following dashboard files need the same pattern applied as `admin/dashboard.
 Replace custom dark mode detection and SweetAlert2 theming with `window.ThemeManager`:
 
 **High Priority:**
-- `inmates/inmates.js` (257 dark mode references)
+- `inmates/inmates.jsx` (257 dark mode references)
 - `nurse/components/medical-card.js` (129 references)
 - `visitors/visitors.js` (50 references)
 - `visitors/allowed-visitors.js` (49 references)

@@ -115,7 +115,7 @@ avatar_filename VARCHAR(255)  -- e.g., "john_doe_1.png"
 - `/api/inmates/verify-by-id` → **NOW FIXED** ✅
 
 ### **Frontend Integration** ✅ **Complete**
-- **inmates.js** → Uses `getInmateAvatarUrl()` ✅
+- **inmates.jsx** → Uses `getInmateAvatarUrl()` ✅
 - **visitors.js** → Uses `getInmateAvatarUrl()` ✅
 - **calendar-handler.js** → **NOW FIXED** ✅
 

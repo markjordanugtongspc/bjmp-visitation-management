@@ -14,7 +14,7 @@ export default defineConfig({
                 'resources/js/nurse/nurse-dashboard.js',
                 'resources/js/officers/officers.js',
                 'resources/js/profile/edit-profile-modal.js',
-                'resources/js/inmates/inmates.js',
+                'resources/js/inmates/inmates.jsx',
                 'resources/js/inmates/components/inmates-female.js',
                 'resources/js/inmates/components/points-system.js',
                 

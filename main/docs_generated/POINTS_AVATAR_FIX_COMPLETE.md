@@ -12,7 +12,7 @@ The Points section was missing inmate avatar integration and was using the old f
 ## 🔧 **Fixes Applied**
 
 ### **1. Updated Points Section Mobile Avatar**
-**File**: `resources/js/inmates/inmates.js` (line ~3407)
+**File**: `resources/js/inmates/inmates.jsx` (line ~3407)
 ```javascript
 // ❌ Before
 src="${inmate.avatarUrl || '/images/logo/bjmp_logo.png'}"
@@ -22,7 +22,7 @@ src="${getInmateAvatarUrl(inmate)}"
 ```
 
 ### **2. Added Missing Desktop Avatar to Points Section**
-**File**: `resources/js/inmates/inmates.js` (line ~3378)
+**File**: `resources/js/inmates/inmates.jsx` (line ~3378)
 
 The Points section was missing the desktop profile card entirely. Added complete desktop avatar display:
 

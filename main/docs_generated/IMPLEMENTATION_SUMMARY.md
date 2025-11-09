@@ -185,7 +185,7 @@ Apply the same pattern from `admin/dashboard.blade.php` to:
 Replace custom dark mode functions with `window.ThemeManager`:
 
 **Files with most references (do these first):**
-- [ ] `inmates/inmates.js` (257 references)
+- [ ] `inmates/inmates.jsx` (257 references)
 - [ ] `nurse/components/medical-card.js` (129 references)
 - [ ] `inmates/components/inmate-cells.js` (60 references)
 - [ ] `nurse/components/medical-visitation-scheduler.js` (52 references)

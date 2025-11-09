@@ -42,7 +42,7 @@ storage/app/public/inmates/avatars/{inmate_id}/{filename}
 
 ### Frontend (JavaScript)
 
-#### `resources/js/inmates/inmates.js`
+#### `resources/js/inmates/inmates.jsx`
 **Added Functions**:
 1. `generateAvatarSVG(name)` - Generates SVG avatar with initials
 2. `openAvatarUploadModal(inmateId, inmateName, currentAvatarUrl)` - Opens upload modal

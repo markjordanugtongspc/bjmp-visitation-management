@@ -6,8 +6,6 @@ import { initializeInmateCells } from './components/inmate-cells.js';
 import { createCellCounterManager } from './components/cell-counter-manager.js';
 import { createPointsSystemManager } from './components/points-system.js';
 import { createMedicalRecordsManager } from './components/medical-records-system.js';
-import { getDocumentInfo, viewDocument, downloadDocument, deleteDocument } from '../modules/conjugal-document-manager.js';
-import { checkEligibility, getValidationStatusBadge, formatYearsSinceDate } from '../modules/conjugal-validation-helper.js';
 // Female-specific entrypoint is loaded separately on the female page
 // Inmates Management System for BJMP
 // - Full CRUD operations for inmates
@@ -771,14 +769,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Get theme-aware colors from ThemeManager
     const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
-    const relationshipStartDateValue = visitor.relationship_start_date || visitor.relationshipStartDate || '';
-    const existingCohabitationPath = visitor.cohabitation_cert_path || visitor.cohabitationCertPath || '';
-    const existingMarriagePath = visitor.marriage_contract_path || visitor.marriageContractPath || '';
-    const existingCohabitationName = visitor.cohabitation_cert_filename || visitor.cohabitationCertFilename || (existingCohabitationPath ? existingCohabitationPath.split('/').pop() : '');
-    const existingMarriageName = visitor.marriage_contract_filename || visitor.marriageContractFilename || (existingMarriagePath ? existingMarriagePath.split('/').pop() : '');
-    const conjugalInputClasses = isDarkMode
-      ? 'bg-gray-900 text-white border-gray-600'
-      : 'bg-white text-gray-900 border-gray-300';
     const palette = window.ThemeManager ? window.ThemeManager.getPalette() : {
       background: '#111827',
       text: '#F9FAFB',
@@ -1909,16 +1899,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Get theme-aware colors from ThemeManager
     const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
-    const conjugalInputClasses = isDarkMode
-      ? 'bg-gray-900 text-white border-gray-600'
-      : 'bg-white text-gray-900 border-gray-300';
-    
-    // Extract conjugal visit data from visitor object
-    const relationshipStartDateValue = visitor.relationship_start_date || visitor.relationshipStartDate || '';
-    const existingCohabitationPath = visitor.cohabitation_cert_path || visitor.cohabitationCertPath || '';
-    const existingMarriagePath = visitor.marriage_contract_path || visitor.marriageContractPath || '';
-    const existingCohabitationName = visitor.cohabitation_cert_filename || visitor.cohabitationCertFilename || (existingCohabitationPath ? existingCohabitationPath.split('/').pop() : '');
-    const existingMarriageName = visitor.marriage_contract_filename || visitor.marriageContractFilename || (existingMarriagePath ? existingMarriagePath.split('/').pop() : '');
 
     // Hide empty state when adding visitors
     if (emptyState) {
@@ -1980,8 +1960,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="Father" ${visitor.relationship === 'Father' ? 'selected' : ''}>Father</option>
             <option value="Mother" ${visitor.relationship === 'Mother' ? 'selected' : ''}>Mother</option>
             <option value="Spouse" ${visitor.relationship === 'Spouse' ? 'selected' : ''}>Spouse</option>
-            <option value="Wife" ${visitor.relationship === 'Wife' ? 'selected' : ''}>Wife</option>
-            <option value="Husband" ${visitor.relationship === 'Husband' ? 'selected' : ''}>Husband</option>
             <option value="Sibling" ${visitor.relationship === 'Sibling' ? 'selected' : ''}>Sibling</option>
             <option value="Child" ${visitor.relationship === 'Child' ? 'selected' : ''}>Child</option>
             <option value="Friend" ${visitor.relationship === 'Friend' ? 'selected' : ''}>Friend</option>
@@ -2048,40 +2026,6 @@ document.addEventListener('DOMContentLoaded', () => {
                value="${visitor.address || ''}" data-field="address" placeholder="Visitor's address" />
       </div>
 
-      <!-- Conjugal Visit Requirements -->
-      <div data-conjugal-section class="hidden mb-4 rounded-xl border border-pink-500/30 bg-pink-500/5 px-4 py-4 transition-all">
-        <div class="flex items-start gap-3 mb-3">
-          <div class="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-pink-500/20 text-pink-600 dark:text-pink-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m2-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <h5 class="text-sm font-semibold text-pink-600 dark:text-pink-400">Conjugal Visit Requirements</h5>
-            <p class="text-xs text-pink-600/80 dark:text-pink-300/80">Provide your marriage/live-in start date and upload the required documents. Couples must be married or living together for at least 6 years.</p>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2 font-medium">Marriage/Live-in Start Date <span class="text-pink-600">*</span></label>
-            <input type="date" data-field="relationshipStartDate" class="w-full rounded-lg ${conjugalInputClasses} px-3 py-2.5 text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors" value="${relationshipStartDateValue}" />
-            <p class="mt-2 text-[11px] text-pink-600/80 dark:text-pink-300/80">Must be at least 6 years prior to the current date.</p>
-          </div>
-          <div>
-            <label class="block text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2 font-medium">Cohabitation Certificate <span class="text-pink-600">*</span></label>
-            <input type="file" accept=".pdf,.jpg,.jpeg,.png" data-field="cohabitationCert" class="block w-full rounded-lg ${conjugalInputClasses} px-3 py-2 text-xs sm:text-sm cursor-pointer file:cursor-pointer file:border-0 file:rounded-md file:bg-pink-600 file:text-white file:px-4 file:py-2 file:text-xs hover:file:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors" />
-            <p class="mt-2 text-[11px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}" data-field="cohabitationHint">Upload PDF/JPG/PNG up to 10MB.</p>
-            <input type="hidden" data-field="cohabitationExisting" value="">
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2 font-medium">Marriage Contract <span class="text-pink-600">*</span></label>
-            <input type="file" accept=".pdf,.jpg,.jpeg,.png" data-field="marriageContract" class="block w-full rounded-lg ${conjugalInputClasses} px-3 py-2 text-xs sm:text-sm cursor-pointer file:cursor-pointer file:border-0 file:rounded-md file:bg-pink-600 file:text-white file:px-4 file:py-2 file:text-xs hover:file:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors" />
-            <p class="mt-2 text-[11px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}" data-field="marriageHint">Upload PDF/JPG/PNG up to 10MB.</p>
-            <input type="hidden" data-field="marriageExisting" value="">
-          </div>
-        </div>
-      </div>
-
       <!-- Visitor Footer with Status -->
       <div class="mt-3 pt-3 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}">
         <div class="flex items-center justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">
@@ -2094,78 +2038,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
     container.appendChild(visitorDiv);
-
-    const relationshipSelect = /** @type {HTMLSelectElement|null} */(visitorDiv.querySelector('[data-field="relationship"]'));
-    const conjugalSection = visitorDiv.querySelector('[data-conjugal-section]');
-    const relationshipStartDateInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="relationshipStartDate"]'));
-    const cohabitationInputField = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="cohabitationCert"]'));
-    const marriageInputField = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="marriageContract"]'));
-    const cohabitationHint = visitorDiv.querySelector('[data-field="cohabitationHint"]');
-    const marriageHint = visitorDiv.querySelector('[data-field="marriageHint"]');
-    const cohabitationExistingInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="cohabitationExisting"]'));
-    const marriageExistingInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="marriageExisting"]'));
-
-    if (relationshipStartDateInput && relationshipStartDateValue) {
-      relationshipStartDateInput.value = relationshipStartDateValue;
-    }
-    if (cohabitationExistingInput) {
-      cohabitationExistingInput.value = existingCohabitationPath || '';
-    }
-    if (marriageExistingInput) {
-      marriageExistingInput.value = existingMarriagePath || '';
-    }
-    if (cohabitationHint && existingCohabitationName) {
-      cohabitationHint.textContent = `Current: ${existingCohabitationName}`;
-    }
-    if (marriageHint && existingMarriageName) {
-      marriageHint.textContent = `Current: ${existingMarriageName}`;
-    }
-
-    const toggleConjugalSection = () => {
-      if (!relationshipSelect || !conjugalSection) return;
-      const value = relationshipSelect.value;
-      if (value === 'Wife' || value === 'Husband' || value === 'Spouse') {
-        conjugalSection.classList.remove('hidden');
-      } else {
-        conjugalSection.classList.add('hidden');
-      }
-    };
-    if (relationshipSelect) {
-      relationshipSelect.addEventListener('change', toggleConjugalSection);
-    }
-    toggleConjugalSection();
-
-    if (cohabitationInputField && cohabitationHint) {
-      const defaultHint = 'Upload PDF/JPG/PNG up to 10MB.';
-      cohabitationInputField.addEventListener('change', () => {
-        if (cohabitationInputField.files && cohabitationInputField.files[0]) {
-          cohabitationHint.textContent = `Selected: ${cohabitationInputField.files[0].name}`;
-          if (cohabitationExistingInput) {
-            cohabitationExistingInput.value = '';
-          }
-        } else if (existingCohabitationName) {
-          cohabitationHint.textContent = `Current: ${existingCohabitationName}`;
-        } else {
-          cohabitationHint.textContent = defaultHint;
-        }
-      });
-    }
-
-    if (marriageInputField && marriageHint) {
-      const defaultHint = 'Upload PDF/JPG/PNG up to 10MB.';
-      marriageInputField.addEventListener('change', () => {
-        if (marriageInputField.files && marriageInputField.files[0]) {
-          marriageHint.textContent = `Selected: ${marriageInputField.files[0].name}`;
-          if (marriageExistingInput) {
-            marriageExistingInput.value = '';
-          }
-        } else if (existingMarriageName) {
-          marriageHint.textContent = `Current: ${existingMarriageName}`;
-        } else {
-          marriageHint.textContent = defaultHint;
-        }
-      });
-    }
 
     // Avatar preview handler
     const fileInput = visitorDiv.querySelector('[data-field="avatar"]');
@@ -2217,17 +2089,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const avatarDataUrl = previewEl ? String(previewEl.getAttribute('src') || '') : '';
     const avatarInput = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="avatar"]'));
     const avatarFilename = avatarInput && avatarInput.files && avatarInput.files[0] ? avatarInput.files[0].name : '';
-    const relationshipStartDate = getVal('[data-field="relationshipStartDate"]');
-    const cohabitationInputField = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="cohabitationCert"]'));
-    const marriageInputField = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="marriageContract"]'));
-    const cohabitationExistingInput = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="cohabitationExisting"]'));
-    const marriageExistingInput = /** @type {HTMLInputElement|null} */(containerEl.querySelector('[data-field="marriageExisting"]'));
-    const cohabitationFilename = cohabitationInputField && cohabitationInputField.files && cohabitationInputField.files[0]
-      ? cohabitationInputField.files[0].name
-      : (cohabitationExistingInput?.value ? cohabitationExistingInput.value.split('/').pop() : '');
-    const marriageFilename = marriageInputField && marriageInputField.files && marriageInputField.files[0]
-      ? marriageInputField.files[0].name
-      : (marriageExistingInput?.value ? marriageExistingInput.value.split('/').pop() : '');
 
     return {
       name: getVal('[data-field="name"]'),
@@ -2239,10 +2100,7 @@ document.addEventListener('DOMContentLoaded', () => {
       address: getVal('[data-field\="address\"]'),
       avatarFilename: avatarFilename,
       avatarPath: 'images/visitors/profiles',
-      avatarDataUrl: avatarDataUrl,
-      relationshipStartDate,
-      cohabitationCertName: cohabitationFilename,
-      marriageContractName: marriageFilename
+      avatarDataUrl: avatarDataUrl
     };
   }
 
@@ -2266,16 +2124,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const previewEl = /** @type {HTMLImageElement|null} */(visitorDiv.querySelector('[data-field="avatarPreview"]'));
       const avatarDataUrl = previewEl ? String(previewEl.getAttribute('src') || '') : '';
 
-      const relationshipStartDateInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="relationshipStartDate"]'));
-      const cohabitationInputField = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="cohabitationCert"]'));
-      const marriageInputField = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="marriageContract"]'));
-      const cohabitationExistingInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="cohabitationExisting"]'));
-      const marriageExistingInput = /** @type {HTMLInputElement|null} */(visitorDiv.querySelector('[data-field="marriageExisting"]'));
-      const relationshipStartDate = relationshipStartDateInput ? relationshipStartDateInput.value : '';
-      const relationshipLower = relationship ? relationship.toLowerCase() : '';
-
       if (name && relationship) {
-        const visitorPayload = {
+        visitors.push({
           name: name,
           phone: phone,
           email: email,
@@ -2285,28 +2135,8 @@ document.addEventListener('DOMContentLoaded', () => {
           address: address,
           avatarFilename: avatarFilename,
           avatarPath: avatarPath,
-          avatarDataUrl: avatarDataUrl,
-        };
-
-        if (relationshipLower === 'wife' || relationshipLower === 'husband' || relationshipLower === 'spouse') {
-          if (relationshipStartDate) {
-            visitorPayload.relationship_start_date = relationshipStartDate;
-          }
-
-          if (cohabitationInputField && cohabitationInputField.files && cohabitationInputField.files[0]) {
-            visitorPayload.cohabitation_cert = cohabitationInputField.files[0];
-          } else if (cohabitationExistingInput && cohabitationExistingInput.value) {
-            visitorPayload.cohabitation_cert_path = cohabitationExistingInput.value;
-          }
-
-          if (marriageInputField && marriageInputField.files && marriageInputField.files[0]) {
-            visitorPayload.marriage_contract = marriageInputField.files[0];
-          } else if (marriageExistingInput && marriageExistingInput.value) {
-            visitorPayload.marriage_contract_path = marriageExistingInput.value;
-          }
-        }
-
-        visitors.push(visitorPayload);
+          avatarDataUrl: avatarDataUrl
+        });
       }
     });
     return visitors;
@@ -4330,7 +4160,7 @@ async function openUnifiedInmateModal(inmate) {
 // ===============================
 // VISITOR INFO MODAL (SweetAlert2)
 // ===============================
-async function openVisitorModal(visitor) {
+function openVisitorModal(visitor) {
   // Get theme-aware colors from ThemeManager
   const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
   
@@ -4350,59 +4180,6 @@ async function openVisitorModal(visitor) {
   const phone = visitor?.phone || visitor?.contactNumber || '';
   const email = visitor?.email || '';
   const address = visitor?.address || '';
-
-  const visitorId = visitor?.id || visitor?.visitor_id || null;
-  const inmateIdForConjugal = visitor?.inmate_id || visitor?.inmate?.id || null;
-  const relationshipLower = (relationship || '').toLowerCase();
-  const shouldShowConjugalSection = relationshipLower === 'wife' || relationshipLower === 'husband' || relationshipLower === 'spouse';
-  let conjugalDetails = null;
-  let hasConjugalRegistration = false;
-
-  if (shouldShowConjugalSection && visitorId && inmateIdForConjugal) {
-    try {
-      const eligibilityResponse = await checkEligibility(visitorId, inmateIdForConjugal);
-      
-      // Debug logging
-      console.log('Conjugal eligibility response:', eligibilityResponse);
-      
-      // Check if conjugal visit registration exists
-      hasConjugalRegistration = eligibilityResponse?.conjugal_visit && eligibilityResponse.conjugal_visit.id;
-      const conjugalVisitId = hasConjugalRegistration ? eligibilityResponse.conjugal_visit.id : null;
-      
-      console.log('Has conjugal registration:', hasConjugalRegistration, 'ID:', conjugalVisitId);
-      
-      let documentsResponse = null;
-
-      if (conjugalVisitId) {
-        try {
-          documentsResponse = await getDocumentInfo(conjugalVisitId);
-          console.log('Document info loaded:', documentsResponse);
-        } catch (docError) {
-          console.error('Failed to load document info:', docError);
-          // Continue even if document info fails
-        }
-      }
-
-      conjugalDetails = {
-        eligibility: eligibilityResponse,
-        documents: documentsResponse,
-        conjugalVisitId,
-        hasRegistration: hasConjugalRegistration,
-      };
-      
-      console.log('Conjugal details prepared:', conjugalDetails);
-    } catch (error) {
-      console.error('Failed to load conjugal visit data:', error);
-      // Even if there's an error, we should still show the section for Wife/Husband/Spouse
-      conjugalDetails = {
-        eligibility: null,
-        documents: null,
-        conjugalVisitId: null,
-        hasRegistration: false,
-        error: error.message,
-      };
-    }
-  }
 
   const headerHTML = `
     <div class="relative">
@@ -4441,7 +4218,6 @@ async function openVisitorModal(visitor) {
   `;
 // [Romarc Dre 2/2]
   // Get visitor status and time data from latest log
-  const hasVisitationLog = visitor?.latestLog && (visitor.latestLog.status !== undefined || visitor.latestLog.time_in || visitor.latestLog.time_out);
   const status = visitor?.latestLog?.status !== undefined ? visitor.latestLog.status : null;
   const timeIn = visitor?.latestLog?.time_in || null;
   const timeOut = visitor?.latestLog?.time_out || null;
@@ -4585,22 +4361,6 @@ async function openVisitorModal(visitor) {
           </div>
         </div>
       </div>
-    `;
-  }
-
-  const bodyHTML = `
-    <div class="mt-4 grid grid-cols-1 gap-3">
-      <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} p-3 sm:p-4">
-        <h3 class="text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-2">Contact</h3>
-        <div class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} space-y-1">
-          <div>${phone ? `📞 ${phone}` : '—'}</div>
-          <div>${email ? `✉️ ${email}` : '—'}</div>
-          <div class="break-words">${address ? `📍 ${address}` : '—'}</div>
-        </div>
-      </div>
-      
-      ${visitStatusHTML}
-      ${conjugalCardHTML}
     </div>
   `;
 // [Romarc Last Dre 2/2] 
@@ -4629,171 +4389,6 @@ async function openVisitorModal(visitor) {
       confirmButton: 'cursor-pointer'
     },
     didOpen: () => {
-      // Attach document management button handlers
-      const docButtons = document.querySelectorAll('[data-conjugal-doc]');
-      docButtons.forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          const action = btn.getAttribute('data-conjugal-doc');
-          const docType = btn.getAttribute('data-conjugal-type');
-          const conjugalVisitId = btn.getAttribute('data-conjugal-id');
-          
-          if (!conjugalVisitId || !docType) return;
-          
-          try {
-            if (action === 'view') {
-              await viewDocument(conjugalVisitId, docType);
-            } else if (action === 'download') {
-              await downloadDocument(conjugalVisitId, docType);
-            } else if (action === 'delete') {
-              const result = await deleteDocument(conjugalVisitId, docType);
-              if (result) {
-                // Reload the modal with updated data
-                openVisitorModal(visitor);
-              }
-            }
-          } catch (error) {
-            console.error('Error handling document action:', error);
-            const Swal = (await import('sweetalert2')).default;
-            await Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: error.message || 'Failed to perform action',
-              background: isDarkMode ? '#111827' : '#FFFFFF',
-              color: isDarkMode ? '#F9FAFB' : '#111827',
-            });
-          }
-        });
-      });
-
-      // Attach approval/rejection button handlers
-      const approveBtn = document.querySelector('[data-conjugal-approve]');
-      const rejectBtn = document.querySelector('[data-conjugal-reject]');
-      
-      if (approveBtn) {
-        approveBtn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          const conjugalVisitId = approveBtn.getAttribute('data-conjugal-id');
-          if (!conjugalVisitId) return;
-
-          const result = await window.Swal.fire({
-            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Approve Registration</span>`,
-            html: `<p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">Are you sure you want to approve this conjugal visit registration?</p>`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Approve',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#10b981',
-            cancelButtonColor: '#6b7280',
-            background: isDarkMode ? '#111827' : '#FFFFFF',
-            color: isDarkMode ? '#F9FAFB' : '#111827',
-          });
-
-          if (result.isConfirmed) {
-            try {
-              const response = await fetch(`/api/conjugal-visits/registrations/${conjugalVisitId}/status`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                  'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ status: 1 }), // 1 = Approved
-              });
-
-              if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to approve registration');
-              }
-
-              await window.Swal.fire({
-                icon: 'success',
-                title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Approved</span>`,
-                text: 'Conjugal visit registration has been approved successfully.',
-                background: isDarkMode ? '#111827' : '#FFFFFF',
-                color: isDarkMode ? '#F9FAFB' : '#111827',
-                confirmButtonColor: '#10b981',
-              });
-
-              // Reload the modal with updated data
-              openVisitorModal(visitor);
-            } catch (error) {
-              console.error('Error approving conjugal visit registration:', error);
-              await window.Swal.fire({
-                icon: 'error',
-                title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
-                text: error.message || 'Failed to approve registration. Please try again.',
-                background: isDarkMode ? '#111827' : '#FFFFFF',
-                color: isDarkMode ? '#F9FAFB' : '#111827',
-                confirmButtonColor: '#ef4444',
-              });
-            }
-          }
-        });
-      }
-
-      if (rejectBtn) {
-        rejectBtn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          const conjugalVisitId = rejectBtn.getAttribute('data-conjugal-id');
-          if (!conjugalVisitId) return;
-
-          const result = await window.Swal.fire({
-            title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Reject Registration</span>`,
-            html: `<p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">Are you sure you want to reject this conjugal visit registration?</p>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Reject',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            background: isDarkMode ? '#111827' : '#FFFFFF',
-            color: isDarkMode ? '#F9FAFB' : '#111827',
-          });
-
-          if (result.isConfirmed) {
-            try {
-              const response = await fetch(`/api/conjugal-visits/registrations/${conjugalVisitId}/status`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                  'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ status: 0 }), // 0 = Denied
-              });
-
-              if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to reject registration');
-              }
-
-              await window.Swal.fire({
-                icon: 'success',
-                title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Rejected</span>`,
-                text: 'Conjugal visit registration has been rejected.',
-                background: isDarkMode ? '#111827' : '#FFFFFF',
-                color: isDarkMode ? '#F9FAFB' : '#111827',
-                confirmButtonColor: '#ef4444',
-              });
-
-              // Reload the modal with updated data
-              openVisitorModal(visitor);
-            } catch (error) {
-              console.error('Error rejecting conjugal visit registration:', error);
-              await window.Swal.fire({
-                icon: 'error',
-                title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
-                text: error.message || 'Failed to reject registration. Please try again.',
-                background: isDarkMode ? '#111827' : '#FFFFFF',
-                color: isDarkMode ? '#F9FAFB' : '#111827',
-                confirmButtonColor: '#ef4444',
-              });
-            }
-          }
-        });
-      }
-      
       // Attach Time In button handler
       const timeInBtn = document.querySelector('[data-time-in-btn]');
       if (timeInBtn && !timeInBtn.disabled) {
@@ -5453,4 +5048,3 @@ function formatAddress(i) {
     console.log('Cells data:', cells);
   };
 });
-

@@ -101,7 +101,7 @@ The calendar now uses the same avatar priority system as the rest of the applica
 ## 📱 **Integration Benefits**
 
 ### **Consistent Avatar System**
-- ✅ **Same functions** as inmates.js and visitors.js
+- ✅ **Same functions** as inmates.jsx and visitors.js
 - ✅ **Same storage path** for uploaded avatars
 - ✅ **Same SVG generation** for fallback avatars
 - ✅ **Same color scheme** based on inmate name

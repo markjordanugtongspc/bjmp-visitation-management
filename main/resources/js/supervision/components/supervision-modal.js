@@ -2,7 +2,7 @@
 
 /**
  * Initialize supervision modal interactions (for create/view/manage flows)
- * Uses the color palette from inmates.js for a consistent UI.
+ * Uses the color palette from inmates.jsx for a consistent UI.
  * Also sets SweetAlert2 default theme to dark mode for all modals on page load.
  */
 export default function initSupervisionModalInteractions() {
@@ -23,7 +23,7 @@ function setupModalToggles() {
   });
 }
 
-// Applies inmates.js/modal color palette to all modal elements (borders, backgrounds, focus)
+// Applies inmates.jsx/modal color palette to all modal elements (borders, backgrounds, focus)
 // For manual modal, applies blue-focused color (male-like), else sky/pink-neutral where applicable
 function handleModalToggle(e) {
   const targetId = e.currentTarget.getAttribute('data-modal-target');
@@ -31,7 +31,7 @@ function handleModalToggle(e) {
   const modal = document.getElementById(targetId);
   if (!modal) return;
 
-  // Modal background color palette (shared with inmates.js: bg-sky-50, bg-pink-50, dark:bg-sky-900/20, etc)
+  // Modal background color palette (shared with inmates.jsx: bg-sky-50, bg-pink-50, dark:bg-sky-900/20, etc)
   // If you wish to use gender-based or type-based color, you may pass data-color="male"|"female"|...
   // Here, for modals, we simply default to blue/safe palette for all
 
@@ -43,7 +43,7 @@ function handleModalToggle(e) {
       'border-gray-200', 'border-neutral-200', 'border', 'border-pink-200', 'border-sky-200',
       'dark:bg-gray-800', 'dark:bg-sky-900/20', 'dark:border-sky-800', 'dark:border-pink-800'
     );
-    // Applying blue-sky palette (like inmates.js "isMale")
+    // Applying blue-sky palette (like inmates.jsx "isMale")
     content.classList.add(
       'bg-sky-50', 'border', 'border-sky-200'
     );
@@ -54,18 +54,18 @@ function handleModalToggle(e) {
     if (form) {
       // Reset form fields and error UI
       form.reset();
-      // Remove error/success styling & error messages (supporting inmates.js error borders)
+      // Remove error/success styling & error messages (supporting inmates.jsx error borders)
       const errorMessages = form.querySelectorAll('.error-message');
       errorMessages.forEach((msg) => msg.remove());
       const inputs = form.querySelectorAll('input, textarea, select');
       inputs.forEach((input) =>
         input.classList.remove(
           'border-red-500', 'border-green-500', 'border', // generic states
-          'border-sky-500', 'border-pink-500',            // inmates.js palette
+          'border-sky-500', 'border-pink-500',            // inmates.jsx palette
           'focus:ring-2', 'ring-red-500', 'ring-green-500', 'focus:border-blue-500', 'focus:ring-blue-400/50'
         )
       );
-      // Apply fresh focus/colors (like inmates.js blue focus for forms)
+      // Apply fresh focus/colors (like inmates.jsx blue focus for forms)
       inputs.forEach((input) =>
         input.classList.add(
           'focus:border-sky-500',
@@ -83,7 +83,7 @@ function handleModalToggle(e) {
       if (categoryBadge) categoryBadge.remove();
     }
 
-    // Show guidelines with inmates.js palette-blue SweetAlert modal
+    // Show guidelines with inmates.jsx palette-blue SweetAlert modal
     if (typeof window !== 'undefined' && window.Swal) {
       setTimeout(showGuidelinesInfoModal, 50);
     }
@@ -98,13 +98,13 @@ function setupRefreshButton() {
   refreshBtn.addEventListener('click', handleRefreshClick);
 }
 
-// Animated loading spinner and notification feedback (using inmates.js color palette)
+// Animated loading spinner and notification feedback (using inmates.jsx color palette)
 async function handleRefreshClick(e) {
   e.preventDefault();
   const refreshBtn = e.currentTarget;
   const originalContent = refreshBtn.innerHTML;
 
-  // Use sky palette for loader (like blue for "isMale" in inmates.js)
+  // Use sky palette for loader (like blue for "isMale" in inmates.jsx)
   refreshBtn.innerHTML = `
     <svg class="animate-spin h-5 w-5 text-sky-500 md:h-6 md:w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -161,7 +161,7 @@ function exposeSweetAlertHelpers() {
   window.SupervisionModal.showGuidelinesInfo = showGuidelinesInfoModal;
 }
 
-// Display the guidelines modal w/ inmates.js color palette & typography, with a darkmode theme by default
+// Display the guidelines modal w/ inmates.jsx color palette & typography, with a darkmode theme by default
 function showGuidelinesInfoModal() {
   if (typeof window === 'undefined' || !window.Swal) return;
   window.Swal.fire({
