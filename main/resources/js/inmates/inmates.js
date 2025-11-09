@@ -3798,7 +3798,17 @@ async function openUnifiedInmateModal(inmate) {
       <!-- Left avatar/icon with subtle gradient ring -->
       <div class="flex-shrink-0">
         <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${isDarkMode ? 'from-blue-500/10 to-purple-500/5' : 'from-blue-500/10 to-purple-500/10'} ring-2 ${isDarkMode ? 'ring-blue-500/10' : 'ring-blue-500/10'} flex items-center justify-center">
-          <img class="w-10 h-10 p-1 rounded-full ring-2 ${isDarkMode ? 'ring-gray-500' : 'ring-gray-300'}" src="/docs/images/people/profile-picture-5.jpg" alt="Bordered avatar">
+          ${v.photo_path 
+            ? `<img 
+                class="w-10 h-10 p-1 rounded-full ring-2 ${isDarkMode ? 'ring-gray-500' : 'ring-gray-300'} object-cover" 
+                src="${window.location.origin}/storage/visitor-photos/${v.photo_path}"
+                alt="${v.name}'s photo"
+                onerror="this.style.display='none'; this.parentElement.querySelector('.initials').style.display='flex'"
+              />`
+            : ''}
+          <div class="initials ${v.photo_path ? 'hidden' : ''} w-10 h-10 p-1 rounded-full ring-2 ${isDarkMode ? 'ring-gray-500 bg-gray-800 text-gray-300' : 'ring-gray-300 bg-gray-100 text-gray-600'} flex items-center justify-center text-sm font-medium">
+            ${v.name ? v.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : '??'}
+          </div>
         </div>
       </div>
 
@@ -3808,7 +3818,7 @@ async function openUnifiedInmateModal(inmate) {
           <button type="button" data-open-visitor="${idx}" class="block truncate text-sm sm:text-base font-semibold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded">
             ${v.name}
           </button>
-          <span class="hidden sm:inline-flex items-center rounded-full px-2 py-0.5 text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Allowed</span>
+          <span class="hidden sm:inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Allowed</span>
         </div>
 
         <!-- Meta chips: relationship / id info -->
@@ -3864,7 +3874,7 @@ async function openUnifiedInmateModal(inmate) {
         </td>
       </tr>
     `).join('');
-    
+    // Dre Dapita kol ang imo eh fix [Katong View List Niya]
     return `
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-1 rounded-lg border ${isDarkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'} p-4">
@@ -4395,13 +4405,37 @@ async function openVisitorModal(visitor) {
   }
 
   const headerHTML = `
-    <div class="flex items-start gap-4">
-      <div class="shrink-0">
-        <img src="${avatarSrc}" alt="${name}" class="h-20 w-20 rounded-full object-cover ring-2 ring-blue-500/20 ${isDarkMode ? 'bg-gray-700/40' : 'bg-gray-200'} cursor-pointer" />
+    <div class="relative">
+      <!-- Banner Background with animated gradient -->
+      <div class="absolute inset-0 h-40 rounded-t-xl bg-gradient-to-br ${isDarkMode ? 'from-blue-500/10 via-violet-500/10 to-purple-500/10' : 'from-blue-100 via-violet-50 to-purple-100'} animate-gradient-slow overflow-hidden">
+        <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
       </div>
-      <div class="min-w-0">
-        <h2 class="text-lg sm:text-xl font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${name}</h2>
-        <p class="mt-1 text-xs sm:text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">${relationship}${idType ? ` • ${idType}` : ''}${idNumber ? ` (${idNumber})` : ''}</p>
+      
+      <!-- Profile Content -->
+      <div class="relative pt-8 px-6">
+        <!-- Avatar and Info -->
+        <div class="flex flex-col items-center text-center">
+          <div class="relative group">
+            <div class="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 animate-pulse-slow opacity-50 blur-xl group-hover:opacity-70 transition-opacity"></div>
+            <div class="relative shrink-0">
+              <div class="p-1 rounded-full bg-gradient-to-br ${isDarkMode ? 'from-blue-500/20 to-purple-500/20' : 'from-blue-200 to-purple-200'}">
+                <div class="rounded-full p-0.5 bg-gradient-to-br from-blue-500 to-purple-500">
+                  <img 
+                    src="${avatarSrc}" 
+                    alt="${name}" 
+                    class="h-24 w-24 rounded-full object-cover ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} ring-2 ring-white/10 transition-transform transform group-hover:scale-105" 
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 space-y-2">
+            <h2 class="text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}">${name}</h2>
+            <div class="inline-flex items-center px-4 py-1.5 rounded-full ${isDarkMode ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-400 ring-1 ring-blue-400/20' : 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 ring-1 ring-blue-100'} text-sm font-medium backdrop-blur-sm transition-all hover:shadow-lg">
+              ${relationship}${idType ? ` • ${idType}` : ''}${idNumber ? ` (${idNumber})` : ''}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -4437,376 +4471,117 @@ async function openVisitorModal(visitor) {
   
   const timeInFormatted = formatTime(timeIn);
   const timeOutFormatted = formatTime(timeOut);
-
-  const textMuted = isDarkMode ? 'text-gray-400' : 'text-gray-500';
-  let conjugalCardHTML = '';
-
-  if (shouldShowConjugalSection) {
-    // Check if we have conjugal registration data
-    const hasRegistration = conjugalDetails?.hasRegistration || false;
-    const conjugalVisitId = conjugalDetails?.conjugalVisitId || null;
-    
-    console.log('Building conjugal section - hasRegistration:', hasRegistration, 'conjugalVisitId:', conjugalVisitId);
-    
-    // Get status from multiple possible locations
-    const conjugalVisit = conjugalDetails?.eligibility?.conjugal_visit || null;
-    console.log('Conjugal visit object:', conjugalVisit);
-    
-    // Try to get numeric status from multiple sources
-    let conjugalStatusNumeric = null;
-    if (conjugalVisit) {
-      // Status can be in conjugal_visit.status (integer) or as a property
-      conjugalStatusNumeric = conjugalVisit.status !== undefined && conjugalVisit.status !== null 
-        ? parseInt(conjugalVisit.status) 
-        : null;
-      console.log('Status from conjugalVisit.status:', conjugalStatusNumeric);
-    }
-    // Fallback to status from eligibility response
-    if (conjugalStatusNumeric === null || isNaN(conjugalStatusNumeric)) {
-      const statusFromResponse = conjugalDetails?.eligibility?.status;
-      console.log('Status from eligibility response:', statusFromResponse, typeof statusFromResponse);
-      if (typeof statusFromResponse === 'number') {
-        conjugalStatusNumeric = statusFromResponse;
-      } else if (typeof statusFromResponse === 'string') {
-        // Convert string status to number
-        const statusLower = statusFromResponse.toLowerCase();
-        if (statusLower === 'pending') conjugalStatusNumeric = 2;
-        else if (statusLower === 'approved') conjugalStatusNumeric = 1;
-        else if (statusLower === 'denied') conjugalStatusNumeric = 0;
-      }
-    }
-    
-    console.log('Final conjugalStatusNumeric:', conjugalStatusNumeric);
-    
-    // Determine status flags
-    const isPending = conjugalStatusNumeric === 2;
-    const isApproved = conjugalStatusNumeric === 1;
-    const isDenied = conjugalStatusNumeric === 0;
-    
-    console.log('Status flags - isPending:', isPending, 'isApproved:', isApproved, 'isDenied:', isDenied);
-    
-    // Get validation and eligibility data
-    const validation = conjugalDetails?.eligibility?.validation || null;
-    const startDateRaw = conjugalDetails?.eligibility?.relationship_start_date || conjugalVisit?.relationship_start_date || '';
-    const startDateFormatted = startDateRaw ? new Date(startDateRaw).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'N/A';
-    const yearsAgo = startDateRaw ? formatYearsSinceDate(startDateRaw) : 'N/A';
-    const validationBadge = validation ? getValidationStatusBadge(validation) : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Not Available</span>';
-    const eligible = Boolean(conjugalDetails?.eligibility?.eligible);
-    const eligibleLabel = eligible ? 'Eligible' : 'Not Eligible';
-    const eligibleClasses = eligible
-      ? (isDarkMode ? 'text-emerald-300' : 'text-emerald-600')
-      : (isDarkMode ? 'text-rose-300' : 'text-rose-600');
-    
-    // Get document data
-    const documentsData = conjugalDetails?.documents?.documents || {};
-    const cohabDoc = documentsData.cohabitation_cert || null;
-    const marriageDoc = documentsData.marriage_contract || null;
-    const baseDocTextClass = isDarkMode ? 'text-gray-300' : 'text-gray-700';
-    const actionBtnBase = 'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold cursor-pointer transition-colors';
-    const viewBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-blue-600/80 hover:bg-blue-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`;
-    const downloadBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-emerald-600/80 hover:bg-emerald-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`;
-    const deleteBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-rose-600/80 hover:bg-rose-600 text-white' : 'bg-rose-500 hover:bg-rose-600 text-white'}`;
-    const approveBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-green-600/80 hover:bg-green-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`;
-    const rejectBtnClass = `${actionBtnBase} ${isDarkMode ? 'bg-red-600/80 hover:bg-red-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`;
-
-    const renderDocRow = (label, type, doc) => {
-      if (!conjugalVisitId) {
-        return `
-          <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/30' : 'border-gray-200 bg-gray-100'} px-3 py-2 text-sm ${baseDocTextClass}">
-            <p class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${label}</p>
-            <p class="text-xs ${textMuted}">Registration pending approval. Documents not yet available.</p>
-          </div>
-        `;
-      }
-
-      if (!doc || !doc.exists) {
-        return `
-          <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/30' : 'border-gray-200 bg-gray-100'} px-3 py-2 text-sm ${baseDocTextClass}">
-            <p class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${label}</p>
-            <p class="text-xs ${textMuted}">Not uploaded.</p>
-          </div>
-        `;
-      }
-
-      const filename = doc.filename || 'Available document';
-
-      return `
-        <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/30' : 'border-gray-200 bg-gray-100'} px-3 py-2 text-sm ${baseDocTextClass}">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${label}</p>
-              <p class="text-xs ${textMuted}">${filename}</p>
+  // Dre Dayon to dapita tong, para sa VISITOR INFO MODAL
+  const bodyHTML = `
+    <div class="mt-6 grid grid-cols-1 gap-6">
+      <!-- Contact Information Card -->
+      <div class="relative overflow-hidden rounded-xl border ${isDarkMode ? 'border-gray-700/50 bg-gray-800/20' : 'border-gray-200 bg-white'} p-6 shadow-lg backdrop-blur-sm transition-all hover:shadow-xl">
+        <div class="absolute inset-0 bg-gradient-to-br ${isDarkMode ? 'from-blue-500/5 via-transparent to-purple-500/5' : 'from-blue-50/50 via-transparent to-purple-50/50'} pointer-events-none"></div>
+        <div class="relative">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="rounded-xl p-2.5 ${isDarkMode ? 'bg-blue-500/10 ring-1 ring-blue-500/20' : 'bg-blue-50 ring-1 ring-blue-100'} text-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
             </div>
-            <div class="flex items-center gap-2">
-              <button data-conjugal-doc="view" data-conjugal-type="${type}" data-conjugal-id="${conjugalVisitId}" class="${viewBtnClass}" title="View document">View</button>
-              <button data-conjugal-doc="download" data-conjugal-type="${type}" data-conjugal-id="${conjugalVisitId}" class="${downloadBtnClass}" title="Download document">Download</button>
-              <button data-conjugal-doc="delete" data-conjugal-type="${type}" data-conjugal-id="${conjugalVisitId}" class="${deleteBtnClass}" title="Delete document">Delete</button>
+            <h3 class="text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Contact Details</h3>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center gap-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} group">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50'} flex items-center justify-center transition-colors group-hover:bg-blue-50 group-hover:text-blue-500 dark:group-hover:bg-blue-500/10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+              </div>
+              <span class="text-sm font-medium">${phone || 'No phone number provided'}</span>
+            </div>
+            <div class="flex items-center gap-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} group">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50'} flex items-center justify-center transition-colors group-hover:bg-purple-50 group-hover:text-purple-500 dark:group-hover:bg-purple-500/10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </div>
+              <span class="text-sm font-medium">${email || 'No email provided'}</span>
+            </div>
+            <div class="flex items-center gap-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} group">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50'} flex items-center justify-center transition-colors group-hover:bg-green-50 group-hover:text-green-500 dark:group-hover:bg-green-500/10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <span class="text-sm font-medium break-words">${address || 'No address provided'}</span>
             </div>
           </div>
         </div>
-      `;
-    };
-
-    // Determine status badge
-    const conjugalStatusBadge = hasRegistration 
-      ? (isPending 
-        ? '<span class="inline-flex items-center rounded-full bg-blue-500/10 text-blue-500 px-2 py-1 text-xs font-medium">Pending</span>'
-        : isApproved
-        ? '<span class="inline-flex items-center rounded-full bg-green-500/10 text-green-500 px-2 py-1 text-xs font-medium">Approved</span>'
-        : isDenied
-        ? '<span class="inline-flex items-center rounded-full bg-red-500/10 text-red-500 px-2 py-1 text-xs font-medium">Denied</span>'
-        : '<span class="inline-flex items-center rounded-full bg-gray-500/10 text-gray-500 px-2 py-1 text-xs font-medium">Unknown</span>')
-      : '';
-
-    // Action buttons (styled like Time In/Time Out buttons) - ALWAYS show when registration exists
-    // Show buttons if we have a registration ID, regardless of status (to allow status changes)
-    let actionButtonsHTML = '';
-    console.log('Building action buttons - hasRegistration:', hasRegistration, 'conjugalVisitId:', conjugalVisitId);
-    
-    if (hasRegistration && conjugalVisitId) {
-      console.log('Creating action buttons for conjugal visit ID:', conjugalVisitId, 'Status:', conjugalStatusNumeric);
-      // Always show buttons - determine which ones based on current status
-      if (isPending || conjugalStatusNumeric === null) {
-        // Show both Approve and Reject buttons when Pending
-        console.log('Creating Pending/Unknown status buttons (both Approve and Reject)');
-        actionButtonsHTML = `
-          <div class="flex items-center gap-2">
-            <button 
-              data-conjugal-approve 
-              data-conjugal-id="${conjugalVisitId}"
-              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors cursor-pointer"
-              title="Approve Registration"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#10b981' : '#059669'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}">Approve</span>
-              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-green-400' : 'text-green-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Approve</span>
-            </button>
-            <button 
-              data-conjugal-reject 
-              data-conjugal-id="${conjugalVisitId}"
-              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors cursor-pointer"
-              title="Reject Registration"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#ef4444' : '#dc2626'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-red-400' : 'text-red-700'}">Reject</span>
-              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-red-400' : 'text-red-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Reject</span>
-            </button>
-          </div>
-        `;
-      } else if (isApproved) {
-        // Show only Reject button when Approved (to allow rejection if needed)
-        console.log('Creating Approved status buttons (only Reject)');
-        actionButtonsHTML = `
-          <div class="flex items-center gap-2">
-            <button 
-              data-conjugal-reject 
-              data-conjugal-id="${conjugalVisitId}"
-              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors cursor-pointer"
-              title="Reject Registration"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#ef4444' : '#dc2626'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-red-400' : 'text-red-700'}">Reject</span>
-              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-red-400' : 'text-red-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Reject</span>
-            </button>
-          </div>
-        `;
-      } else if (isDenied) {
-        // Show only Approve button when Denied (to allow approval)
-        console.log('Creating Denied status buttons (only Approve)');
-        actionButtonsHTML = `
-          <div class="flex items-center gap-2">
-            <button 
-              data-conjugal-approve 
-              data-conjugal-id="${conjugalVisitId}"
-              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors cursor-pointer"
-              title="Approve Registration"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#10b981' : '#059669'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}">Approve</span>
-              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-green-400' : 'text-green-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Approve</span>
-            </button>
-          </div>
-        `;
-      } else {
-        // Unknown status or any other status - show both buttons to allow status change
-        console.log('Creating Unknown status buttons (both Approve and Reject)');
-        actionButtonsHTML = `
-          <div class="flex items-center gap-2">
-            <button 
-              data-conjugal-approve 
-              data-conjugal-id="${conjugalVisitId}"
-              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors cursor-pointer"
-              title="Approve Registration"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#10b981' : '#059669'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}">Approve</span>
-              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-green-400' : 'text-green-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Approve</span>
-            </button>
-            <button 
-              data-conjugal-reject 
-              data-conjugal-id="${conjugalVisitId}"
-              class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors cursor-pointer"
-              title="Reject Registration"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#ef4444' : '#dc2626'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-              <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-red-400' : 'text-red-700'}">Reject</span>
-              <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-red-400' : 'text-red-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Reject</span>
-            </button>
-          </div>
-        `;
-      }
-    } else if (hasRegistration) {
-      // If we have registration but no ID (shouldn't happen, but handle it), show both buttons anyway
-      console.warn('Conjugal visit registration exists but ID is missing', conjugalDetails);
-    }
-    
-    console.log('Final actionButtonsHTML:', actionButtonsHTML ? 'EXISTS' : 'EMPTY', actionButtonsHTML ? actionButtonsHTML.substring(0, 100) : '');
-
-    // Build conjugal card HTML
-    if (hasRegistration) {
-
-      conjugalCardHTML = `
-        <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} p-3 sm:p-4">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}">Conjugal Visit Information</h3>
-            ${conjugalStatusBadge}
-          </div>
-          <div class="space-y-3 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">
-            ${startDateRaw ? `
-              <div class="flex items-center justify-between">
-                <span class="${textMuted}">Relationship Duration:</span>
-                <span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">${yearsAgo}</span>
+      </div>
+      
+      <!-- Visit Status Card -->
+      <div class="relative overflow-hidden rounded-xl border ${isDarkMode ? 'border-gray-700/50 bg-gray-800/20' : 'border-gray-200 bg-white'} p-6 shadow-lg backdrop-blur-sm transition-all hover:shadow-xl">
+        <div class="absolute inset-0 bg-gradient-to-br ${isDarkMode ? 'from-purple-500/5 via-transparent to-pink-500/5' : 'from-purple-50/50 via-transparent to-pink-50/50'} pointer-events-none"></div>
+        <div class="relative">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+              <div class="rounded-xl p-2.5 ${isDarkMode ? 'bg-purple-500/10 ring-1 ring-purple-500/20' : 'bg-purple-50 ring-1 ring-purple-100'} text-purple-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
               </div>
-              <div>
-                <p><span class="font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Start Date:</span> ${startDateFormatted}</p>
-              </div>
-            ` : ''}
-            ${validation ? `
-              <div class="flex items-center justify-between">
-                <span class="${textMuted}">Validation:</span>
-                ${validationBadge}
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="${textMuted}">Eligibility:</span>
-                <span class="${eligibleClasses} font-semibold">${eligibleLabel}</span>
-              </div>
-            ` : ''}
-            
-            ${(cohabDoc || marriageDoc) ? `
-              <div class="pt-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}">
-                <p class="text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2">Submitted Documents:</p>
-                ${renderDocRow('Cohabitation Certificate', 'cohabitation_cert', cohabDoc)}
-                <div class="mt-2"></div>
-                ${renderDocRow('Marriage Contract', 'marriage_contract', marriageDoc)}
-              </div>
-            ` : ''}
-            
-            ${hasRegistration && conjugalVisitId ? `
-              <div class="pt-3 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">Actions:</span>
-                  ${actionButtonsHTML || `
-                    <div class="flex items-center gap-2">
-                      <button 
-                        data-conjugal-approve 
-                        data-conjugal-id="${conjugalVisitId}"
-                        class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors cursor-pointer"
-                        title="Approve Registration"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#10b981' : '#059669'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}">Approve</span>
-                        <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-green-400' : 'text-green-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Approve</span>
-                      </button>
-                      <button 
-                        data-conjugal-reject 
-                        data-conjugal-id="${conjugalVisitId}"
-                        class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors cursor-pointer"
-                        title="Reject Registration"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5" fill="none" stroke="${isDarkMode ? '#ef4444' : '#dc2626'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-red-400' : 'text-red-700'}">Reject</span>
-                        <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-red-400' : 'text-red-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Reject</span>
-                      </button>
-                    </div>
-                  `}
-                </div>
-              </div>
-            ` : ''}
-            
-            <p class="text-xs ${textMuted} mt-2">Documents are maintained by the records team. Contact an administrator to upload updated copies.</p>
-          </div>
-        </div>
-      `;
-    } else {
-      // No registration found
-      conjugalCardHTML = `
-        <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} p-3 sm:p-4">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}">Conjugal Visit Registration</h3>
-          </div>
-          <p class="text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}">No conjugal visit registration found for this visitor. Ask the records officer to complete the registration during visitor onboarding.</p>
-        </div>
-      `;
-    }
-  }
-  
-  // Build Visit Status HTML (only show if visitation log exists)
-  let visitStatusHTML = '';
-  if (hasVisitationLog) {
-    visitStatusHTML = `
-      <div class="rounded-lg border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} p-3 sm:p-4">
-        <h3 class="text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-3">Visit Status</h3>
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">Status:</span>
+              <h3 class="text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}">Visit Status</h3>
+            </div>
             ${statusBadge}
           </div>
           
-          <div class="flex items-center justify-between text-sm">
-            <span class="${isDarkMode ? 'text-gray-400' : 'text-gray-600'}">Time In: ${timeInFormatted || 'N/A'} | Time Out: ${timeOutFormatted || 'N/A'}</span>
-            <div class="flex items-center gap-2">
-              <!-- Time In Button -->
-              <button 
-                data-time-in-btn
-                data-visitor-id="${visitor?.id || ''}"
-                class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-green-900/20 hover:bg-green-900/30 border border-green-600/40' : 'bg-green-50 hover:bg-green-100 border border-green-300'} transition-colors ${timeIn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
-                ${timeIn ? 'disabled' : ''}
-                title="Record Time In"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" class="sm:mr-1.5"><rect width="24" height="24" fill="none"/><path fill="${isDarkMode ? '#10b981' : '#059669'}" d="m12 11.6l2.5 2.5q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.8-2.8q-.15-.15-.225-.337T10 11.975V8q0-.425.288-.712T11 7t.713.288T12 8zM18 6h-2q-.425 0-.712-.287T15 5t.288-.712T16 4h2V2q0-.425.288-.712T19 1t.713.288T20 2v2h2q.425 0 .713.288T23 5t-.288.713T22 6h-2v2q0 .425-.288.713T19 9t-.712-.288T18 8zm-7 15q-1.875 0-3.512-.7t-2.863-1.925T2.7 15.512T2 12t.7-3.512t1.925-2.863T7.488 3.7T11 3q.275 0 .513.013t.512.062q.425 0 .713.288t.287.712t-.288.713t-.712.287q-.275 0-.513-.038T11 5Q8.05 5 6.025 7.025T4 12t2.025 4.975T11 19t4.975-2.025T18 12q0-.425.288-.712T19 11t.713.288T20 12q0 1.875-.7 3.513t-1.925 2.862t-2.863 1.925T11 21" stroke-width="0.3" stroke="${isDarkMode ? '#10b981' : '#059669'}"/></svg>
-                <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-green-400' : 'text-green-700'}">Time In</span>
-                <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-green-400' : 'text-green-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Time In</span>
-              </button>
-              
-              <!-- Time Out Button -->
-              <button 
-                data-time-out-btn
-                data-visitor-id="${visitor?.id || ''}"
-                class="group relative inline-flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-md ${isDarkMode ? 'bg-red-900/20 hover:bg-red-900/30 border border-red-600/40' : 'bg-red-50 hover:bg-red-100 border border-red-300'} transition-colors ${!timeIn || timeOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
-                ${!timeIn || timeOut ? 'disabled' : ''}
-                title="Record Time Out"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" class="sm:mr-1.5"><rect width="16" height="16" fill="none"/><path fill="${isDarkMode ? '#ef4444' : '#dc2626'}" fill-rule="evenodd" d="M6.229.199a8 8 0 0 1 9.727 6.964a.75.75 0 0 1-1.492.157a6.5 6.5 0 1 0-7.132 7.146a.75.75 0 1 1-.154 1.492a8 8 0 0 1-.95-15.76ZM8 3a.75.75 0 0 1 .75.75V9h-4a.75.75 0 0 1 0-1.5h2.5V3.75A.75.75 0 0 1 8 3m2.22 7.22a.75.75 0 0 1 1.06 0L13 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L14.06 13l1.72 1.72a.75.75 0 1 1-1.06 1.06L13 14.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L11.94 13l-1.72-1.72a.75.75 0 0 1 0-1.06" clip-rule="evenodd" stroke-width="0.3" stroke="${isDarkMode ? '#ef4444' : '#dc2626'}"/></svg>
-                <span class="hidden sm:inline text-xs font-medium ${isDarkMode ? 'text-red-400' : 'text-red-700'}">Time Out</span>
-                <span class="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] ${isDarkMode ? 'text-red-400' : 'text-red-700'} whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Time Out</span>
-              </button>
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <!-- Time In Card -->
+            <div class="rounded-xl ${isDarkMode ? 'bg-gray-700/30 ring-1 ring-white/5' : 'bg-gray-50/80 ring-1 ring-black/5'} p-4 transition-all hover:shadow-md">
+              <div class="text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mb-1.5">Time In</div>
+              <div class="font-semibold text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}">${timeInFormatted || 'Not recorded'}</div>
             </div>
+            
+            <!-- Time Out Card -->
+            <div class="rounded-xl ${isDarkMode ? 'bg-gray-700/30 ring-1 ring-white/5' : 'bg-gray-50/80 ring-1 ring-black/5'} p-4 transition-all hover:shadow-md">
+              <div class="text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mb-1.5">Time Out</div>
+              <div class="font-semibold text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}">${timeOutFormatted || 'Not recorded'}</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- Time In Button -->
+            <button 
+              data-time-in-btn
+              data-visitor-id="${visitor?.id || ''}"
+              class="group relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                timeIn 
+                  ? `${isDarkMode ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-400'} cursor-not-allowed` 
+                  : `${isDarkMode ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-green-50 text-green-600 hover:bg-green-100'} cursor-pointer`
+              }"
+              ${timeIn ? 'disabled' : ''}
+              title="Record Time In"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" class=""><rect width="24" height="24" fill="none"/><path fill="currentColor" d="m12 11.6l2.5 2.5q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.8-2.8q-.15-.15-.225-.337T10 11.975V8q0-.425.288-.712T11 7t.713.288T12 8zM18 6h-2q-.425 0-.712-.287T15 5t.288-.712T16 4h2V2q0-.425.288-.712T19 1t.713.288T20 2v2h2q.425 0 .713.288T23 5t-.288.713T22 6h-2v2q0 .425-.288.713T19 9t-.712-.288T18 8zm-7 15q-1.875 0-3.512-.7t-2.863-1.925T2.7 15.512T2 12t.7-3.512t1.925-2.863T7.488 3.7T11 3q.275 0 .513.013t.512.062q.425 0 .713.288t.287.712t-.288.713t-.712.287q-.275 0-.513-.038T11 5Q8.05 5 6.025 7.025T4 12t2.025 4.975T11 19t4.975-2.025T18 12q0-.425.288-.712T19 11t.713.288T20 12q0 1.875-.7 3.513t-1.925 2.862t-2.863 1.925T11 21"/></svg>
+              <span>Time In</span>
+            </button>
+            
+            <!-- Time Out Button -->
+            <button 
+              data-time-out-btn
+              data-visitor-id="${visitor?.id || ''}"
+              class="group relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                !timeIn || timeOut
+                  ? `${isDarkMode ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-400'} cursor-not-allowed`
+                  : `${isDarkMode ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100'} cursor-pointer`
+              }"
+              ${!timeIn || timeOut ? 'disabled' : ''}
+              title="Record Time Out"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16"><rect width="16" height="16" fill="none"/><path fill="currentColor" d="M6.229.199a8 8 0 0 1 9.727 6.964a.75.75 0 0 1-1.492.157a6.5 6.5 0 1 0-7.132 7.146a.75.75 0 1 1-.154 1.492a8 8 0 0 1-.95-15.76ZM8 3a.75.75 0 0 1 .75.75V9h-4a.75.75 0 0 1 0-1.5h2.5V3.75A.75.75 0 0 1 8 3m2.22 7.22a.75.75 0 0 1 1.06 0L13 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L14.06 13l1.72 1.72a.75.75 0 1 1-1.06 1.06L13 14.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L11.94 13l-1.72-1.72a.75.75 0 0 1 0-1.06"/></svg>
+              <span>Time Out</span>
+            </button>
           </div>
         </div>
       </div>
@@ -4830,7 +4605,7 @@ async function openVisitorModal(visitor) {
   `;
 // [Romarc Last Dre 2/2] 
   const html = `
-    <div class="max-h-[70vh] overflow-y-auto space-y-4">
+    <div class="max-h-[70vh] overflow-y-auto space-y-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       ${headerHTML}
       ${bodyHTML}
     </div>
