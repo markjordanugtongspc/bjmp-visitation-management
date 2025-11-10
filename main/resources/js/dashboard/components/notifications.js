@@ -128,7 +128,31 @@ export async function initNotifications() {
         console.error('Error fetching conjugal visit logs:', error);
       }
 
-      const totalCount = pendingRequests.length + conjugalLogs.length;
+      // Fetch facial recognition (automatic) visitation requests
+      let facialRecognitionRequests = [];
+      try {
+        const frRes = await fetch('/facial-recognition/visitation-requests/pending', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+          },
+          credentials: 'same-origin',
+        });
+
+        if (frRes.ok) {
+          const frJson = await frRes.json();
+          facialRecognitionRequests = frJson?.requests || [];
+        } else {
+          console.error('Failed to fetch facial recognition requests:', frRes.status, frRes.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching facial recognition requests:', error);
+      }
+
+      const totalCount = pendingRequests.length + conjugalLogs.length + facialRecognitionRequests.length;
 
       // Update badge
       if (badge && count) {
@@ -140,9 +164,9 @@ export async function initNotifications() {
         }
       }
 
-      // Update notification list (merge both types)
+      // Update notification list (merge all three types)
       if (list && loading && empty) {
-        updateNotificationList(pendingRequests, conjugalLogs);
+        updateNotificationList(pendingRequests, conjugalLogs, facialRecognitionRequests);
       }
 
     } catch (error) {
@@ -158,7 +182,7 @@ export async function initNotifications() {
     }
   }
 
-  function updateNotificationList(requests, conjugalLogs = []) {
+  function updateNotificationList(requests, conjugalLogs = [], facialRecognitionRequests = []) {
     // Re-check DOM elements
     const loading = document.getElementById('notification-loading');
     const empty = document.getElementById('notification-empty');
@@ -174,7 +198,7 @@ export async function initNotifications() {
       loading.style.display = 'none';
     }
 
-    if (requests.length === 0 && conjugalLogs.length === 0) {
+    if (requests.length === 0 && conjugalLogs.length === 0 && facialRecognitionRequests.length === 0) {
       // Show empty state
       if (empty) {
         empty.style.display = 'block';
@@ -287,6 +311,76 @@ export async function initNotifications() {
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 </button>
                 <button onclick="handleConjugalNotificationAction(${log.id}, 'reject')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors cursor-pointer" title="Reject Request">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }),
+      // Facial Recognition (Automatic) visitation requests
+      ...facialRecognitionRequests.map(request => {
+        // Handle visitor data - could be nested or direct
+        const visitor = request.visitor || {};
+        const visitorName = visitor.name || visitor.full_name || 
+                           (visitor.first_name && visitor.last_name 
+                             ? `${visitor.first_name} ${visitor.last_name}`.trim()
+                             : 'Unknown Visitor');
+        
+        // Handle inmate data - could be nested or direct  
+        const inmate = request.inmate || {};
+        const inmateName = inmate.name || inmate.full_name ||
+                          (inmate.first_name && inmate.last_name 
+                            ? `${inmate.first_name} ${inmate.last_name}`.trim()
+                            : 'Unknown Inmate');
+        const inmateId = inmate.id || inmate.inmate_id || request.inmate_id || '';
+        
+        const createdAt = request.created_at;
+        const visitDate = request.visit_date || null;
+        const visitTime = request.visit_time || null;
+        
+        // Get confidence from facial_recognition_log or direct property
+        const matchConfidence = request.facial_recognition_log?.confidence_percentage || 
+                               request.confidence_percentage || 
+                               request.match_confidence || 0;
+        
+        // Use visit date for time label if available, otherwise use creation time
+        const timeLabel = visitDate ? getScheduleTimeLabel(visitDate) : getTimeAgo(createdAt);
+        const isPast = visitDate ? (new Date(visitDate) < new Date()) : false;
+        
+        return `
+          <div class="px-4 py-3 hover:bg-white/50 dark:hover:bg-white/5 border-b border-gray-200 dark:border-gray-800 last:border-0 transition-colors">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-50 truncate">
+                    ${visitorName}
+                  </p>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 shrink-0">
+                    <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                      <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Auto
+                  </span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  Wants to visit: <span class="font-medium text-gray-700 dark:text-gray-300">${inmateName}</span>
+                  ${inmateId ? `<span class="text-gray-400 dark:text-gray-500">(ID ${String(inmateId).padStart(4, '0')})</span>` : ''}
+                </p>
+                <div class="flex items-center gap-2 mt-1">
+                  <p class="text-xs ${isPast ? 'text-orange-500 dark:text-orange-400' : 'text-gray-400 dark:text-gray-500'}">
+                    ${visitDate ? `Visit: ${timeLabel}` : timeLabel}
+                  </p>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                    ${matchConfidence}% match
+                  </span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="handleFacialRecognitionAction(${request.id}, 'approve')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer" title="Approve Request">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                <button onclick="handleFacialRecognitionAction(${request.id}, 'reject', '${visitorName.replace(/'/g, "\\'")}', ${visitor.id || request.visitor_id || 'null'})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors cursor-pointer" title="Reject Request">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
               </div>
@@ -891,6 +985,134 @@ window.handleConjugalNotificationAction = async function(logId, action) {
         icon: 'success',
         title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Request Approved</span>`,
         text: 'The conjugal visit request has been approved.',
+        timer: 2000,
+        showConfirmButton: false,
+        background: isDarkMode ? '#111827' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827'
+      });
+    }
+    setTimeout(() => window.location.reload(), 800);
+  } catch (err) {
+    if (window.Swal && window.ThemeManager) {
+      const isDarkMode = window.ThemeManager.isDarkMode();
+      await window.Swal.fire({
+        icon: 'error',
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
+        text: err.message || 'Failed to perform action.',
+        background: isDarkMode ? '#111827' : '#FFFFFF',
+        color: isDarkMode ? '#F9FAFB' : '#111827'
+      });
+    }
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = originalHTML;
+    }
+  }
+};
+
+// Global actions for facial recognition (automatic) visitation requests
+window.handleFacialRecognitionAction = async function(requestId, action, visitorName = 'Visitor', visitorId = null) {
+  const button = event?.target?.closest('button');
+  const originalHTML = button?.innerHTML;
+  
+  try {
+    // If action is reject, show decline reason modal first
+    if (action === 'reject') {
+      // Show decline reason modal
+      await showDeclineReasonModal(requestId, visitorName, async (declineReason) => {
+        // Show loading state
+        if (button) {
+          button.disabled = true;
+          button.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+        }
+
+        try {
+          const response = await fetch(`/facial-recognition/visitation-requests/${requestId}/decline`, { 
+            method: 'POST', 
+            headers: { 
+              'Content-Type': 'application/json', 
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+              'Accept': 'application/json',
+            }, 
+            body: JSON.stringify({ 
+              reason: declineReason,
+              visitor_id: visitorId
+            }) 
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to decline request');
+          }
+
+          // Feedback
+          if (window.Swal && window.ThemeManager) {
+            const isDarkMode = window.ThemeManager.isDarkMode();
+            await window.Swal.fire({
+              icon: 'success',
+              title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Request Declined</span>`,
+              text: 'The automatic visitation request has been declined.',
+              timer: 2000,
+              showConfirmButton: false,
+              background: isDarkMode ? '#111827' : '#FFFFFF',
+              color: isDarkMode ? '#F9FAFB' : '#111827'
+            });
+          }
+          setTimeout(() => window.location.reload(), 800);
+        } catch (err) {
+          if (window.Swal && window.ThemeManager) {
+            const isDarkMode = window.ThemeManager.isDarkMode();
+            await window.Swal.fire({
+              icon: 'error',
+              title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
+              text: err.message || 'Failed to decline request.',
+              background: isDarkMode ? '#111827' : '#FFFFFF',
+              color: isDarkMode ? '#F9FAFB' : '#111827'
+            });
+          }
+          
+          // Restore button
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = originalHTML;
+          }
+        }
+      });
+      return;
+    }
+
+    // For approve action, proceed normally
+    if (button) {
+      button.disabled = true;
+      button.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+    }
+    
+    if (action === 'approve') {
+      const response = await fetch(`/facial-recognition/visitation-requests/${requestId}/approve`, { 
+        method: 'POST', 
+        headers: { 
+          'Content-Type': 'application/json', 
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+          'Accept': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to approve request');
+      }
+    } else {
+      throw new Error('Invalid action.');
+    }
+    
+    // Feedback
+    if (window.Swal && window.ThemeManager) {
+      const isDarkMode = window.ThemeManager.isDarkMode();
+      await window.Swal.fire({
+        icon: 'success',
+        title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Request Approved</span>`,
+        text: 'The automatic visitation request has been approved.',
         timer: 2000,
         showConfirmButton: false,
         background: isDarkMode ? '#111827' : '#FFFFFF',

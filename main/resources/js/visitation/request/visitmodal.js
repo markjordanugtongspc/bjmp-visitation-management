@@ -4,8 +4,9 @@
  */
 
 // Import dependencies
-        import { initializeConjugalVisit } from '../conjugal-visit-handler.js';
+import { initializeConjugalVisit } from '../conjugal-visit-handler.js';
 import { initializeCalendar, getSelectedDate, CalendarConfig, CookieManager } from '../calendar-handler.js';
+import { showAutomaticRequestModal } from './automatic-request.js';
 
 // ============================================================================
 // AVATAR HELPER FUNCTIONS
@@ -785,8 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoBtn = document.getElementById('btn-auto');
     if (autoBtn) {
         autoBtn.addEventListener('click', async () => {
-            await showAutomaticRequestConfirmationModal();
-            // TODO: Implement automatic request functionality
+            await showAutomaticRequestModal();
         });
     }
 });

@@ -331,6 +331,8 @@
                                 </tbody>
                             </table>
                         </div>
+                        <!-- Show More Container -->
+                        <div id="recent-requests-show-more"></div>
                     </div>
 
                     <!-- Upcoming Schedules -->

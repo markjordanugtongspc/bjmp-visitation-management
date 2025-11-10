@@ -1179,34 +1179,52 @@ $visitor->setAttribute('latest_log', null);
     public function statistics()
     {
         try {
-            if (!Schema::hasTable('visitation_logs')) {
-                return response()->json([
-                    'success' => true,
-                    'data' => [
-                        'approved' => 0,
-                        'pending' => 0,
-                        'rejected' => 0,
-                        'total' => 0
-                    ]
-                ]);
+            $approved = 0;
+            $pending = 0;
+            $rejected = 0;
+            $total = 0;
+
+            // Get statistics from visitation_logs
+            if (Schema::hasTable('visitation_logs')) {
+                $stats = DB::table('visitation_logs')
+                    ->select(
+                        DB::raw('SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as approved'),
+                        DB::raw('SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as pending'),
+                        DB::raw('SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as rejected'),
+                        DB::raw('COUNT(*) as total')
+                    )
+                    ->first();
+
+                $approved += (int) ($stats->approved ?? 0);
+                $pending += (int) ($stats->pending ?? 0);
+                $rejected += (int) ($stats->rejected ?? 0);
+                $total += (int) ($stats->total ?? 0);
             }
 
-            $stats = DB::table('visitation_logs')
-                ->select(
-                    DB::raw('SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as approved'),
-                    DB::raw('SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as pending'),
-                    DB::raw('SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as rejected'),
-                    DB::raw('COUNT(*) as total')
-                )
-                ->first();
+            // Get statistics from facial_recognition_visitation_requests
+            if (Schema::hasTable('facial_recognition_visitation_requests')) {
+                $frStats = DB::table('facial_recognition_visitation_requests')
+                    ->select(
+                        DB::raw('SUM(CASE WHEN status = "approved" THEN 1 ELSE 0 END) as approved'),
+                        DB::raw('SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending'),
+                        DB::raw('SUM(CASE WHEN status = "rejected" THEN 1 ELSE 0 END) as rejected'),
+                        DB::raw('COUNT(*) as total')
+                    )
+                    ->first();
+
+                $approved += (int) ($frStats->approved ?? 0);
+                $pending += (int) ($frStats->pending ?? 0);
+                $rejected += (int) ($frStats->rejected ?? 0);
+                $total += (int) ($frStats->total ?? 0);
+            }
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'approved' => (int) ($stats->approved ?? 0),
-                    'pending' => (int) ($stats->pending ?? 0),
-                    'rejected' => (int) ($stats->rejected ?? 0),
-                    'total' => (int) ($stats->total ?? 0)
+                    'approved' => $approved,
+                    'pending' => $pending,
+                    'rejected' => $rejected,
+                    'total' => $total
                 ]
             ]);
 
@@ -1224,26 +1242,44 @@ $visitor->setAttribute('latest_log', null);
     public function weeklyVisitorTraffic()
     {
         try {
-            if (!Schema::hasTable('visitation_logs')) {
-                return response()->json([
-                    'success' => true,
-                    'data' => []
-                ]);
-            }
-
             // Get data for the last 7 days
             $endDate = Carbon::now();
             $startDate = Carbon::now()->subDays(6);
 
-            $traffic = DB::table('visitation_logs')
-                ->select(
-                    DB::raw('DATE(created_at) as date'),
-                    DB::raw('COUNT(*) as count')
-                )
-                ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
-                ->groupBy(DB::raw('DATE(created_at)'))
-                ->orderBy('date', 'asc')
-                ->get();
+            // Initialize traffic array
+            $trafficMap = [];
+
+            // Get traffic from visitation_logs
+            if (Schema::hasTable('visitation_logs')) {
+                $traffic = DB::table('visitation_logs')
+                    ->select(
+                        DB::raw('DATE(created_at) as date'),
+                        DB::raw('COUNT(*) as count')
+                    )
+                    ->whereBetween('created_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->groupBy(DB::raw('DATE(created_at)'))
+                    ->get();
+
+                foreach ($traffic as $item) {
+                    $trafficMap[$item->date] = ($trafficMap[$item->date] ?? 0) + $item->count;
+                }
+            }
+
+            // Get traffic from facial_recognition_visitation_requests
+            if (Schema::hasTable('facial_recognition_visitation_requests')) {
+                $frTraffic = DB::table('facial_recognition_visitation_requests')
+                    ->select(
+                        DB::raw('DATE(created_at) as date'),
+                        DB::raw('COUNT(*) as count')
+                    )
+                    ->whereBetween('created_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->groupBy(DB::raw('DATE(created_at)'))
+                    ->get();
+
+                foreach ($frTraffic as $item) {
+                    $trafficMap[$item->date] = ($trafficMap[$item->date] ?? 0) + $item->count;
+                }
+            }
 
             // Create array with all 7 days (fill missing days with 0)
             $data = [];
@@ -1251,19 +1287,11 @@ $visitor->setAttribute('latest_log', null);
                 $date = Carbon::now()->subDays(6 - $i);
                 $dateStr = $date->format('Y-m-d');
                 $dayName = $date->format('D'); // Mon, Tue, Wed, etc.
-                
-                $count = 0;
-                foreach ($traffic as $item) {
-                    if ($item->date === $dateStr) {
-                        $count = $item->count;
-                        break;
-                    }
-                }
 
                 $data[] = [
                     'date' => $dateStr,
                     'day' => $dayName,
-                    'count' => $count
+                    'count' => $trafficMap[$dateStr] ?? 0
                 ];
             }
 
@@ -1286,42 +1314,50 @@ $visitor->setAttribute('latest_log', null);
     public function monthlyVisits()
     {
         try {
-            if (!Schema::hasTable('visitation_logs')) {
-                return response()->json([
-                    'success' => true,
-                    'data' => []
-                ]);
+            $currentYear = Carbon::now()->year;
+            $monthCounts = array_fill(1, 12, 0);
+
+            // Get monthly visits from visitation_logs
+            if (Schema::hasTable('visitation_logs')) {
+                $visits = DB::table('visitation_logs')
+                    ->select(
+                        DB::raw('MONTH(created_at) as month'),
+                        DB::raw('COUNT(*) as count')
+                    )
+                    ->whereYear('created_at', $currentYear)
+                    ->groupBy(DB::raw('MONTH(created_at)'))
+                    ->get();
+
+                foreach ($visits as $visit) {
+                    $monthCounts[$visit->month] += $visit->count;
+                }
             }
 
-            $currentYear = Carbon::now()->year;
+            // Get monthly visits from facial_recognition_visitation_requests
+            if (Schema::hasTable('facial_recognition_visitation_requests')) {
+                $frVisits = DB::table('facial_recognition_visitation_requests')
+                    ->select(
+                        DB::raw('MONTH(created_at) as month'),
+                        DB::raw('COUNT(*) as count')
+                    )
+                    ->whereYear('created_at', $currentYear)
+                    ->groupBy(DB::raw('MONTH(created_at)'))
+                    ->get();
 
-            $visits = DB::table('visitation_logs')
-                ->select(
-                    DB::raw('MONTH(created_at) as month'),
-                    DB::raw('COUNT(*) as count')
-                )
-                ->whereYear('created_at', $currentYear)
-                ->groupBy(DB::raw('MONTH(created_at)'))
-                ->orderBy('month', 'asc')
-                ->get();
+                foreach ($frVisits as $visit) {
+                    $monthCounts[$visit->month] += $visit->count;
+                }
+            }
 
-            // Create array with all 12 months (fill missing months with 0)
+            // Create array with all 12 months
             $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             $data = [];
             
             for ($i = 1; $i <= 12; $i++) {
-                $count = 0;
-                foreach ($visits as $visit) {
-                    if ($visit->month == $i) {
-                        $count = $visit->count;
-                        break;
-                    }
-                }
-
                 $data[] = [
                     'month' => $i,
                     'monthName' => $monthNames[$i - 1],
-                    'count' => $count
+                    'count' => $monthCounts[$i]
                 ];
             }
 
@@ -1345,56 +1381,167 @@ $visitor->setAttribute('latest_log', null);
     public function upcomingSchedules()
     {
         try {
-            if (!Schema::hasTable('visitation_logs')) {
-                return response()->json([
-                    'success' => true,
-                    'data' => []
-                ]);
+            $now = Carbon::now();
+            $allSchedules = collect();
+
+            // Get upcoming schedules from visitation_logs
+            if (Schema::hasTable('visitation_logs')) {
+                $schedules = DB::table('visitation_logs')
+                    ->select('visitation_logs.*', 'visitors.name as visitor_name', 'visitors.relationship')
+                    ->leftJoin('visitors', 'visitation_logs.visitor_id', '=', 'visitors.id')
+                    ->where('visitation_logs.schedule', '>=', $now)
+                    ->whereNull('visitation_logs.time_in') // Not yet started
+                    ->get()
+                    ->map(function($schedule) {
+                        $scheduleDate = Carbon::parse($schedule->schedule);
+                        $isToday = $scheduleDate->isToday();
+                        
+                        // Determine badge status
+                        $badgeStatus = 'pending';
+                        $badgeText = 'Pending';
+                        
+                        if ($isToday) {
+                            $badgeStatus = 'today';
+                            $badgeText = 'Today';
+                        } elseif ($schedule->status == 1) {
+                            $badgeStatus = 'approved';
+                            $badgeText = 'Approved';
+                        }
+
+                        return [
+                            'id' => $schedule->id,
+                            'visitor_name' => $schedule->visitor_name ?? 'Unknown Visitor',
+                            'relationship' => $schedule->relationship ?? 'N/A',
+                            'reason_for_visit' => $schedule->reason_for_visit ?? 'General Visit',
+                            'schedule' => $schedule->schedule,
+                            'schedule_datetime' => $scheduleDate,
+                            'formatted_date' => $scheduleDate->format('D, g A'), // Wed, 3 PM
+                            'formatted_full_date' => $scheduleDate->format('M d, Y g:i A'),
+                            'status' => $schedule->status,
+                            'badge_status' => $badgeStatus,
+                            'badge_text' => $badgeText,
+                            'is_today' => $isToday,
+                            'type' => 'manual'
+                        ];
+                    });
+
+                $allSchedules = $allSchedules->merge($schedules);
             }
 
-            $now = Carbon::now();
+            // Get upcoming schedules from facial_recognition_visitation_requests
+            if (Schema::hasTable('facial_recognition_visitation_requests')) {
+                $frSchedules = DB::table('facial_recognition_visitation_requests')
+                    ->select(
+                        'facial_recognition_visitation_requests.id',
+                        'facial_recognition_visitation_requests.visit_date',
+                        'facial_recognition_visitation_requests.visit_time',
+                        'facial_recognition_visitation_requests.status',
+                        'facial_recognition_visitation_requests.notes',
+                        'facial_recognition_visitation_requests.checked_in_at',
+                        'facial_recognition_visitation_requests.created_at',
+                        'visitors.name as visitor_name'
+                    )
+                    ->leftJoin('visitors', 'facial_recognition_visitation_requests.visitor_id', '=', 'visitors.id')
+                    ->where('facial_recognition_visitation_requests.status', '!=', 'rejected')
+                    ->whereNull('facial_recognition_visitation_requests.checked_in_at')
+                    ->get()
+                    ->filter(function($schedule) use ($now) {
+                        // Combine visit_date and visit_time and check if it's in the future
+                        if (!$schedule->visit_date) {
+                            return false;
+                        }
+                        
+                        try {
+                            $visitDate = Carbon::parse($schedule->visit_date);
+                            
+                            // If visit_time exists, combine with visit_date
+                            if ($schedule->visit_time) {
+                                // visit_time is stored as datetime but we'll extract time part
+                                $visitTime = Carbon::parse($schedule->visit_time);
+                                $visitDateTime = $visitDate->copy()->setTime(
+                                    $visitTime->hour,
+                                    $visitTime->minute,
+                                    $visitTime->second
+                                );
+                            } else {
+                                // No visit_time, use start of day
+                                $visitDateTime = $visitDate->copy()->startOfDay();
+                            }
+                            
+                            return $visitDateTime->greaterThanOrEqualTo($now);
+                        } catch (\Exception $e) {
+                            return false;
+                        }
+                    })
+                    ->map(function($schedule) {
+                        // Combine visit_date and visit_time
+                        try {
+                            $visitDate = Carbon::parse($schedule->visit_date);
+                            
+                            // If visit_time exists, combine with visit_date
+                            if ($schedule->visit_time) {
+                                // visit_time is stored as datetime but we'll extract time part
+                                $visitTime = Carbon::parse($schedule->visit_time);
+                                $visitDateTime = $visitDate->copy()->setTime(
+                                    $visitTime->hour,
+                                    $visitTime->minute,
+                                    $visitTime->second
+                                );
+                            } else {
+                                // No visit_time, use start of day
+                                $visitDateTime = $visitDate->copy()->startOfDay();
+                            }
+                        } catch (\Exception $e) {
+                            // Fallback to visit_date only at start of day
+                            $visitDateTime = Carbon::parse($schedule->visit_date)->startOfDay();
+                        }
+                        $isToday = $visitDateTime->isToday();
+                        
+                        // Determine badge status
+                        $badgeStatus = 'pending';
+                        $badgeText = 'Pending';
+                        
+                        if ($isToday) {
+                            $badgeStatus = 'today';
+                            $badgeText = 'Today';
+                        } elseif ($schedule->status == 'approved') {
+                            $badgeStatus = 'approved';
+                            $badgeText = 'Approved';
+                        }
 
-            // Get upcoming schedules (schedule >= now), ordered by schedule datetime
-            $schedules = DB::table('visitation_logs')
-                ->select('visitation_logs.*', 'visitors.name as visitor_name', 'visitors.relationship')
-                ->leftJoin('visitors', 'visitation_logs.visitor_id', '=', 'visitors.id')
-                ->where('visitation_logs.schedule', '>=', $now)
-                ->whereNull('visitation_logs.time_in') // Not yet started
-                ->orderBy('visitation_logs.schedule', 'asc')
-                ->orderBy('visitation_logs.created_at', 'asc')
-                ->limit(3)
-                ->get();
+                        // Use notes from database for automatic requests
+                        $notes = $schedule->notes ?? 'Automatic Visit';
 
-            $data = $schedules->map(function($schedule) use ($now) {
-                $scheduleDate = Carbon::parse($schedule->schedule);
-                $isToday = $scheduleDate->isToday();
-                
-                // Determine badge status
-                $badgeStatus = 'pending';
-                $badgeText = 'Pending';
-                
-                if ($isToday) {
-                    $badgeStatus = 'today';
-                    $badgeText = 'Today';
-                } elseif ($schedule->status == 1) {
-                    $badgeStatus = 'approved';
-                    $badgeText = 'Approved';
-                }
+                        return [
+                            'id' => $schedule->id,
+                            'visitor_name' => $schedule->visitor_name ?? 'Unknown Visitor',
+                            'relationship' => 'Auto',
+                            'reason_for_visit' => $notes,
+                            'schedule' => $visitDateTime->format('Y-m-d H:i:s'),
+                            'schedule_datetime' => $visitDateTime,
+                            'formatted_date' => $visitDateTime->format('D, g A'), // Wed, 3 PM
+                            'formatted_full_date' => $visitDateTime->format('M d, Y g:i A'),
+                            'status' => $schedule->status,
+                            'badge_status' => $badgeStatus,
+                            'badge_text' => $badgeText,
+                            'is_today' => $isToday,
+                            'type' => 'automatic'
+                        ];
+                    });
 
-                return [
-                    'id' => $schedule->id,
-                    'visitor_name' => $schedule->visitor_name ?? 'Unknown Visitor',
-                    'relationship' => $schedule->relationship ?? 'N/A',
-                    'reason_for_visit' => $schedule->reason_for_visit ?? 'General Visit',
-                    'schedule' => $schedule->schedule,
-                    'formatted_date' => $scheduleDate->format('D, g A'), // Wed, 3 PM
-                    'formatted_full_date' => $scheduleDate->format('M d, Y g:i A'),
-                    'status' => $schedule->status,
-                    'badge_status' => $badgeStatus,
-                    'badge_text' => $badgeText,
-                    'is_today' => $isToday
-                ];
-            });
+                $allSchedules = $allSchedules->merge($frSchedules);
+            }
+
+            // Sort by schedule datetime and limit to 3
+            $data = $allSchedules
+                ->sortBy('schedule_datetime')
+                ->take(3)
+                ->map(function($schedule) {
+                    // Remove schedule_datetime from final output
+                    unset($schedule['schedule_datetime']);
+                    return $schedule;
+                })
+                ->values();
 
             return response()->json([
                 'success' => true,
