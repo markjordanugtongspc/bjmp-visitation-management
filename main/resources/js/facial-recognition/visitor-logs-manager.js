@@ -163,6 +163,7 @@ class VisitorLogsManager {
     showLoading() {
         document.getElementById('visitor-logs-loading').classList.remove('hidden');
         document.getElementById('visitor-logs-empty').classList.add('hidden');
+        // Force hide both views during loading (override responsive classes)
         document.getElementById('visitor-logs-table').classList.add('hidden');
         document.getElementById('visitor-logs-mobile').classList.add('hidden');
         const paginationEl = document.getElementById('visitor-logs-pagination');
@@ -200,26 +201,39 @@ class VisitorLogsManager {
 
         if (this.logs.length === 0) {
             document.getElementById('visitor-logs-empty').classList.remove('hidden');
+            // Force hide both views when empty (override responsive classes)
             document.getElementById('visitor-logs-table').classList.add('hidden');
             document.getElementById('visitor-logs-mobile').classList.add('hidden');
             const paginationEl = document.getElementById('visitor-logs-pagination');
-        paginationEl.classList.add('hidden');
-        paginationEl.classList.remove('flex');
+            paginationEl.classList.add('hidden');
+            paginationEl.classList.remove('flex');
             return;
         }
 
         document.getElementById('visitor-logs-empty').classList.add('hidden');
-        document.getElementById('visitor-logs-table').classList.remove('hidden');
-        document.getElementById('visitor-logs-mobile').classList.remove('hidden');
+        
+        // Render content first
+        this.renderTableView();
+        this.renderMobileView();
+        
+        // Then manage visibility - remove hidden to let Tailwind responsive classes work
+        // Desktop table: hidden sm:block (becomes sm:block after removing hidden)
+        // Mobile cards: block sm:hidden (stays as block sm:hidden)
+        const tableEl = document.getElementById('visitor-logs-table');
+        const mobileEl = document.getElementById('visitor-logs-mobile');
+        
+        // Only remove hidden if it exists (to restore responsive behavior)
+        if (tableEl.classList.contains('hidden')) {
+            tableEl.classList.remove('hidden');
+        }
+        // Mobile doesn't have hidden in base classes, but ensure it's visible on mobile
+        if (mobileEl.classList.contains('hidden')) {
+            mobileEl.classList.remove('hidden');
+        }
+        
         const paginationEl = document.getElementById('visitor-logs-pagination');
         paginationEl.classList.remove('hidden');
         paginationEl.classList.add('flex');
-
-        // Render table view
-        this.renderTableView();
-        
-        // Render mobile view
-        this.renderMobileView();
     }
 
     /**
@@ -314,32 +328,38 @@ class VisitorLogsManager {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                         </button>
-                        ${log.status === 'pending' ? `
-                            <button onclick="window.visitorLogsManager.approveRequest(${log.id})" class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 cursor-pointer" title="Approve">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </button>
-                            <button onclick="window.visitorLogsManager.declineRequest(${log.id}, '${(visitor.name || 'Unknown').replace(/'/g, "\\'")}', ${log.visitor_id})" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 cursor-pointer" title="Decline">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        ` : log.status === 'approved' ? `
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
-                                Approved
-                            </span>
-                        ` : `
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                                </svg>
-                                Declined
-                            </span>
-                        `}
+                        ${(() => {
+                            const isApproved = log.status === 'approved';
+                            const isDeclined = log.status === 'declined' || log.status === 'rejected';
+                            const approveDisabled = isApproved;
+                            const declineDisabled = isDeclined;
+                            const approveClass = approveDisabled 
+                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50' 
+                                : 'text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 cursor-pointer';
+                            const declineClass = declineDisabled
+                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                                : 'text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 cursor-pointer';
+                            return `
+                                <button 
+                                    onclick="${approveDisabled ? 'return false;' : `window.visitorLogsManager.approveRequest(${log.id})`}" 
+                                    ${approveDisabled ? 'disabled' : ''}
+                                    class="${approveClass}" 
+                                    title="${approveDisabled ? 'Already Approved' : 'Approve'}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </button>
+                                <button 
+                                    onclick="${declineDisabled ? 'return false;' : `window.visitorLogsManager.declineRequest(${log.id}, '${(visitor.name || 'Unknown').replace(/'/g, "\\'")}', ${log.visitor_id})`}" 
+                                    ${declineDisabled ? 'disabled' : ''}
+                                    class="${declineClass}" 
+                                    title="${declineDisabled ? 'Already Declined' : 'Decline'}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            `;
+                        })()}
                     </div>
                 </td>
             </tr>
@@ -362,17 +382,6 @@ class VisitorLogsManager {
 
         return `
             <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                <div class="flex items-start justify-between mb-3">
-                    <div class="flex items-center">
-                        <div class="h-10 w-10 rounded-full ${avatarColor} flex items-center justify-center mr-3">
-                            <span class="text-sm font-medium ${avatarColor.includes('blue') ? 'text-blue-600 dark:text-blue-400' : avatarColor.includes('purple') ? 'text-purple-600 dark:text-purple-400' : avatarColor.includes('gray') ? 'text-gray-600 dark:text-gray-400' : 'text-green-600 dark:text-green-400'}">${initials}</span>
-                        </div>
-                        <div>
-                            <div class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer">${visitor.name || 'Unknown'}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">VIS-${visitor.id || '000'}</div>
-                        </div>
-                    </div>
-                </div>
                 <div class="space-y-3 text-sm">
                     <div class="flex flex-col gap-2">
                         <span class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Visitor Info</span>
@@ -422,14 +431,28 @@ class VisitorLogsManager {
                 </div>
                 <div class="mt-4 flex gap-2">
                     <button onclick="window.visitorLogsManager.editLog(${log.id})" class="flex-1 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors cursor-pointer">Edit</button>
-                    ${log.status === 'pending' ? `
-                        <button onclick="window.visitorLogsManager.approveRequest(${log.id})" class="flex-1 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors cursor-pointer">Approve</button>
-                        <button onclick="window.visitorLogsManager.declineRequest(${log.id}, '${(visitor.name || 'Unknown').replace(/'/g, "\\'")}', ${log.visitor_id})" class="flex-1 px-3 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors cursor-pointer">Decline</button>
-                    ` : log.status === 'approved' ? `
-                        <span class="flex-1 px-3 py-2 text-sm bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-md text-center">Approved</span>
-                    ` : `
-                        <span class="flex-1 px-3 py-2 text-sm bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded-md text-center">Declined</span>
-                    `}
+                    ${(() => {
+                        const isApproved = log.status === 'approved';
+                        const isDeclined = log.status === 'declined' || log.status === 'rejected';
+                        const approveDisabled = isApproved;
+                        const declineDisabled = isDeclined;
+                        const approveBtnClass = approveDisabled 
+                            ? 'flex-1 px-3 py-2 text-sm bg-gray-400 dark:bg-gray-600 text-white rounded-md cursor-not-allowed opacity-50' 
+                            : 'flex-1 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors cursor-pointer';
+                        const declineBtnClass = declineDisabled
+                            ? 'flex-1 px-3 py-2 text-sm bg-gray-400 dark:bg-gray-600 text-white rounded-md cursor-not-allowed opacity-50'
+                            : 'flex-1 px-3 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors cursor-pointer';
+                        return `
+                            <button 
+                                onclick="${approveDisabled ? 'return false;' : `window.visitorLogsManager.approveRequest(${log.id})`}" 
+                                ${approveDisabled ? 'disabled' : ''}
+                                class="${approveBtnClass}">Approve</button>
+                            <button 
+                                onclick="${declineDisabled ? 'return false;' : `window.visitorLogsManager.declineRequest(${log.id}, '${(visitor.name || 'Unknown').replace(/'/g, "\\'")}', ${log.visitor_id})`}" 
+                                ${declineDisabled ? 'disabled' : ''}
+                                class="${declineBtnClass}">Decline</button>
+                        `;
+                    })()}
                 </div>
             </div>
         `;
