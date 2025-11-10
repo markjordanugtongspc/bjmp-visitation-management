@@ -1,37 +1,52 @@
 // Dashboard initialization
 import initRoleBasedNavigation from './components/role-based.js';
+import { initRecentVisitorRequests } from './components/recent-visitor-requests.js';
+import { initCharts } from './components/chart.js';
+import { initNotifications } from './components/notifications.js';
 
 // Sidebar toggle logic for dashboard
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize dashboard components FIRST (before any early returns)
+  // This ensures components work on all dashboards regardless of sidebar elements
+  initDashboardComponents();
+  
+  // Initialize role-based navigation
+  initRoleBasedNavigation();
+  
+  // Initialize dashboard inmate count
+  initializeDashboardInmateCount();
+  
+  // Sidebar toggle setup (optional - won't break if elements don't exist)
   const btn = document.querySelector('[data-sidebar-toggle]');
   const aside = document.querySelector('[data-sidebar]');
   const overlay = document.querySelector('[data-sidebar-overlay]');
   const nav = document.querySelector('[data-sidebar-nav]');
-  if (!btn || !aside || !overlay) return;
+  
+  if (btn && aside && overlay) {
+    const open = () => {
+      aside.classList.remove('-translate-x-full');
+      overlay.classList.remove('hidden');
+    };
+    const close = () => {
+      aside.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    };
 
-  const open = () => {
-    aside.classList.remove('-translate-x-full');
-    overlay.classList.remove('hidden');
-  };
-  const close = () => {
-    aside.classList.add('-translate-x-full');
-    overlay.classList.add('hidden');
-  };
-
-  btn.addEventListener('click', open);
-  overlay.addEventListener('click', close);
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') close();
-  });
-
-  // Close sidebar on nav click (mobile only)
-  if (nav) {
-    nav.addEventListener('click', (e) => {
-      const isLink = (e.target instanceof Element) && e.target.closest('a');
-      if (isLink && window.innerWidth < 640) {
-        close();
-      }
+    btn.addEventListener('click', open);
+    overlay.addEventListener('click', close);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') close();
     });
+
+    // Close sidebar on nav click (mobile only)
+    if (nav) {
+      nav.addEventListener('click', (e) => {
+        const isLink = (e.target instanceof Element) && e.target.closest('a');
+        if (isLink && window.innerWidth < 640) {
+          close();
+        }
+      });
+    }
   }
 
   // User menu toggle
@@ -48,13 +63,51 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', hideUserMenu);
     window.addEventListener('keydown', (e) => { if (e.key === 'Escape') userMenu.classList.add('hidden'); });
   }
-
-  // Initialize dashboard inmate count
-  initializeDashboardInmateCount();
-  
-  // Initialize role-based navigation
-  initRoleBasedNavigation();
 });
+
+/**
+ * Initialize all dashboard components
+ * Ensures all components are loaded on all dashboards (Admin, Warden, Assistant Warden, Searcher)
+ */
+async function initDashboardComponents() {
+  try {
+    console.log('Initializing dashboard components...');
+    
+    // Initialize recent visitor requests (includes Show More functionality)
+    const recentRequestsTbody = document.getElementById('recent-requests-tbody');
+    if (recentRequestsTbody) {
+      console.log('Found recent-requests-tbody, initializing...');
+      await initRecentVisitorRequests();
+      console.log('Recent visitor requests initialized');
+    } else {
+      console.log('recent-requests-tbody not found, skipping recent visitor requests');
+    }
+    
+    // Initialize charts (includes upcoming schedules with automatic requests)
+    const chartElements = document.querySelector('[data-chart]') || document.querySelector('[data-schedules-container]');
+    if (chartElements) {
+      console.log('Found chart elements, initializing...');
+      await initCharts();
+      console.log('Charts initialized');
+    } else {
+      console.log('Chart elements not found, skipping charts');
+    }
+    
+    // Initialize notifications (works for all roles)
+    const notificationBadge = document.getElementById('notification-badge');
+    if (notificationBadge) {
+      console.log('Found notification-badge, initializing...');
+      await initNotifications();
+      console.log('Notifications initialized');
+    } else {
+      console.log('notification-badge not found, skipping notifications');
+    }
+    
+    console.log('Dashboard components initialization complete');
+  } catch (error) {
+    console.error('Error initializing dashboard components:', error);
+  }
+}
 
 /**
  * Initialize dashboard inmate count

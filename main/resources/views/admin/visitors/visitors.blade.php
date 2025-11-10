@@ -229,4 +229,7 @@
     @vite('resources/js/visitors/allowed-visitors.js')
     @vite('resources/js/dashboard/components/role-based.js')
     @vite('resources/js/dashboard/components/quick-action-modals.js')
+    @vite('resources/js/dashboard/components/notifications.js')
+    @vite('resources/js/dashboard/components/session-messages.js')
+    @vite('resources/js/theme-manager.js')
 </x-app-layout>

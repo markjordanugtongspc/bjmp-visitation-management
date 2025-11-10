@@ -16,7 +16,8 @@
                 <x-theme-toggle />
             </div>
 
-            <nav data-sidebar-nav class="p-3 text-sm">
+            <nav data-sidebar-nav class="p-3 text-sm" data-user-role="{{ Auth::user()->role_id ?? 0 }}">
+                <!-- Dynamic navigation will be populated here by JavaScript -->
                 <div class="px-3 pb-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Main</div>
                 <a href="{{ route('dashboard') }}" class="group cursor-pointer flex items-center gap-3 rounded-md px-3 py-2 mb-1 border-l-2 {{ request()->routeIs('dashboard') ? 'border-blue-500 bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a.75.75 0 011.06 0l8.69 8.69a.75.75 0 11-1.06 1.06l-.19-.19V18a2.25 2.25 0 01-2.25 2.25H15a.75.75 0 01-.75-.75v-4.5h-3V19.5a.75.75 0 01-.75.75H6.25A2.25 2.25 0 014 18v-4.69l-.19.19a.75.75 0 11-1.06-1.06l7.75-7.75Z"/></svg>
@@ -93,6 +94,7 @@
                         <button data-user-menu
                           data-user-name="{{ Auth::user()->full_name ?? 'User' }}"
                           data-user-role="{{ Auth::user()->role_id ?? 0 }}"
+                          data-user-title="{{ Auth::user()->title ?? Auth::user()->getRoleName() }}"
                           class="inline-flex items-center gap-2 h-9 px-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                           aria-label="User menu for {{ Auth::user()->full_name ?? 'User' }}">
                           <span
@@ -109,7 +111,7 @@
                               {{ Auth::user()->full_name ?? 'User' }}
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400" data-user-role-target>
-                              {{ Auth::user()->role ?? 'admin' }}
+                              {{ Auth::user()->title ?? Auth::user()->getRoleName() }}
                             </div>
                           </div>
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
@@ -179,6 +181,11 @@
 
             <!-- Facial Recognition Content -->
             <div class="p-4 sm:p-6">
+                <!-- Session Error Message (hidden, handled by JavaScript) -->
+                @if (session('error'))
+                <div data-session-error="{{ session('error') }}" class="hidden"></div>
+                @endif
+                
                 <div class="max-w-7xl mx-auto space-y-6">
                     
                     <!-- Camera and Detection Section -->
@@ -395,4 +402,7 @@
     @vite('resources/js/profile/edit-profile-modal.js')
     @vite('resources/js/facial-recognition/main.js')
     @vite('resources/js/dashboard/components/role-based.js')
+    @vite('resources/js/dashboard/components/notifications.js')
+    @vite('resources/js/dashboard/components/session-messages.js')
+    @vite('resources/js/theme-manager.js')
 </x-app-layout>

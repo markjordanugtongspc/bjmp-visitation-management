@@ -274,9 +274,11 @@
     </div>
 
     @vite('resources/js/dashboard/home.js')
-  @vite('resources/js/profile/edit-profile-modal.js')
-  @vite('resources/js/dashboard/components/role-based.js')
-  @vite('resources/js/dashboard/components/quick-action-modals.js')
-  @vite('resources/js/officers/officers.js')
-  @vite('resources/js/dashboard/components/notifications.js')
+    @vite('resources/js/profile/edit-profile-modal.js')
+    @vite('resources/js/dashboard/components/role-based.js')
+    @vite('resources/js/dashboard/components/quick-action-modals.js')
+    @vite('resources/js/officers/officers.js')
+    @vite('resources/js/dashboard/components/notifications.js')
+    @vite('resources/js/dashboard/components/session-messages.js')
+    @vite('resources/js/theme-manager.js')
 </x-app-layout>

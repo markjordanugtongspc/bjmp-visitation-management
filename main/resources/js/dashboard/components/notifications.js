@@ -1,6 +1,7 @@
 /**
  * Notifications Component
- * Handles real-time visitor request notifications for Warden
+ * Handles real-time visitor request notifications for all roles (Admin, Warden, Assistant Warden, Searcher)
+ * Fetches both manual (visitation_logs) and automatic (facial_recognition_visitation_requests) requests
  */
 
 // Prevent multiple initializations
@@ -15,16 +16,17 @@ export async function initNotifications() {
   const notificationEmpty = document.getElementById('notification-empty');
 
   if (!notificationBadge) {
-    console.warn('Notification bell element not found');
+    console.log('Notification bell element not found, skipping notifications initialization');
     return;
   }
 
   // Prevent multiple initializations
   if (isInitialized) {
-    console.warn('Notifications already initialized');
+    console.log('Notifications already initialized, skipping');
     return;
   }
 
+  console.log('Initializing notifications...');
   isInitialized = true;
 
   // Show loading state initially
@@ -143,13 +145,33 @@ export async function initNotifications() {
         });
 
         if (frRes.ok) {
-          const frJson = await frRes.json();
-          facialRecognitionRequests = frJson?.requests || [];
+          // Check if response is actually JSON
+          const contentType = frRes.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const frJson = await frRes.json();
+            facialRecognitionRequests = frJson?.requests || [];
+          } else {
+            // Response is not JSON (likely HTML redirect page)
+            console.warn('Facial recognition API returned non-JSON response. Access may be denied.');
+            facialRecognitionRequests = [];
+          }
         } else {
-          console.error('Failed to fetch facial recognition requests:', frRes.status, frRes.statusText);
+          // Handle error responses
+          const contentType = frRes.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await frRes.json().catch(() => ({}));
+            console.error('Failed to fetch facial recognition requests:', frRes.status, errorData.message || frRes.statusText);
+          } else {
+            console.error('Failed to fetch facial recognition requests:', frRes.status, frRes.statusText, '(Non-JSON response - likely access denied)');
+          }
         }
       } catch (error) {
-        console.error('Error fetching facial recognition requests:', error);
+        // Only log if it's not a JSON parse error (which we handle above)
+        if (!(error instanceof SyntaxError && error.message.includes('JSON'))) {
+          console.error('Error fetching facial recognition requests:', error);
+        } else {
+          console.warn('Facial recognition API returned invalid JSON. Access may be denied.');
+        }
       }
 
       const totalCount = pendingRequests.length + conjugalLogs.length + facialRecognitionRequests.length;
@@ -1013,7 +1035,9 @@ window.handleConjugalNotificationAction = async function(logId, action) {
 
 // Global actions for facial recognition (automatic) visitation requests
 window.handleFacialRecognitionAction = async function(requestId, action, visitorName = 'Visitor', visitorId = null) {
-  const button = event?.target?.closest('button');
+  // Get the button from the event (if available) or find it by the request ID
+  const event = window.event || arguments[arguments.length - 1];
+  const button = event?.target?.closest('button') || document.querySelector(`button[onclick*="handleFacialRecognitionAction(${requestId}"]`);
   const originalHTML = button?.innerHTML;
   
   try {
@@ -1139,9 +1163,14 @@ window.handleFacialRecognitionAction = async function(requestId, action, visitor
   }
 };
 
-// Auto-initialize if DOM is ready
+// Auto-initialize if DOM is ready (fallback if not called from home.js)
+// This ensures notifications work even if home.js doesn't call initNotifications
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initNotifications);
+  document.addEventListener('DOMContentLoaded', () => {
+    // Small delay to ensure DOM is fully ready
+    setTimeout(initNotifications, 100);
+  });
 } else {
-  initNotifications();
+  // Small delay to ensure DOM is fully ready
+  setTimeout(initNotifications, 100);
 }

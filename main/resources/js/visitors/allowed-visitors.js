@@ -1366,22 +1366,44 @@ document.addEventListener('DOMContentLoaded', () => {
       return nameA.localeCompare(nameB);
     });
 
-    const inmateOptions = inmates.map(i => {
-      const name = i.fullName || `${i.firstName || ''} ${i.lastName || ''}`;
-      return `<option value="${i.id}">#${i.id} - ${name.trim()}</option>`;
-    }).join('');
+    // Store all inmates for search functionality
+    window._tempInmatesList = inmates;
 
     const formHtml = `
       <div class="text-left max-h-[70vh] overflow-y-auto px-1">
-        <div class="grid md:grid-cols-2 md:gap-6">
-          <div class="relative z-0 w-full mb-5 group">
-            <label class="block mb-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Select Inmate (PDL) *</label>
+        <div class="grid md:grid-cols-2 md:gap-6 items-start">
+          <div id="rv-inmate-search-container" class="relative z-0 w-full mb-5 group">
+            <label class="block mb-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">Search Inmate (PDL) *</label>
             <div class="relative">
-              <select id="rv-inmate" required class="block w-full px-2 py-2 text-xs sm:text-sm text-gray-900 bg-white border-b-2 border-r border-gray-200 dark:bg-gray-900 dark:text-white dark:border-gray-700 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 dark:focus:border-blue-500 transition-all cursor-pointer">
-                <option value="" disabled selected>-- Choose an inmate --</option>
-                ${inmateOptions}
-              </select>
-              <svg class="absolute top-1/2 right-2 w-4 h-4 text-gray-400 pointer-events-none transform -translate-y-1/2 fill-current" aria-hidden="true" viewBox="0 0 20 20"><path d="M10 12a1 1 0 0 1-.7-.3l-4-4a1 1 0 1 1 1.4-1.4L10 9.6l3.3-3.3a1 1 0 0 1 1.4 1.4l-4 4a1 1 0 0 1-.7.3z" /></svg>
+              <input 
+                type="text" 
+                id="rv-inmate-search" 
+                autocomplete="off"
+                class="block w-full px-3 py-2.5 text-xs sm:text-sm text-gray-900 bg-white border-b-2 border-gray-200 dark:bg-gray-900 dark:text-white dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-blue-600 dark:focus:border-blue-500 transition-all" 
+                placeholder="Type to search inmate name or ID..."
+              />
+              <input type="hidden" id="rv-inmate" required />
+              <svg class="absolute top-1/2 right-3 w-4 h-4 text-gray-400 pointer-events-none transform -translate-y-1/2 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <!-- Search Results Dropdown -->
+              <div id="rv-inmate-results" class="hidden absolute z-[9999] w-full mt-1 max-h-60 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl text-left" style="background-color: rgb(255, 255, 255);" data-dark-bg="rgb(31, 41, 55)">
+                <!-- Results will be populated here -->
+              </div>
+              <!-- Selected Inmate Display -->
+              <div id="rv-selected-inmate" class="hidden mt-3 mb-3 p-2 sm:p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 transition-all duration-300 ease-in-out opacity-0 -translate-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex-1 min-w-0">
+                    <div class="text-xs sm:text-sm font-semibold text-blue-900 dark:text-blue-100 truncate text-left" id="rv-selected-inmate-name"></div>
+                    <div class="text-[10px] sm:text-xs text-blue-700 dark:text-blue-300 mt-0.5 text-left" id="rv-selected-inmate-id"></div>
+                  </div>
+                  <button type="button" id="rv-clear-inmate" class="shrink-0 ml-2 p-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800 rounded transition-colors cursor-pointer" title="Clear selection">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="relative z-0 w-full mb-5 group">
@@ -1524,6 +1546,197 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelButton: `inline-flex items-center justify-center px-4 py-2 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-200 text-gray-900'} text-sm font-medium ml-2 cursor-pointer`
       },
       didOpen: () => {
+        // Setup inmate search functionality
+        const searchInput = document.getElementById('rv-inmate-search');
+        const searchResults = document.getElementById('rv-inmate-results');
+        const hiddenInput = document.getElementById('rv-inmate');
+        const selectedDisplay = document.getElementById('rv-selected-inmate');
+        const selectedName = document.getElementById('rv-selected-inmate-name');
+        const selectedId = document.getElementById('rv-selected-inmate-id');
+        const clearButton = document.getElementById('rv-clear-inmate');
+        const searchContainer = document.getElementById('rv-inmate-search-container');
+        const inmates = window._tempInmatesList || [];
+        
+        let searchTimeout;
+        let selectedInmate = null;
+        
+        // Search function
+        const performSearch = (query) => {
+          if (!searchResults) return;
+          
+          const q = (query || '').trim().toLowerCase();
+          
+          if (q.length < 1) {
+            searchResults.classList.add('hidden');
+            // Reset margin when no search
+            if (searchContainer) {
+              searchContainer.style.marginBottom = '';
+            }
+            return;
+          }
+          
+          // Filter inmates by name or ID
+          const filtered = inmates.filter(inmate => {
+            const name = (inmate.fullName || `${inmate.firstName || ''} ${inmate.lastName || ''}`).toLowerCase();
+            const id = String(inmate.id || '').toLowerCase();
+            return name.includes(q) || id.includes(q);
+          }).slice(0, 10); // Limit to 10 results
+          
+          if (filtered.length === 0) {
+            const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+            searchResults.innerHTML = `
+              <div class="p-3 text-xs sm:text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-center" style="background-color: ${isDarkMode ? 'rgb(31, 41, 55)' : 'rgb(255, 255, 255)'};">
+                No inmates found
+              </div>
+            `;
+            // Ensure background is opaque
+            if (isDarkMode) {
+              searchResults.style.backgroundColor = 'rgb(31, 41, 55)';
+            } else {
+              searchResults.style.backgroundColor = 'rgb(255, 255, 255)';
+            }
+            // Add margin to push Relationship field down (medium spacer - ~2 inches)
+            if (searchContainer) {
+              searchContainer.style.marginBottom = '10rem';
+              searchContainer.style.transition = 'margin-bottom 0.2s ease-in-out';
+            }
+            searchResults.classList.remove('hidden');
+            return;
+          }
+          
+          // Render results with responsive design and opaque backgrounds
+          const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+          // Ensure container has opaque background
+          if (isDarkMode) {
+            searchResults.style.backgroundColor = 'rgb(31, 41, 55)';
+            searchResults.style.opacity = '1';
+          } else {
+            searchResults.style.backgroundColor = 'rgb(255, 255, 255)';
+            searchResults.style.opacity = '1';
+          }
+          
+          searchResults.innerHTML = filtered.map(inmate => {
+            const name = inmate.fullName || `${inmate.firstName || ''} ${inmate.lastName || ''}`;
+            const cellLocation = inmate.cell?.name || inmate.cellLocation || 'N/A';
+            return `
+              <div 
+                class="p-2 sm:p-3 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-100 border-gray-700' : 'bg-white hover:bg-gray-100 active:bg-gray-200 text-gray-900 border-gray-200'} cursor-pointer border-b last:border-b-0 transition-colors"
+                style="background-color: ${isDarkMode ? 'rgb(31, 41, 55)' : 'rgb(255, 255, 255)'};"
+                data-inmate-id="${inmate.id}"
+              >
+                <div class="flex items-center gap-2 sm:gap-3">
+                  <div class="flex-1 min-w-0">
+                    <div class="text-xs sm:text-sm font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} truncate">
+                      ${name.trim()}
+                    </div>
+                    <div class="text-[10px] sm:text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mt-0.5 flex items-center gap-1 sm:gap-2 flex-wrap">
+                      <span class="text-left">ID: #${inmate.id}</span>
+                      ${cellLocation !== 'N/A' ? `<span class="mx-0.5 sm:mx-1">•</span><span class="text-left">Cell: ${cellLocation}</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+          // Add click handlers
+          searchResults.querySelectorAll('[data-inmate-id]').forEach(item => {
+            item.addEventListener('click', () => {
+              const inmateId = parseInt(item.getAttribute('data-inmate-id'));
+              const inmate = filtered.find(i => i.id === inmateId);
+              if (inmate) {
+                selectInmate(inmate);
+              }
+            });
+          });
+          
+          // Add margin to container to push Relationship field down and prevent overlap (medium spacer - ~2 inches)
+          if (searchContainer) {
+            searchContainer.style.marginBottom = '10rem';
+            searchContainer.style.transition = 'margin-bottom 0.2s ease-in-out';
+          }
+          
+          searchResults.classList.remove('hidden');
+        };
+        
+        // Select inmate function
+        const selectInmate = (inmate) => {
+          selectedInmate = inmate;
+          const name = inmate.fullName || `${inmate.firstName || ''} ${inmate.lastName || ''}`;
+          
+          hiddenInput.value = inmate.id;
+          selectedName.textContent = name.trim();
+          selectedId.textContent = `ID: #${inmate.id}`;
+          
+          searchInput.value = '';
+          searchResults.classList.add('hidden');
+          
+          // Reset margin when inmate is selected
+          if (searchContainer) {
+            searchContainer.style.marginBottom = '';
+          }
+          
+          // Show selected inmate display with animation
+          selectedDisplay.classList.remove('hidden');
+          // Trigger animation by removing and re-adding opacity/transform classes
+          setTimeout(() => {
+            selectedDisplay.classList.remove('opacity-0', '-translate-y-2');
+            selectedDisplay.classList.add('opacity-100', 'translate-y-0');
+          }, 10);
+        };
+        
+        // Clear selection function
+        const clearSelection = () => {
+          selectedInmate = null;
+          hiddenInput.value = '';
+          
+          // Animate out before hiding
+          selectedDisplay.classList.remove('opacity-100', 'translate-y-0');
+          selectedDisplay.classList.add('opacity-0', '-translate-y-2');
+          
+          setTimeout(() => {
+            selectedDisplay.classList.add('hidden');
+          }, 300);
+          
+          searchInput.value = '';
+          searchInput.focus();
+        };
+        
+        // Search input event listeners
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+              performSearch(e.target.value);
+            }, 200);
+          });
+          
+          searchInput.addEventListener('focus', () => {
+            if (searchInput.value.trim()) {
+              performSearch(searchInput.value);
+            }
+          });
+          
+          // Hide results when clicking outside
+          const handleClickOutside = (e) => {
+            if (searchInput && searchResults && 
+                !searchInput.contains(e.target) && 
+                !searchResults.contains(e.target)) {
+              searchResults.classList.add('hidden');
+              // Reset margin when hiding dropdown
+              if (searchContainer) {
+                searchContainer.style.marginBottom = '';
+              }
+            }
+          };
+          document.addEventListener('click', handleClickOutside);
+        }
+        
+        // Clear button event listener
+        if (clearButton) {
+          clearButton.addEventListener('click', clearSelection);
+        }
+        
         // Setup conjugal visit section toggle
         const relationshipSelect = document.getElementById('rv-relationship');
         const conjugalSection = document.getElementById('rv-conjugal-section');
@@ -1675,6 +1888,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+
+    // Cleanup temporary inmates list
+    if (window._tempInmatesList) {
+      delete window._tempInmatesList;
+    }
 
     if (result.isConfirmed) {
       await loadData();

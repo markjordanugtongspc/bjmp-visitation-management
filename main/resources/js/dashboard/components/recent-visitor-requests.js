@@ -161,17 +161,46 @@ async function fetchAllRequests(typeFilter = 'all', statusFilter = 'all') {
         page: '1'
       });
       
-      const response = await fetch(`/facial-recognition/visitation-requests?${params}`);
+      const response = await fetch(`/facial-recognition/visitation-requests?${params}`, {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+        },
+        credentials: 'same-origin',
+      });
+      
       if (response.ok) {
-        const json = await response.json();
-        const requests = json?.requests?.data || json?.requests || [];
-        
-        requests.forEach(request => {
-          allRequests.push(formatRequest(request, 'automatic'));
-        });
+        // Check if response is actually JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const json = await response.json();
+          const requests = json?.requests?.data || json?.requests || [];
+          
+          requests.forEach(request => {
+            allRequests.push(formatRequest(request, 'automatic'));
+          });
+        } else {
+          // Response is not JSON (likely HTML redirect page)
+          console.warn('Facial recognition API returned non-JSON response. Access may be denied.');
+        }
+      } else {
+        // Handle error responses
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Failed to fetch facial recognition requests:', response.status, errorData.message || response.statusText);
+        } else {
+          console.warn('Failed to fetch facial recognition requests:', response.status, '(Non-JSON response - likely access denied)');
+        }
       }
     } catch (error) {
-      console.error('Error fetching facial recognition requests:', error);
+      // Only log if it's not a JSON parse error (which we handle above)
+      if (!(error instanceof SyntaxError && error.message.includes('JSON'))) {
+        console.error('Error fetching facial recognition requests:', error);
+      } else {
+        console.warn('Facial recognition API returned invalid JSON. Access may be denied.');
+      }
     }
   }
   
@@ -246,12 +275,23 @@ export async function initRecentVisitorRequests() {
   const tableBody = document.getElementById('recent-requests-tbody');
   const showMoreContainer = document.getElementById('recent-requests-show-more');
   
-  if (!tableBody) return;
+  if (!tableBody) {
+    console.log('recent-requests-tbody not found, skipping initialization');
+    return;
+  }
+
+  console.log('Initializing recent visitor requests...');
 
   try {
-    const requests = await fetchRequests(1, 5, '', 'all', 'all');
-    const recentRequests = requests.slice(0, 5);
-
+    // Fetch all requests to get total count
+    const allRequests = await fetchAllRequests('all', 'all');
+    totalRequests = allRequests.length;
+    
+    // Get first 5 for display
+    const recentRequests = allRequests.slice(0, 5);
+    
+    console.log(`Total requests: ${totalRequests}, showing: ${recentRequests.length}`);
+    
     if (!recentRequests.length) {
       tableBody.innerHTML = `
         <tr>
@@ -718,9 +758,14 @@ function attachModalEventListeners() {
   }
 }
 
-// Auto-initialize if DOM is ready
+// Auto-initialize if DOM is ready (fallback if not called from home.js)
+// This ensures recent visitor requests work even if home.js doesn't call initRecentVisitorRequests
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initRecentVisitorRequests);
+  document.addEventListener('DOMContentLoaded', () => {
+    // Small delay to ensure DOM is fully ready
+    setTimeout(initRecentVisitorRequests, 100);
+  });
 } else {
-  initRecentVisitorRequests();
+  // Small delay to ensure DOM is fully ready
+  setTimeout(initRecentVisitorRequests, 100);
 }

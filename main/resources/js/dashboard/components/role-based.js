@@ -472,12 +472,12 @@ class NavigationManager {
                 show: ['facial-recognition']
             },
             1: { // Warden  
-                hide: ['facial-recognition'],
-                show: ['requests', 'supervision']
+                hide: [],
+                show: ['requests', 'supervision', 'facial-recognition']
             },
             2: { // Assistant Warden
-                hide: ['facial-recognition'],
-                show: ['requests', 'supervision']
+                hide: [],
+                show: ['requests', 'supervision', 'facial-recognition']
             },
             6: { // Jail Head Nurse
                 hide: ['inmates', 'visitors', 'requests', 'supervision', 'facial-recognition', 'reports', 'officers'],
@@ -486,6 +486,10 @@ class NavigationManager {
             7: { // Jail Nurse
                 hide: ['inmates', 'visitors', 'requests', 'supervision', 'facial-recognition', 'reports', 'officers'],
                 show: []
+            },
+            8: { // Searcher
+                hide: ['inmates', 'supervision', 'reports', 'officers'],
+                show: ['facial-recognition', 'requests']
             }
         };
 

@@ -214,48 +214,43 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/user-data', [ProfileController::class, 'getUserData'])->name('profile.user-data');
     
     // Facial Recognition - Accessible by Admin (0), Warden (1), Assistant Warden (2), and Searcher (8)
-    Route::get('/facial-recognition', [FacialRecognitionController::class, 'index'])
-        ->middleware('ensure.role:0,1,2,8')
-        ->name('facial-recognition');
-    
-    // Facial Recognition API Routes
-    Route::prefix('facial-recognition')->name('facial-recognition.')->group(function () {
-        Route::get('/registered-faces', [FacialRecognitionController::class, 'getRegisteredFaces'])
-            ->middleware('ensure.role:0,1,2,8')
-            ->name('registered-faces');
-        
-        Route::post('/match-face', [FacialRecognitionController::class, 'matchFace'])
-            ->middleware('ensure.role:0,1,2,8')
-            ->name('match-face');
-        
-        Route::post('/confirm-match', [FacialRecognitionController::class, 'confirmMatch'])
-            ->middleware('ensure.role:0,1,2,8')
-            ->name('confirm-match');
-        
-        Route::post('/create-visitation-request', [FacialRecognitionController::class, 'createVisitationRequest'])
-            ->middleware('ensure.role:0,1,2,8')
-            ->name('create-visitation-request');
-        
-        Route::get('/logs', [FacialRecognitionController::class, 'getRecentLogs'])
-            ->middleware('ensure.role:0,1,2,8')
-            ->name('logs');
-        
-        Route::get('/visitation-requests', [FacialRecognitionController::class, 'getVisitationRequests'])
-            ->middleware('ensure.role:0,1,2,8')
-            ->name('visitation-requests');
-        
-        Route::get('/visitation-requests/pending', [FacialRecognitionController::class, 'getPendingVisitationRequests'])
-            ->middleware('ensure.role:0,1,2,8')
-            ->name('visitation-requests.pending');
-        
-        Route::post('/visitation-requests/{id}/approve', [FacialRecognitionController::class, 'approveVisitationRequest'])
-            ->middleware('ensure.role:0,1,2,8')
-            ->name('visitation-requests.approve');
-        
-        Route::post('/visitation-requests/{id}/decline', [FacialRecognitionController::class, 'declineVisitationRequest'])
-            ->middleware('ensure.role:0,1,2,8')
-            ->name('visitation-requests.decline');
-    });
+    // Apply middleware to the entire group for cleaner code and consistent access control
+    Route::prefix('facial-recognition')
+        ->middleware('ensure.role:0|1|2|8')
+        ->name('facial-recognition.')
+        ->group(function () {
+            // Main facial recognition page - must be last to avoid route conflicts
+            Route::get('/', [FacialRecognitionController::class, 'index'])
+                ->name('index');
+            
+            // API Routes
+            Route::get('/registered-faces', [FacialRecognitionController::class, 'getRegisteredFaces'])
+                ->name('registered-faces');
+            
+            Route::post('/match-face', [FacialRecognitionController::class, 'matchFace'])
+                ->name('match-face');
+            
+            Route::post('/confirm-match', [FacialRecognitionController::class, 'confirmMatch'])
+                ->name('confirm-match');
+            
+            Route::post('/create-visitation-request', [FacialRecognitionController::class, 'createVisitationRequest'])
+                ->name('create-visitation-request');
+            
+            Route::get('/logs', [FacialRecognitionController::class, 'getRecentLogs'])
+                ->name('logs');
+            
+            Route::get('/visitation-requests', [FacialRecognitionController::class, 'getVisitationRequests'])
+                ->name('visitation-requests');
+            
+            Route::get('/visitation-requests/pending', [FacialRecognitionController::class, 'getPendingVisitationRequests'])
+                ->name('visitation-requests.pending');
+            
+            Route::post('/visitation-requests/{id}/approve', [FacialRecognitionController::class, 'approveVisitationRequest'])
+                ->name('visitation-requests.approve');
+            
+            Route::post('/visitation-requests/{id}/decline', [FacialRecognitionController::class, 'declineVisitationRequest'])
+                ->name('visitation-requests.decline');
+        });
 });
 
 // Medical Visit API Routes

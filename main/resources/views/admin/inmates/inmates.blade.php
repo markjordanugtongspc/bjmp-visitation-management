@@ -414,4 +414,5 @@
     @vite('resources/js/inmates/inmates.jsx')
     @vite('resources/js/dashboard/components/role-based.js')
     @vite('resources/js/dashboard/components/notifications.js')
+    @vite('resources/js/dashboard/components/session-messages.js')
 </x-app-layout>

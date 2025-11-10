@@ -5,12 +5,18 @@
  */
 
 export async function initCharts() {
-  // Initialize all charts
-  await initDonutChart();
-  await initLineChart();
-  await initBarChart();
-  await initUpcomingSchedules();
-  await initCellsCapacity();
+  try {
+    // Initialize all charts
+    await Promise.all([
+      initDonutChart(),
+      initLineChart(),
+      initBarChart(),
+      initUpcomingSchedules(),
+      initCellsCapacity()
+    ]);
+  } catch (error) {
+    console.error('Error initializing charts:', error);
+  }
 }
 
 /**
@@ -398,13 +404,20 @@ async function initUpcomingSchedules() {
         badgeClass = 'bg-blue-500/10 text-blue-500';
       }
 
+      // Show indicator for automatic requests
+      const isAutomatic = schedule.type === 'automatic' || schedule.relationship === 'Auto';
+      const autoBadge = isAutomatic ? '<span class="ml-1 text-[10px] text-purple-600 dark:text-purple-400">(Auto)</span>' : '';
+
       return `
         <div class="flex items-center justify-between">
-          <div>
-            <div class="font-medium">${schedule.formatted_date}</div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">${schedule.reason_for_visit}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium flex items-center gap-1">
+              ${schedule.formatted_date}
+              ${autoBadge}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${schedule.reason_for_visit || schedule.visitor_name || 'N/A'}</div>
           </div>
-          <span class="inline-flex items-center rounded-full ${badgeClass} px-2 py-0.5 text-[11px]">
+          <span class="inline-flex items-center rounded-full ${badgeClass} px-2 py-0.5 text-[11px] shrink-0 ml-2">
             ${schedule.badge_text}
           </span>
         </div>
@@ -477,9 +490,14 @@ async function initCellsCapacity() {
   }
 }
 
-// Auto-initialize if DOM is ready
+// Auto-initialize if DOM is ready (fallback if not called from home.js)
+// This ensures charts work even if home.js doesn't call initCharts
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initCharts);
+  document.addEventListener('DOMContentLoaded', () => {
+    // Small delay to ensure other components are ready
+    setTimeout(initCharts, 100);
+  });
 } else {
-  initCharts();
+  // Small delay to ensure other components are ready
+  setTimeout(initCharts, 100);
 }

@@ -19,13 +19,111 @@ function handleSessionMessages() {
   const errorMessage = getSessionMessage('error');
   const successMessage = getSessionMessage('status');
   
+  // Smart error filtering to prevent false positives while maintaining security
   if (errorMessage) {
-    showErrorMessage(errorMessage);
+    const currentPath = window.location.pathname;
+    const isPermissionError = errorMessage.toLowerCase().includes('permission') || 
+                             errorMessage.toLowerCase().includes('access') ||
+                             errorMessage.toLowerCase().includes('denied') ||
+                             errorMessage.toLowerCase().includes('unauthorized');
+    
+    // Get user's role from DOM
+    const userRoleElement = document.querySelector('[data-user-role]');
+    const userRole = userRoleElement ? parseInt(userRoleElement.getAttribute('data-user-role')) : null;
+    
+    // Check if user is on an authorized page for their role
+    const isOnAuthorizedPage = checkIfOnAuthorizedPage(currentPath, userRole);
+    
+    // ALWAYS show permission/access errors, even if user is on authorized page
+    // This is because they were redirected here after trying to bypass route restrictions
+    // The error indicates they tried to access an unauthorized page
+    if (isPermissionError) {
+      // Always show permission errors - user tried to bypass and was redirected
+      showErrorMessage(errorMessage);
+      return;
+    }
+    
+    // For non-permission errors, only show if user is NOT on an authorized page
+    // This prevents false positives for other types of errors
+    if (!isOnAuthorizedPage) {
+      showErrorMessage(errorMessage);
+    }
   }
   
   if (successMessage) {
     showSuccessMessage(successMessage);
   }
+}
+
+/**
+ * Check if user is on an authorized page based on their role
+ * Works globally across all pages (dashboard, inmates, officers, visitors, facial recognition, etc.)
+ */
+function checkIfOnAuthorizedPage(currentPath, userRole) {
+  if (userRole === null) return false;
+  
+  // Define authorized paths for each role
+  const roleAuthorizedPaths = {
+    0: [ // Admin - Full access
+      '/admin/dashboard',
+      '/admin/inmates',
+      '/admin/officers',
+      '/admin/visitors',
+      '/admin/reports',
+      '/facial-recognition',
+      '/profile',
+      '/visitation',
+      '/visitor',
+      '/inmates'
+    ],
+    1: [ // Warden - Full access except some admin-specific pages
+      '/warden/dashboard',
+      '/inmates',
+      '/visitors',
+      '/facial-recognition',
+      '/profile',
+      '/visitation',
+      '/requests',
+      '/supervision',
+      '/reports',
+      '/officers'
+    ],
+    2: [ // Assistant Warden - Similar to Warden
+      '/assistant-warden/dashboard',
+      '/inmates',
+      '/visitors',
+      '/facial-recognition',
+      '/profile',
+      '/visitation',
+      '/requests',
+      '/supervision',
+      '/reports',
+      '/officers'
+    ],
+    6: [ // Jail Head Nurse
+      '/nurse/dashboard',
+      '/profile',
+      '/medical'
+    ],
+    7: [ // Jail Nurse
+      '/nurse/dashboard',
+      '/profile',
+      '/medical'
+    ],
+    8: [ // Searcher - Limited access
+      '/searcher/dashboard',
+      '/facial-recognition',
+      '/profile',
+      '/visitors',
+      '/visitation',
+      '/requests'
+    ]
+  };
+  
+  const authorizedPaths = roleAuthorizedPaths[userRole] || [];
+  
+  // Check if current path starts with any authorized path
+  return authorizedPaths.some(authorizedPath => currentPath.startsWith(authorizedPath));
 }
 
 function getSessionMessage(key) {
