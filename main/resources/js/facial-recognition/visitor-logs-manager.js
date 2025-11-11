@@ -5,6 +5,60 @@
 
 import Swal from 'sweetalert2';
 
+// ============================================================================
+// AVATAR HELPER FUNCTIONS (from visitors.js)
+// ============================================================================
+
+/**
+ * Generate SVG avatar based on visitor name
+ * @param {string} name - Full name of the visitor
+ * @returns {string} - Data URI of the generated SVG
+ */
+function generateVisitorAvatarSVG(name) {
+    if (!name || name === 'N/A') return '/images/logo/bjmp_logo.png';
+    
+    const initials = name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    
+    // Generate consistent color based on name
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    
+    const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="grad-${hue}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:hsl(${hue}, 60%, 50%);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:hsl(${hue}, 60%, 40%);stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <rect width="100" height="100" fill="url(#grad-${hue})" rx="50" />
+            <text x="50" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle" dy=".3em">${initials}</text>
+        </svg>
+    `;
+    
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
+/**
+ * Get visitor avatar URL with fallback to generated SVG
+ * @param {Object} visitor - Visitor object with avatar data
+ * @returns {string} - Avatar URL or generated SVG
+ */
+function getVisitorAvatarUrl(visitor) {
+    if (visitor?.avatar_path && visitor?.avatar_filename) {
+        return `/storage/${visitor.avatar_path}/${visitor.avatar_filename}`;
+    }
+    return generateVisitorAvatarSVG(visitor?.name || 'N/A');
+}
+
 class VisitorLogsManager {
     constructor() {
         this.currentPage = 1;
@@ -183,14 +237,12 @@ class VisitorLogsManager {
         paginationEl.classList.add('hidden');
         paginationEl.classList.remove('flex');
 
-        const isDark = document.documentElement.classList.contains('dark');
-        Swal.fire({
+        const themeManager = window.ThemeManager;
+        Swal.fire(themeManager.getSwalConfig({
             icon: 'error',
             title: 'Error',
-            text: message,
-            background: isDark ? '#1f2937' : '#ffffff',
-            color: isDark ? '#f9fafb' : '#1f2937',
-        });
+            text: message
+        }));
     }
 
     /**
@@ -205,13 +257,13 @@ class VisitorLogsManager {
             document.getElementById('visitor-logs-table').classList.add('hidden');
             document.getElementById('visitor-logs-mobile').classList.add('hidden');
             const paginationEl = document.getElementById('visitor-logs-pagination');
-            paginationEl.classList.add('hidden');
-            paginationEl.classList.remove('flex');
+        paginationEl.classList.add('hidden');
+        paginationEl.classList.remove('flex');
             return;
         }
 
         document.getElementById('visitor-logs-empty').classList.add('hidden');
-        
+
         // Render content first
         this.renderTableView();
         this.renderMobileView();
@@ -270,21 +322,24 @@ class VisitorLogsManager {
         const inmate = log.inmate || {};
         const frLog = log.facial_recognition_log || {};
         
-        const initials = this.getInitials(visitor.name || 'Unknown');
-        const avatarColor = this.getAvatarColor(visitor.id);
+        // Get avatar URL with fallback to SVG
+        const avatarUrl = getVisitorAvatarUrl(visitor);
         
         const statusBadge = this.getStatusBadge(log.status);
         const faceMatchBadge = this.getFaceMatchBadge(frLog);
+        const cellLabel = (inmate && inmate.cell && inmate.cell.name)
+            ? inmate.cell.name
+            : (inmate.cell_location || inmate.current_facility || (inmate.cell_id ? `Cell #${inmate.cell_id}` : 'N/A'));
 
         return `
             <tr>
                 <td class="px-4 py-4">
                     <div class="flex items-center">
-                        <div class="h-10 w-10 rounded-full ${avatarColor} flex items-center justify-center mr-3">
-                            <span class="text-sm font-medium ${avatarColor.includes('blue') ? 'text-blue-600 dark:text-blue-400' : avatarColor.includes('purple') ? 'text-purple-600 dark:text-purple-400' : avatarColor.includes('gray') ? 'text-gray-600 dark:text-gray-400' : 'text-green-600 dark:text-green-400'}">${initials}</span>
+                        <div class="h-10 w-10 shrink-0 mr-3">
+                            <img src="${avatarUrl}" alt="${visitor.name || 'Unknown'}" class="w-full h-full object-cover rounded-full ring-2 ring-gray-200 dark:ring-gray-700" loading="lazy" />
                         </div>
                         <div class="ml-4">
-                            <span class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer">${visitor.name || 'Unknown'}</span>
+                            <span onclick="window.visitorLogsManager.showVisitorInfo(${visitor.id})" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer">${visitor.name || 'Unknown'}</span>
                             <div class="text-sm text-gray-500 dark:text-gray-400">ID: VIS-${visitor.id || '000'}</div>
                         </div>
                     </div>
@@ -301,7 +356,7 @@ class VisitorLogsManager {
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                             </svg>
-                            ${inmate.current_facility || 'N/A'}
+                            ${cellLabel}
                         </span>
                     </div>
                 </td>
@@ -345,19 +400,19 @@ class VisitorLogsManager {
                                     ${approveDisabled ? 'disabled' : ''}
                                     class="${approveClass}" 
                                     title="${approveDisabled ? 'Already Approved' : 'Approve'}">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </button>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </button>
                                 <button 
                                     onclick="${declineDisabled ? 'return false;' : `window.visitorLogsManager.declineRequest(${log.id}, '${(visitor.name || 'Unknown').replace(/'/g, "\\'")}', ${log.visitor_id})`}" 
                                     ${declineDisabled ? 'disabled' : ''}
                                     class="${declineClass}" 
                                     title="${declineDisabled ? 'Already Declined' : 'Decline'}">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                </button>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
                             `;
                         })()}
                     </div>
@@ -374,8 +429,8 @@ class VisitorLogsManager {
         const inmate = log.inmate || {};
         const frLog = log.facial_recognition_log || {};
         
-        const initials = this.getInitials(visitor.name || 'Unknown');
-        const avatarColor = this.getAvatarColor(visitor.id);
+        // Get avatar URL with fallback to SVG
+        const avatarUrl = getVisitorAvatarUrl(visitor);
         
         const statusBadge = this.getStatusBadge(log.status);
         const faceMatchBadge = this.getFaceMatchBadge(frLog);
@@ -386,11 +441,11 @@ class VisitorLogsManager {
                     <div class="flex flex-col gap-2">
                         <span class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Visitor Info</span>
                         <div class="flex items-center">
-                            <div class="h-10 w-10 rounded-full ${avatarColor} flex items-center justify-center mr-3">
-                                <span class="text-sm font-medium ${avatarColor.includes('blue') ? 'text-blue-600 dark:text-blue-400' : avatarColor.includes('purple') ? 'text-purple-600 dark:text-purple-400' : avatarColor.includes('gray') ? 'text-gray-600 dark:text-gray-400' : 'text-green-600 dark:text-green-400'}">${initials}</span>
+                            <div class="h-10 w-10 shrink-0 mr-3">
+                                <img src="${avatarUrl}" alt="${visitor.name || 'Unknown'}" class="w-full h-full object-cover rounded-full ring-2 ring-gray-200 dark:ring-gray-700" loading="lazy" />
                             </div>
                             <div>
-                                <div class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer">${visitor.name || 'Unknown'}</div>
+                                <div onclick="window.visitorLogsManager.showVisitorInfo(${visitor.id})" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer">${visitor.name || 'Unknown'}</div>
                                 <div class="text-xs text-gray-500 dark:text-gray-400">VIS-${visitor.id || '000'}</div>
                             </div>
                         </div>
@@ -479,7 +534,57 @@ class VisitorLogsManager {
             'bg-green-100 dark:bg-green-900/30',
             'bg-gray-100 dark:bg-gray-800'
         ];
-        return colors[id % colors.length];
+        
+        // Prefer numeric IDs
+        if (typeof id === 'number' && Number.isFinite(id)) {
+            return colors[Math.abs(id) % colors.length];
+        }
+        
+        // Fallback: derive a stable index from string IDs
+        if (typeof id === 'string' && id.length > 0) {
+            let hash = 0;
+            for (let i = 0; i < id.length; i++) {
+                hash = ((hash << 5) - hash) + id.charCodeAt(i);
+                hash |= 0; // Convert to 32-bit integer
+            }
+            return colors[Math.abs(hash) % colors.length];
+        }
+        
+        // Default color if ID is missing/invalid
+        return colors[0];
+    }
+    
+    /**
+     * Build a safe avatar URL from path and filename
+     */
+    buildAvatarUrl(avatarPath, avatarFilename) {
+        if (!avatarPath || !avatarFilename) return null;
+        
+        // Normalize slashes
+        const path = String(avatarPath).replace(/\/+$/,'');
+        const filename = String(avatarFilename).replace(/^\/+/, '');
+        
+        // If path already absolute (starts with http) use as-is
+        if (/^https?:\/\//i.test(path)) {
+            return `${path}/${filename}`;
+        }
+        
+        // If path is root-relative, prefix with origin
+        if (path.startsWith('/')) {
+            return `${window.location.origin}${path}/${filename}`;
+        }
+        
+        // Otherwise, treat as relative
+        return `${window.location.origin}/${path}/${filename}`;
+    }
+    
+    /**
+     * Get visitor avatar URL from visitor object
+     */
+    getVisitorAvatarUrl(visitor) {
+        const path = visitor?.avatar_path || null;
+        const filename = visitor?.avatar_filename || null;
+        return this.buildAvatarUrl(path, filename);
     }
 
     /**
@@ -621,62 +726,368 @@ class VisitorLogsManager {
     }
 
     /**
-     * Edit log (placeholder for future functionality)
+     * Show visitor information modal
      */
-    editLog(id) {
-        const isDark = document.documentElement.classList.contains('dark');
-        Swal.fire({
-            icon: 'info',
-            title: 'Edit Functionality',
-            text: 'Edit functionality will be implemented in a future update.',
-            background: isDark ? '#1f2937' : '#ffffff',
-            color: isDark ? '#f9fafb' : '#1f2937',
-        });
+    async showVisitorInfo(visitorId) {
+        // Use theme manager for consistent theming
+        const themeManager = window.ThemeManager;
+        const isDark = themeManager.isDarkMode();
+        const palette = themeManager.getPalette();
+        const isMobile = window.innerWidth < 640;
+        
+        try {
+            // Show loading with theme manager
+            Swal.fire(themeManager.getSwalConfig({
+                title: 'Loading...',
+                text: 'Fetching visitor information',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            }));
+
+            // Fetch visitor data with logs
+            const response = await fetch(`/api/visitors/${visitorId}`);
+            if (!response.ok) throw new Error('Failed to fetch visitor data');
+            
+            const visitorApi = await response.json();
+            
+            // Find the most recent log for this visitor
+            const visitorLog = this.logs.find(log => log.visitor?.id === visitorId);
+            const inmate = visitorLog?.inmate || {};
+            
+            // Resolve inmate cell name via cell_id → cells table (authoritative)
+            let inmateCell = inmate?.cell_location || inmate?.cell?.name || 'N/A';
+            const inmateCellId = inmate?.cell_id || visitorLog?.inmate?.cell_id || visitorLog?.cell_id;
+            if (inmateCellId) {
+                try {
+                    const cellRes = await fetch(`/api/cells/${inmateCellId}`);
+                    if (cellRes.ok) {
+                        const cellData = await cellRes.json();
+                        inmateCell = cellData?.name || inmateCell;
+                    }
+                } catch (e) {
+                    // keep fallback silently
+                }
+            }
+            
+            // Build face match badge using existing logic to stay consistent with list rendering
+            const faceMatchHtml = this.getFaceMatchBadge(visitorLog?.facial_recognition_log || null);
+            
+            // Merge visitor data with sensible fallbacks
+            const logVisitor = visitorLog?.visitor || {};
+            const visitor = {
+                id: visitorApi?.id ?? logVisitor?.id ?? visitorId,
+                name: visitorApi?.name ?? logVisitor?.name ?? 'Unknown',
+                avatar_path: visitorApi?.avatar_path ?? logVisitor?.avatar_path ?? null,
+                avatar_filename: visitorApi?.avatar_filename ?? logVisitor?.avatar_filename ?? null,
+            };
+            
+            // Build avatar HTML using the helper function
+            const avatarUrl = getVisitorAvatarUrl(visitor);
+            const avatarHtml = `
+                <img src="${avatarUrl}" alt="${visitor.name}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center" style="display:none;">
+                    <span class="text-sm font-bold text-white">${this.getInitials(visitor.name || 'Unknown')}</span>
+                </div>
+            `;
+            
+            // Use cell_location from inmate data (already provided by backend)
+            const cellName = inmate.cell_location || inmate.current_facility || 'Not Assigned';
+            
+            // Format date and time in Philippines format
+            let visitDateTime = 'N/A';
+            if (visitorLog?.visit_date && visitorLog?.visit_time) {
+                const visitDate = new Date(visitorLog.visit_date);
+                const [hours, minutes] = visitorLog.visit_time.split(':');
+                
+                // Convert to Philippines time (UTC+8)
+                const philippinesTime = new Date(visitDate);
+                philippinesTime.setHours(parseInt(hours), parseInt(minutes));
+                
+                // Format: Month Day, Year at HH:MM AM/PM
+                visitDateTime = philippinesTime.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                    timeZone: 'Asia/Manila'
+                }).replace(',', ' at');
+            }
+            
+            // Status badge
+            const status = visitorLog?.status || 'unknown';
+            const statusConfig = {
+                approved: { bg: isDark ? 'bg-green-500/20' : 'bg-green-100', text: isDark ? 'text-green-400' : 'text-green-700', label: 'Approved' },
+                pending: { bg: isDark ? 'bg-yellow-500/20' : 'bg-yellow-100', text: isDark ? 'text-yellow-400' : 'text-yellow-700', label: 'Pending' },
+                declined: { bg: isDark ? 'bg-red-500/20' : 'bg-red-100', text: isDark ? 'text-red-400' : 'text-red-700', label: 'Declined' }
+            };
+            const statusStyle = statusConfig[status] || statusConfig.pending;
+            
+            // Show compact modern modal
+            Swal.fire(themeManager.getSwalConfig({
+                title: visitor.name || 'Unknown Visitor',
+                html: `
+                    <div class="space-y-4 text-left">
+                        <!-- Avatar & Status -->
+                        <div class="flex items-center gap-4 pb-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}">
+                            <div class="shrink-0 w-16 h-16 rounded-full overflow-hidden ${isDark ? 'ring-2 ring-gray-700' : 'ring-2 ring-gray-200'}">
+                                ${avatarHtml}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}">Visitor ID: #${visitor?.id || '—'}</p>
+                                <span class="inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}">${statusStyle.label}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Info Grid -->
+                        <div class="grid grid-cols-1 gap-3 text-sm">
+                            <div class="p-3 rounded-lg ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}">
+                                <p class="text-xs ${isDark ? 'text-blue-400' : 'text-blue-600'} font-medium mb-1">Visiting PDL</p>
+                                <p class="font-semibold ${isDark ? 'text-white' : 'text-gray-900'}">${inmate.name || 'N/A'}</p>
+                                <p class="text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mt-0.5">Cell: ${cellName}</p>
+                            </div>
+                            
+                            <div class="p-3 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-50'}">
+                                <p class="text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1">Date & Time</p>
+                                <p class="font-semibold ${isDark ? 'text-white' : 'text-gray-900'}">${visitDateTime}</p>
+                            </div>
+                            
+                            <div class="p-3 rounded-lg ${isDark ? 'bg-purple-500/10' : 'bg-purple-50'}">
+                                <p class="text-xs ${isDark ? 'text-purple-400' : 'text-purple-600'} font-medium mb-1">Face Recognition</p>
+                                ${faceMatchHtml}
+                            </div>
+                        </div>
+                    </div>
+                `,
+                width: isMobile ? '90%' : '500px',
+                showConfirmButton: true,
+                confirmButtonText: 'Close'
+            }));
+            
+        } catch (error) {
+            console.error('Error fetching visitor info:', error);
+            Swal.fire(themeManager.getSwalConfig({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to load visitor information. Please try again.'
+            }));
+        }
+    }
+
+    /**
+     * Edit log - Allow modification of visit date and time
+     */
+    async editLog(id) {
+        // Use theme manager for consistent theming
+        const themeManager = window.ThemeManager;
+        const isDark = themeManager.isDarkMode();
+        const palette = themeManager.getPalette();
+        const isMobile = window.innerWidth < 640;
+        
+        // Find the log
+        const log = this.logs.find(l => l.id === id);
+        if (!log) {
+            Swal.fire(themeManager.getSwalConfig({
+                icon: 'error',
+                title: 'Error',
+                text: 'Log not found'
+            }));
+            return;
+        }
+        
+        const visitor = log.visitor || {};
+        const inmate = log.inmate || {};
+        
+        // Get current date and time
+        const currentDate = log.visit_date || new Date().toISOString().split('T')[0];
+        const currentTime = log.visit_time || '';
+        const today = new Date().toISOString().split('T')[0];
+        
+        const { value: formValues } = await Swal.fire(themeManager.getSwalConfig({
+            title: 'Edit Visit Schedule',
+            html: `
+                <div class="w-full max-w-lg mx-auto text-left space-y-4 sm:space-y-5">
+                    <!-- Visitor Info -->
+                    <div class="p-4 rounded-xl ${isDark ? 'bg-gradient-to-br from-blue-900/30 to-blue-800/20 border border-blue-700/30' : 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200'} backdrop-blur-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg ${isDark ? 'bg-blue-600/20' : 'bg-blue-500/10'} flex items-center justify-center">
+                                <svg class="w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-semibold ${isDark ? 'text-blue-400/70' : 'text-blue-600/70'} uppercase tracking-wider">Visitor</p>
+                                <p class="text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'} truncate">${visitor.name || 'Unknown'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Inmate Info -->
+                    <div class="p-4 rounded-xl ${isDark ? 'bg-gradient-to-br from-purple-900/30 to-purple-800/20 border border-purple-700/30' : 'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200'} backdrop-blur-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg ${isDark ? 'bg-purple-600/20' : 'bg-purple-500/10'} flex items-center justify-center">
+                                <svg class="w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-semibold ${isDark ? 'text-purple-400/70' : 'text-purple-600/70'} uppercase tracking-wider">Visiting PDL</p>
+                                <p class="text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'} truncate">${inmate.name || 'Unknown'} - ${inmate.cell_location || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Date and Time Fields -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}">
+                                <svg class="w-4 h-4 inline mr-1 ${isDark ? 'text-green-400' : 'text-green-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Visit Date <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                id="swal-edit-date"
+                                min="${today}"
+                                value="${currentDate}"
+                                class="w-full rounded-xl border ${isDark ? 'border-gray-600 bg-gray-800 text-gray-100' : 'border-gray-300 bg-white text-gray-900'} px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm"
+                                required
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}">
+                                <svg class="w-4 h-4 inline mr-1 ${isDark ? 'text-amber-400' : 'text-amber-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Visit Time <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="time"
+                                id="swal-edit-time"
+                                value="${currentTime}"
+                                class="w-full rounded-xl border ${isDark ? 'border-gray-600 bg-gray-800 text-gray-100' : 'border-gray-300 bg-white text-gray-900'} px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm"
+                                required
+                            />
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 rounded-xl ${isDark ? 'bg-gradient-to-br from-amber-900/30 to-amber-800/20 border border-amber-700/30' : 'bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200'} backdrop-blur-sm">
+                        <div class="flex gap-3">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-lg ${isDark ? 'bg-amber-600/20' : 'bg-amber-500/10'} flex items-center justify-center">
+                                <svg class="w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p class="text-sm ${isDark ? 'text-amber-300' : 'text-amber-800'}">You can only modify the visit date and time. Other details remain unchanged.</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            width: isMobile ? '95vw' : '650px',
+            showCancelButton: true,
+            confirmButtonText: 'Save Changes',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: palette.primary,
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl',
+                cancelButton: 'font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg'
+            }
+        }));
+        
+        if (formValues) {
+            try {
+                // Show loading
+                Swal.fire(themeManager.getSwalConfig({
+                    title: 'Updating...',
+                    text: 'Please wait while we update the visit schedule',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                }));
+                
+                // Update via API
+                const response = await fetch(`/facial-recognition/visitation-requests/${id}/update-schedule`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    },
+                    body: JSON.stringify({
+                        visit_date: formValues.date,
+                        visit_time: formValues.time
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to update schedule');
+                }
+                
+                // Success
+                await Swal.fire(themeManager.getSwalConfig({
+                    icon: 'success',
+                    title: 'Updated!',
+                    text: 'Visit schedule has been updated successfully.',
+                    confirmButtonText: 'OK'
+                }));
+                
+                // Reload logs
+                this.loadLogs();
+                
+            } catch (error) {
+                console.error('Error updating schedule:', error);
+                Swal.fire(themeManager.getSwalConfig({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to update visit schedule. Please try again.'
+                }));
+            }
+        }
     }
 
     /**
      * Check out visitor
      */
     async checkOut(id) {
-        const isDark = document.documentElement.classList.contains('dark');
+        const themeManager = window.ThemeManager;
+        const isDark = themeManager.isDarkMode();
         
-        const result = await Swal.fire({
+        const result = await Swal.fire(themeManager.getSwalConfig({
             title: 'Check Out Visitor',
             text: 'Are you sure you want to check out this visitor?',
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Yes, Check Out',
-            cancelButtonText: 'Cancel',
-            background: isDark ? '#1f2937' : '#ffffff',
-            color: isDark ? '#f9fafb' : '#1f2937',
-            customClass: {
-                confirmButton: 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg cursor-pointer',
-                cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer ml-2',
-            },
-            buttonsStyling: false,
-        });
+            cancelButtonText: 'Cancel'
+        }));
 
         if (result.isConfirmed) {
             try {
                 // TODO: Implement checkout API call
-                await Swal.fire({
+                await Swal.fire(themeManager.getSwalConfig({
                     icon: 'success',
                     title: 'Checked Out',
-                    text: 'Visitor has been checked out successfully.',
-                    background: isDark ? '#1f2937' : '#ffffff',
-                    color: isDark ? '#f9fafb' : '#1f2937',
-                });
+                    text: 'Visitor has been checked out successfully.'
+                }));
                 
                 // Reload logs
                 this.loadLogs();
             } catch (error) {
-                await Swal.fire({
+                await Swal.fire(themeManager.getSwalConfig({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Failed to check out visitor. Please try again.',
-                    background: isDark ? '#1f2937' : '#ffffff',
-                    color: isDark ? '#f9fafb' : '#1f2937',
-                });
+                    text: 'Failed to check out visitor. Please try again.'
+                }));
             }
         }
     }
@@ -685,37 +1096,28 @@ class VisitorLogsManager {
      * Export logs (placeholder for future functionality)
      */
     exportLogs() {
-        const isDark = document.documentElement.classList.contains('dark');
-        Swal.fire({
+        const themeManager = window.ThemeManager;
+        Swal.fire(themeManager.getSwalConfig({
             icon: 'info',
             title: 'Export Functionality',
-            text: 'Export functionality will be implemented in a future update.',
-            background: isDark ? '#1f2937' : '#ffffff',
-            color: isDark ? '#f9fafb' : '#1f2937',
-        });
+            text: 'Export functionality will be implemented in a future update.'
+        }));
     }
 
     /**
      * Approve visitation request
      */
     async approveRequest(requestId) {
-        const isDark = document.documentElement.classList.contains('dark');
+        const themeManager = window.ThemeManager;
         
-        const result = await Swal.fire({
+        const result = await Swal.fire(themeManager.getSwalConfig({
             title: 'Approve Request',
             text: 'Are you sure you want to approve this visitation request?',
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Yes, Approve',
-            cancelButtonText: 'Cancel',
-            background: isDark ? '#1f2937' : '#ffffff',
-            color: isDark ? '#f9fafb' : '#1f2937',
-            customClass: {
-                confirmButton: 'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg cursor-pointer',
-                cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer ml-2',
-            },
-            buttonsStyling: false,
-        });
+            cancelButtonText: 'Cancel'
+        }));
 
         if (result.isConfirmed) {
             try {
@@ -732,26 +1134,22 @@ class VisitorLogsManager {
                     throw new Error('Failed to approve request');
                 }
 
-                await Swal.fire({
+                await Swal.fire(themeManager.getSwalConfig({
                     icon: 'success',
                     title: 'Request Approved',
                     text: 'The visitation request has been approved successfully.',
-                    background: isDark ? '#1f2937' : '#ffffff',
-                    color: isDark ? '#f9fafb' : '#1f2937',
                     timer: 2000,
                     showConfirmButton: false,
-                });
+                }));
                 
                 // Reload logs
                 this.loadLogs();
             } catch (error) {
-                await Swal.fire({
+                await Swal.fire(themeManager.getSwalConfig({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Failed to approve request. Please try again.',
-                    background: isDark ? '#1f2937' : '#ffffff',
-                    color: isDark ? '#f9fafb' : '#1f2937',
-                });
+                    text: 'Failed to approve request. Please try again.'
+                }));
             }
         }
     }
