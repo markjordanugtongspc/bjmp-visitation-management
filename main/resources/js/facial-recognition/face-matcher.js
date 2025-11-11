@@ -13,7 +13,8 @@ class FaceMatcher {
         this.visitorDescriptors = new Map(); // Cache of pre-loaded descriptors
         this.currentLogId = null;
         this.lastMatchResult = null; // Store last matched visitor
-        this.confidenceThreshold = 0.60; // 60% confidence threshold (lower = stricter matching)
+        this.confidenceThreshold = 0.75; // 75% minimum confidence threshold
+        this.maxDistance = 0.25; // Maximum distance for valid match (distance = 1 - confidence)
         this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         this.isProcessing = false; // Prevent concurrent processing
         this.descriptorsLoaded = false;
@@ -149,6 +150,13 @@ class FaceMatcher {
     /**
      * Match detected face against registered visitors using cached descriptors
      * This runs client-side using face-api.js for performance
+     * 
+     * Distance interpretation:
+     * - 0.00 - 0.20: Excellent match (95-100% confidence)
+     * - 0.20 - 0.25: Very good match (75-80% confidence) ✓ THRESHOLD
+     * - 0.25 - 0.40: Good match (60-75% confidence) ✗ REJECTED
+     * - 0.40 - 0.60: Poor match (40-60% confidence) ✗ REJECTED
+     * - 0.60+: No match (<40% confidence) ✗ REJECTED
      */
     async matchAgainstRegistered(detectedDescriptor) {
         if (!detectedDescriptor) {
@@ -162,7 +170,7 @@ class FaceMatcher {
         }
 
         let bestMatch = null;
-        let bestDistance = this.confidenceThreshold;
+        let bestDistance = Infinity; // Start with worst possible distance
 
         // Compare against cached descriptors (much faster!)
         for (const [visitorId, cachedData] of this.visitorDescriptors.entries()) {
@@ -170,7 +178,7 @@ class FaceMatcher {
                 // Calculate Euclidean distance between descriptors
                 const distance = faceapi.euclideanDistance(detectedDescriptor, cachedData.descriptor);
                 
-                // Update best match if this is better (lower distance = better match)
+                // Track the best match (lowest distance)
                 if (distance < bestDistance) {
                     bestDistance = distance;
                     bestMatch = {
@@ -185,8 +193,14 @@ class FaceMatcher {
             }
         }
 
-        // Log match result for debugging
+        // Validate match meets minimum confidence threshold
         if (bestMatch) {
+            // Reject if distance is too high (confidence too low)
+            if (bestMatch.distance > this.maxDistance) {
+                console.log(`✗ Match rejected: ${bestMatch.visitor.name} (${bestMatch.similarity}% similarity, distance: ${bestMatch.distance.toFixed(3)}) - Below ${Math.round(this.confidenceThreshold * 100)}% threshold`);
+                return null;
+            }
+            
             console.log(`✓ Face matched: ${bestMatch.visitor.name} (${bestMatch.similarity}% similarity, distance: ${bestMatch.distance.toFixed(3)})`);
         } else {
             console.log('✗ No matching face found in database');

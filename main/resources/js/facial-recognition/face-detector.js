@@ -189,16 +189,17 @@ class FaceDetector {
      * Find best match from a list of known faces
      * @param {Float32Array} queryDescriptor - Face descriptor to match
      * @param {Array} knownFaces - Array of {name, descriptor} objects
-     * @param {number} threshold - Maximum distance to consider a match (default 0.3 for 70% confidence)
+     * @param {number} threshold - Maximum distance to consider a match (default 0.25 for 75% confidence)
      * @returns {Object|null} - Best match or null if no match found
      */
-    findBestMatch(queryDescriptor, knownFaces, threshold = 0.3) {
+    findBestMatch(queryDescriptor, knownFaces, threshold = 0.25) {
         let bestMatch = null;
-        let bestDistance = threshold;
+        let bestDistance = Infinity; // Start with worst possible distance
         
         for (const knownFace of knownFaces) {
             const distance = this.compareFaces(queryDescriptor, knownFace.descriptor);
             
+            // Track the best match (lowest distance)
             if (distance < bestDistance) {
                 bestDistance = distance;
                 bestMatch = {
@@ -207,6 +208,11 @@ class FaceDetector {
                     similarity: (1 - distance) * 100 // Convert to percentage
                 };
             }
+        }
+        
+        // Reject if best match doesn't meet threshold
+        if (bestMatch && bestMatch.distance > threshold) {
+            return null;
         }
         
         return bestMatch;
