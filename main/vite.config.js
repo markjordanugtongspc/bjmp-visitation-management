@@ -64,7 +64,7 @@ export default defineConfig({
         // Exclude heavy dependencies that load on-demand
         exclude: ['face-api.js'],
         // Force optimization of these packages
-        force: false,
+        force: true,
     },
     build: {
         // Production build optimizations
