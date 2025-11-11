@@ -9,6 +9,7 @@ use App\Http\Controllers\SupervisionController;
 use App\Http\Controllers\MedicalVisitController;
 use App\Http\Controllers\SearcherController;
 use App\Http\Controllers\FacialRecognitionController;
+use App\Http\Controllers\ReportsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -65,6 +66,10 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'ensure.role:0'])->group
     
     // Visitor routes
     Route::get('/visitors', [AdminController::class, 'visitors'])->name('admin.visitors.index');
+    
+    // Reports routes
+    Route::get('/reports', [ReportsController::class, 'index'])->name('admin.reports.index');
+    Route::post('/reports/export', [ReportsController::class, 'export'])->name('admin.reports.export');
 });
 
 // Assistant Warden routes - Only accessible by Assistant Warden (role_id: 2)
@@ -90,6 +95,10 @@ Route::prefix('assistant-warden')->middleware(['auth', 'verified', 'ensure.role:
         Route::get('/supervision/files/{id}/preview', [SupervisionController::class, 'preview'])->name('assistant-warden.supervision.preview');
         Route::get('/supervision/files/{id}/download', [SupervisionController::class, 'download'])->name('assistant-warden.supervision.download');
         Route::delete('/supervision/files/{id}', [SupervisionController::class, 'destroy'])->name('assistant-warden.supervision.destroy');
+    
+    // Reports routes
+    Route::get('/reports', [ReportsController::class, 'index'])->name('assistant-warden.reports.index');
+    Route::post('/reports/export', [ReportsController::class, 'export'])->name('assistant-warden.reports.export');
 });
 
 // Warden routes - Only accessible by Warden (role_id: 1)
@@ -115,6 +124,10 @@ Route::prefix('warden')->middleware(['auth', 'verified', 'ensure.role:1'])->grou
         Route::get('/supervision/files/{id}/preview', [SupervisionController::class, 'preview'])->name('warden.supervision.preview');
         Route::get('/supervision/files/{id}/download', [SupervisionController::class, 'download'])->name('warden.supervision.download');
         Route::delete('/supervision/files/{id}', [SupervisionController::class, 'destroy'])->name('warden.supervision.destroy');
+    
+    // Reports routes
+    Route::get('/reports', [ReportsController::class, 'index'])->name('warden.reports.index');
+    Route::post('/reports/export', [ReportsController::class, 'export'])->name('warden.reports.export');
 });
 
 // Searcher routes - Only accessible by Searcher (role_id: 8)
@@ -127,6 +140,10 @@ Route::prefix('searcher')->middleware(['auth', 'verified', 'ensure.role:8'])->gr
         ->name('searcher.visitors.index');
     Route::get('/visitors/requests', [SearcherController::class, 'requests'])
         ->name('searcher.visitors.requests');
+    
+    // Reports routes
+    Route::get('/reports', [ReportsController::class, 'index'])->name('searcher.reports.index');
+    Route::post('/reports/export', [ReportsController::class, 'export'])->name('searcher.reports.export');
 });
 
 // Legacy routes (for backward compatibility) - Redirect based on role

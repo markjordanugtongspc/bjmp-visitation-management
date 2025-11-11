@@ -5,6 +5,7 @@ use App\Http\Controllers\CellController;
 use App\Http\Controllers\SupervisionController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\ConjugalVisitController;
+use App\Http\Controllers\ReportsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -64,6 +65,11 @@ Route::prefix('cells')->middleware(['web'])->group(function () {
     Route::patch('/{cell}', [CellController::class, 'update'])->name('api.cells.update');
     Route::patch('/{cell}/occupancy', [CellController::class, 'updateOccupancy'])->name('api.cells.update-occupancy');
     Route::delete('/{cell}', [CellController::class, 'destroy'])->name('api.cells.destroy');
+});
+
+// Reports API routes
+Route::prefix('reports')->middleware(['auth', 'web'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\ReportsController::class, 'apiIndex'])->name('api.reports.index');
 });
 
 // Supervision API routes

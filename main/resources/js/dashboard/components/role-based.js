@@ -108,8 +108,13 @@ class NavigationConfig {
                     reports: {
                         title: 'Reports',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M10.58 9.902a.41.41 0 0 1-.407.408H5.826a.408.408 0 0 1 0-.816h4.347a.41.41 0 0 1 .408.408m-.407-2.581H5.826a.408.408 0 0 0 0 .815h4.347a.408.408 0 0 0 0-.815m3.668-4.483v11.411a.95.95 0 0 1-.95.951H3.108a.95.95 0 0 1-.95-.95V2.837a.95.95 0 0 1 .95-.951h2.525a3.118 3.118 0 0 1 4.732 0h2.524a.95.95 0 0 1 .951.95M5.69 3.923v.135h4.618v-.135a2.31 2.31 0 1 0-4.619 0m7.335-1.087a.136.136 0 0 0-.136-.136h-2.015c.165.386.25.802.25 1.223v.543a.41.41 0 0 1-.408.408H5.283a.41.41 0 0 1-.408-.408v-.543c0-.42.085-.837.25-1.223H3.108a.136.136 0 0 0-.136.136v11.411a.136.136 0 0 0 .136.136h9.781a.136.136 0 0 0 .136-.136z" stroke-width="0.3" stroke="currentColor"/></svg>`,
-                        href: '#',
-                        roles: [0, 1, 2], // Admin, Warden, and Assistant Warden
+                        route: {
+                            0: 'admin.reports.index',
+                            1: 'warden.reports.index',
+                            2: 'assistant-warden.reports.index',
+                            8: 'searcher.reports.index'
+                        },
+                        roles: [0, 1, 2, 8], // Admin, Warden, Assistant Warden, and Searcher
                         order: 1
                     },
                     profile: {
@@ -253,7 +258,13 @@ class NavigationConfig {
             'assistant-warden.visitors.index': '/assistant-warden/visitors',
             'assistant-warden.visitors.requests': '/assistant-warden/visitors/requests',
             'searcher.visitors.index': '/searcher/visitors',
-            'searcher.visitors.requests': '/searcher/visitors/requests'
+            'searcher.visitors.requests': '/searcher/visitors/requests',
+            
+            // Reports routes
+            'admin.reports.index': '/admin/reports',
+            'warden.reports.index': '/warden/reports',
+            'assistant-warden.reports.index': '/assistant-warden/reports',
+            'searcher.reports.index': '/searcher/reports'
         };
         
         return routeMap[routeName] || `/${routeName.replace(/\./g, '/')}`;
@@ -488,7 +499,7 @@ class NavigationManager {
                 show: []
             },
             8: { // Searcher
-                hide: ['inmates', 'supervision', 'reports', 'officers'],
+                hide: ['inmates', 'supervision', 'officers'],
                 show: ['facial-recognition', 'requests']
             }
         };
@@ -839,7 +850,19 @@ export default function initRoleBasedNavigation() {
     // Always use dynamic sidebar generation
     manager.initializeDynamicSidebar();
     
-    console.log('Dynamic role-based navigation initialized for role:', manager.userRole);
+    // Navigation initialized (no console log to reduce noise)
+}
+
+// Auto-initialize when DOM is ready (for direct script loading via @vite)
+// Only auto-initialize if not already initialized (prevent double initialization)
+if (!window.__roleBasedNavInitialized) {
+    window.__roleBasedNavInitialized = true;
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRoleBasedNavigation);
+    } else {
+        // DOM is already ready
+        initRoleBasedNavigation();
+    }
 }
 
 /**
