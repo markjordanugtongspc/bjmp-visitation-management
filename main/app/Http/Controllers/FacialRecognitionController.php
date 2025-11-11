@@ -547,4 +547,246 @@ class FacialRecognitionController extends Controller
         
         return 'Unknown';
     }
+
+    /**
+     * PUBLIC: Get all registered visitor faces for matching (No authentication required)
+     */
+    public function getRegisteredFacesPublic()
+    {
+        try {
+            $visitors = Visitor::whereNotNull('avatar_path')
+                ->whereNotNull('avatar_filename')
+                ->where('is_allowed', true)
+                ->with('inmate')
+                ->get()
+                ->map(function ($visitor) {
+                    $avatarUrl = null;
+                    if ($visitor->avatar_path && $visitor->avatar_filename) {
+                        $fullPath = $visitor->avatar_path . '/' . $visitor->avatar_filename;
+                        // Use asset() to ensure absolute URL
+                        $avatarUrl = asset('storage/' . $fullPath);
+                    }
+
+                    $allowedInmates = [];
+                    if ($visitor->inmate) {
+                        $allowedInmates[] = [
+                            'id' => $visitor->inmate->id,
+                            'name' => $visitor->inmate->first_name . ' ' . $visitor->inmate->last_name,
+                            'inmate_number' => 'INM-' . str_pad($visitor->inmate->id, 6, '0', STR_PAD_LEFT),
+                            'cell_location' => $this->getCellLocation($visitor->inmate),
+                        ];
+                    }
+
+                    return [
+                        'id' => $visitor->id,
+                        'name' => $visitor->name,
+                        'avatar_url' => $avatarUrl,
+                        'allowed_inmates' => $allowedInmates,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'visitors' => $visitors,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching registered faces (public): ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching registered faces',
+                'visitors' => [],
+            ], 500);
+        }
+    }
+
+    /**
+     * PUBLIC: Match detected face against registered visitors (No authentication required)
+     */
+    public function matchFacePublic(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'face_descriptor' => 'required|array',
+            'detected_age' => 'nullable|integer',
+            'detected_gender' => 'nullable|string|in:male,female,unknown',
+            'landmarks_count' => 'nullable|integer',
+            'detection_metadata' => 'nullable|array',
+            'confidence_threshold' => 'nullable|numeric|min:0|max:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $faceDescriptor = $request->face_descriptor;
+            $confidenceThreshold = $request->confidence_threshold ?? 0.7;
+
+            // Create facial recognition log (no auth required for public)
+            $log = FacialRecognitionLog::create([
+                'detected_age' => $request->detected_age,
+                'detected_gender' => $request->detected_gender ?? 'unknown',
+                'landmarks_count' => $request->landmarks_count ?? 68,
+                'confidence_threshold' => $confidenceThreshold,
+                'face_descriptor' => $faceDescriptor,
+                'detection_metadata' => $request->detection_metadata,
+                'session_id' => session()->getId(),
+                'device_info' => $request->header('User-Agent'),
+                'ip_address' => $request->ip(),
+                'detection_timestamp' => now(),
+                'processed_by' => null, // No auth required for public
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'log_id' => $log->id,
+                'message' => 'Face detection logged successfully',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in face matching (public): ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error processing face match',
+            ], 500);
+        }
+    }
+
+    /**
+     * PUBLIC: Confirm match and update log with matched visitor (No authentication required)
+     */
+    public function confirmMatchPublic(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'log_id' => 'required|exists:facial_recognition_logs,id',
+            'visitor_id' => 'required|exists:visitors,id',
+            'match_confidence' => 'required|numeric|min:0|max:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $log = FacialRecognitionLog::findOrFail($request->log_id);
+            $visitor = Visitor::with('inmate')->findOrFail($request->visitor_id);
+
+            $log->update([
+                'matched_visitor_id' => $visitor->id,
+                'match_confidence' => $request->match_confidence,
+                'match_status' => 'matched',
+                'is_match_successful' => true,
+                'processed_by' => null, // No auth required for public
+            ]);
+
+            $allowedInmates = [];
+            if ($visitor->inmate) {
+                $allowedInmates[] = [
+                    'id' => $visitor->inmate->id,
+                    'name' => $visitor->inmate->first_name . ' ' . $visitor->inmate->last_name,
+                    'inmate_number' => 'INM-' . str_pad($visitor->inmate->id, 6, '0', STR_PAD_LEFT),
+                    'cell_location' => $this->getCellLocation($visitor->inmate),
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'visitor' => [
+                    'id' => $visitor->id,
+                    'name' => $visitor->name,
+                    'email' => $visitor->email,
+                    'phone' => $visitor->phone,
+                    'allowed_inmates' => $allowedInmates,
+                ],
+                'message' => 'Face match confirmed successfully',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error confirming face match (public): ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error confirming face match',
+            ], 500);
+        }
+    }
+
+    /**
+     * PUBLIC: Create visitation request from facial recognition (No authentication required)
+     */
+    public function createVisitationRequestPublic(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'log_id' => 'required|exists:facial_recognition_logs,id',
+            'visitor_id' => 'required|exists:visitors,id',
+            'inmate_id' => 'required|exists:inmates,id',
+            'visit_date' => 'required|date|after_or_equal:today',
+            'visit_time' => 'required|date_format:H:i',
+            'duration_minutes' => 'nullable|integer|min:15|max:120',
+            'reason' => 'nullable|string|max:1000',
+            'match_confidence' => 'nullable|numeric|min:0|max:1',
+        ]);
+
+        if ($validator->fails()) {
+            Log::warning('Facial recognition request validation failed', [
+                'errors' => $validator->errors(),
+                'request_data' => $request->except(['match_confidence'])
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+                'message' => 'Validation failed',
+            ], 422);
+        }
+
+        try {
+            // Verify that the visitor is allowed to visit this inmate
+            $visitor = Visitor::findOrFail($request->visitor_id);
+            
+            // Check if the visitor is associated with this specific inmate
+            if ($visitor->inmate_id != $request->inmate_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Visitor is not authorized to visit this inmate',
+                ], 403);
+            }
+
+            // Create visitation request
+            $visitationRequest = FacialRecognitionVisitationRequest::create([
+                'facial_recognition_log_id' => $request->log_id,
+                'visitor_id' => $request->visitor_id,
+                'inmate_id' => $request->inmate_id,
+                'visit_date' => $request->visit_date,
+                'visit_time' => $request->visit_time,
+                'duration_minutes' => $request->duration_minutes ?? 30,
+                'notes' => $request->reason ?? $request->notes,
+                'status' => 'pending',
+                'is_auto_generated' => true,
+            ]);
+
+            $visitationRequest->load(['visitor', 'inmate', 'facialRecognitionLog']);
+
+            return response()->json([
+                'success' => true,
+                'visitation_request' => [
+                    'id' => $visitationRequest->id,
+                    'visitor_name' => $visitationRequest->visitor->name,
+                    'inmate_name' => $visitationRequest->inmate->first_name . ' ' . $visitationRequest->inmate->last_name,
+                    'visit_date' => $visitationRequest->visit_date->format('Y-m-d'),
+                    'visit_time' => $visitationRequest->visit_time->format('H:i'),
+                    'status' => $visitationRequest->status,
+                ],
+                'message' => 'Visitation request created successfully',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error creating visitation request (public): ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating visitation request: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

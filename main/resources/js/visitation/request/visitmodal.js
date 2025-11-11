@@ -69,15 +69,23 @@ function getInmateAvatarUrl(inmate) {
 // ============================================================================
 
 /**
- * Fetch availability for all time slots on a specific date
+ * Fetch availability for all time slots on a specific date (Public endpoint)
  * @param {string} dateString - Date in YYYY-MM-DD format
  * @returns {Promise<Object>} Availability data mapped by time
  */
 async function fetchTimeSlotAvailability(dateString) {
     try {
-        const response = await fetch(`/api/visitation-logs/availability?date=${dateString}`);
+        // Use public endpoint for visitor requests
+        const response = await fetch(`/visitor/visitation/availability?date=${dateString}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        });
         if (!response.ok) {
-            console.error('Failed to fetch availability');
+            // Security: Generic error logging
+            console.warn('Failed to fetch availability');
             return {};
         }
         const data = await response.json();
@@ -91,7 +99,8 @@ async function fetchTimeSlotAvailability(dateString) {
         }
         return {};
     } catch (error) {
-        console.error('Error fetching availability:', error);
+        // Security: Generic error logging - don't expose sensitive data
+        console.warn('Error fetching availability');
         return {};
     }
 }
@@ -488,11 +497,18 @@ function setupIDVerification(visitDate) {
 }
 
 /**
- * Verify PDL by ID number (fetch from backend)
+ * Verify PDL by ID number (fetch from backend - Public endpoint)
  */
 async function verifyPDLByID(idNumber, idType) {
     try {
-        const response = await fetch(`/api/inmates/verify-by-id?id_number=${encodeURIComponent(idNumber)}&id_type=${encodeURIComponent(idType)}`);
+        // Use public endpoint for visitor verification
+        const response = await fetch(`/visitor/visitation/verify-inmate-by-id?id_number=${encodeURIComponent(idNumber)}&id_type=${encodeURIComponent(idType)}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        });
         
         if (!response.ok) {
             hidePDLInfo();
@@ -507,7 +523,8 @@ async function verifyPDLByID(idNumber, idType) {
             hidePDLInfo();
         }
     } catch (error) {
-        console.error('Error verifying PDL:', error);
+        // Security: Generic error logging - don't expose sensitive data
+        console.warn('Verification request failed');
         hidePDLInfo();
     }
 }
@@ -604,7 +621,14 @@ async function validateAndProceedToSubmit(visitDate) {
     
     // Check availability one more time before submission
     try {
-        const response = await fetch(`/api/visitation-logs/check-availability?date=${visitDate}&time=${time24Hour}`);
+        // Use public endpoint for visitor requests
+        const response = await fetch(`/visitor/visitation/check-availability?date=${visitDate}&time=${time24Hour}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        });
         if (response.ok) {
             const data = await response.json();
             if (data.success && !data.data.is_available) {
@@ -613,7 +637,8 @@ async function validateAndProceedToSubmit(visitDate) {
             }
         }
     } catch (error) {
-        console.error('Error checking availability:', error);
+        // Security: Generic error logging - don't expose sensitive data
+        console.warn('Error checking availability');
         // Continue with submission if check fails (fail open)
     }
     
@@ -670,20 +695,23 @@ async function submitVisitationRequest(requestData) {
             }
         });
         
-        // Generate unique reference number
-        const referenceNumber = generateReferenceNumber();
-        
-        const response = await fetch('/api/visitation-logs', {
+        // Use public endpoint for visitor requests (includes ID verification)
+        const response = await fetch('/visitor/visitation/request', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                'X-Requested-With': 'XMLHttpRequest',
             },
+            credentials: 'same-origin',
             body: JSON.stringify({
-                ...requestData,
-                reference_number: referenceNumber,
-                status: 2 // Pending status
+                visitor_id: requestData.visitor_id,
+                inmate_id: requestData.inmate_id,
+                id_number: requestData.id_number,
+                id_type: requestData.id_type,
+                schedule: requestData.schedule,
+                reason_for_visit: requestData.reason_for_visit || null
             })
         });
         
@@ -701,6 +729,14 @@ async function submitVisitationRequest(requestData) {
         }
         
         const data = await response.json();
+        
+        // Security: Don't log sensitive data
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to submit visitation request');
+        }
+        
+        // Get reference number from response
+        const referenceNumber = data.data?.reference_number || 'N/A';
         
         // Clear selected date cookie
         CookieManager.remove('selected_visit_date');
@@ -733,7 +769,8 @@ async function submitVisitationRequest(requestData) {
         }, 500);
         
     } catch (error) {
-        console.error('Error submitting visitation request:', error);
+        // Security: Generic error logging - don't expose sensitive data
+        console.warn('Request submission failed');
         const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
         
         await window.Swal.fire({
@@ -754,7 +791,8 @@ async function submitVisitationRequest(requestData) {
  */
 async function sendVisitationReminder(requestData) {
     // TODO: Implement actual notification logic
-    console.log('Notification placeholder called with:', requestData);
+    // Security: Don't log sensitive request data
+    // Notification will be handled server-side
 }
 
 // ============================================================================

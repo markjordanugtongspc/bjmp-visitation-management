@@ -272,15 +272,16 @@ class FaceMatcher {
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="sm-сol-span-2 space-y-2">
+                        <div class="sm:col-span-2 space-y-2">
                             <label class="block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}">
                                 Select Inmate to Visit
                             </label>
                             <input
                                 id="swal-inmate-filter"
                                 type="text"
-                                placeholder="Search by inmate name..."
-                                class="w-full rounded-lg border ${isDark ? 'border-gray-600 bg-gray-800 text-gray-800 placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'} px-3 sm:px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer"/>
+                                placeholder="Search by inmate name or cell location..."
+                                autocomplete="off"
+                                class="w-full rounded-lg border ${isDark ? 'border-gray-600 bg-gray-800 text-gray-100 placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'} px-3 sm:px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer"/>
                             <select
                                 id="swal-inmate"
                                 class="w-full rounded-lg border ${isDark ? 'border-gray-600 bg-gray-800 text-gray-100 placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'} px-3 sm:px-4 py-2.5 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer">
@@ -362,33 +363,70 @@ class FaceMatcher {
                 const data = Array.isArray(matchData?.visitor?.allowed_inmates) ? matchData.visitor.allowed_inmates : [];
                 const filterInput = document.getElementById('swal-inmate-filter');
                 const selectEl = document.getElementById('swal-inmate');
-                const renderList = (q) => {
-                    const term = (q || '').toString().trim().toLowerCase();
-                    const list = term ? data.filter(d => (d.name || '').toLowerCase().includes(term)) : data;
+                
+                if (!filterInput || !selectEl) {
+                    return;
+                }
+                
+                // Store original data for filtering
+                const originalData = [...data];
+                
+                const renderList = (searchTerm) => {
+                    const term = (searchTerm || '').toString().trim().toLowerCase();
+                    
+                    // Filter inmates by name or cell location
+                    let filteredList = originalData;
+                    if (term) {
+                        filteredList = originalData.filter(inmate => {
+                            const name = (inmate.name || '').toLowerCase();
+                            const cellLocation = (inmate.cell_location || '').toLowerCase();
+                            return name.includes(term) || cellLocation.includes(term);
+                        });
+                    }
+                    
+                    // Build options HTML
                     const options = ['<option value="">Choose an inmate...</option>']
-                        .concat(list.map(v => `<option value="${String(v.id)}">${(v.name || '')} - ${(v.cell_location || '')}</option>`));
-                    if (selectEl) {
-                        selectEl.innerHTML = options.join('');
+                        .concat(filteredList.map(inmate => 
+                            `<option value="${String(inmate.id)}">${inmate.name || 'Unknown'} - ${inmate.cell_location || 'N/A'}</option>`
+                        ));
+                    
+                    // Update select dropdown
+                    selectEl.innerHTML = options.join('');
+                    
+                    // If only one result after filtering, optionally auto-select it
+                    if (term && filteredList.length === 1) {
+                        selectEl.value = String(filteredList[0].id);
+                    } else if (!term) {
+                        selectEl.value = '';
                     }
                 };
+                
+                // Initialize with all options
                 renderList('');
-                if (filterInput) {
-                    filterInput.addEventListener('input', (e) => {
-                        renderList(e.target.value);
-                    });
-                }
-
-                // If user types and presses Enter, auto-select first match
-                if (filterInput && selectEl) {
-                    filterInput.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            const opts = Array.from(selectEl.options).filter(o => o.value);
-                            if (opts.length === 1) {
-                                selectEl.value = opts[0].value;
-                            }
+                
+                // Add input event listener for real-time filtering
+                filterInput.addEventListener('input', (e) => {
+                    renderList(e.target.value);
+                });
+                
+                // Clear filter on Escape key
+                filterInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        filterInput.value = '';
+                        renderList('');
+                        filterInput.blur();
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        // Auto-select first match if only one result
+                        const opts = Array.from(selectEl.options).filter(o => o.value);
+                        if (opts.length === 1) {
+                            selectEl.value = opts[0].value;
+                            selectEl.focus();
+                        } else if (opts.length > 1) {
+                            selectEl.focus();
                         }
-                    });
-                }
+                    }
+                });
             },
             buttonsStyling: false,
             focusConfirm: false,

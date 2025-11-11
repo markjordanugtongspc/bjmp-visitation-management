@@ -71,7 +71,7 @@ export async function showConjugalLogsModal(inmateId, inmateName) {
         });
         
     } catch (error) {
-        console.error('Error fetching conjugal logs:', error);
+        // Security: Generic error logging - don't expose sensitive data
         await window.Swal.fire({
             title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,
             text: error.message || 'Failed to load conjugal visit logs',

@@ -402,4 +402,57 @@ class SupervisionController extends Controller
 
         return $icons[$category] ?? $icons['Operations'];
     }
+
+    /**
+     * PUBLIC: Get supervision documents (No authentication required)
+     * Only returns Conjugal category documents for public access
+     */
+    public function indexPublic(Request $request): JsonResponse
+    {
+        try {
+            // Only allow Conjugal category for public access
+            $query = SupervisionFile::where('category', 'Conjugal')
+                ->where('storage_type', 'public'); // Only public files
+
+            // Filter by category if provided (but only Conjugal is allowed)
+            if ($request->has('category') && $request->category === 'Conjugal') {
+                $query->byCategory('Conjugal');
+            }
+
+            $files = $query->orderBy('created_at', 'desc')->get();
+
+            $data = $files->map(function ($file) {
+                return [
+                    'id' => $file->id,
+                    'title' => $file->title,
+                    'category' => $file->category,
+                    'summary' => $file->summary,
+                    'file_name' => $file->file_name,
+                    'file_size' => $file->file_size,
+                    'formatted_file_size' => $file->formatted_file_size,
+                    'file_type' => $file->file_type,
+                    'file_extension' => $file->file_extension,
+                    'upload_date' => $file->created_at->format('M j, Y'),
+                    'public_url' => asset('storage/' . $file->file_path),
+                    'api_preview_url' => route('api.supervision.preview', $file->id),
+                    'iconSvg' => $this->getCategoryIcon($file->category),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Supervision documents retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Public supervision documents retrieval failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve documents. Please try again.'
+            ], 500);
+        }
+    }
 }

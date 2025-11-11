@@ -185,13 +185,49 @@ function setupConjugalIDVerification() {
  */
 async function verifyConjugalPDL(idNumber, idType) {
     try {
-        console.log('Verifying PDL with:', { idNumber, idType });
+        // Security: Don't log sensitive ID information
         
-        const response = await fetch(`/api/inmates/verify-by-id?id_number=${encodeURIComponent(idNumber)}&id_type=${encodeURIComponent(idType)}`);
+        // Validate inputs
+        if (!idNumber || !idType || idNumber.trim().length < 5) {
+            hideConjugalPDLInfo();
+            return;
+        }
         
-        const data = await response.json();
-        console.log('API Response:', { status: response.status, data });
+        // Use public endpoint for visitor verification
+        const url = `/visitor/conjugal-visits/verify-inmate-by-id?id_number=${encodeURIComponent(idNumber.trim())}&id_type=${encodeURIComponent(idType.trim())}`;
         
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        });
+        
+        // Handle response - check if it's JSON before parsing
+        let data;
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                // Security: Generic error logging
+                throw new Error('Invalid response format');
+            }
+        } else {
+            // If not JSON (e.g., 404 HTML page), handle gracefully
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error('Verification service unavailable. Please try again later or contact support.');
+                }
+                throw new Error('Service unavailable. Please try again later.');
+            }
+            data = {};
+        }
+        
+        // Security: Don't log sensitive API response data
         if (!response.ok) {
             hideConjugalPDLInfo();
             
@@ -201,9 +237,22 @@ async function verifyConjugalPDL(idNumber, idType) {
                 const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
                 const pdlDetails = document.getElementById('conjugal-pdl-details');
                 if (pdlDetails) {
+                    let errorMessage = 'No matching visitor found. Please check your ID number and type.';
+                    
+                    // Handle different error scenarios
+                    if (response.status === 404) {
+                        errorMessage = 'Verification service unavailable. Please try again later or contact support.';
+                    } else if (data && data.message) {
+                        errorMessage = data.message;
+                    } else if (response.status === 500) {
+                        errorMessage = 'Server error. Please try again later.';
+                    } else if (response.status === 400) {
+                        errorMessage = 'Invalid ID information. Please check your ID number and type.';
+                    }
+                    
                     pdlDetails.innerHTML = `
                         <div class="p-2 ${isDarkMode ? 'bg-red-600/10 border-red-500/30 text-red-400' : 'bg-red-50 border-red-200 text-red-600'} border rounded-lg">
-                            <p class="text-xs font-medium">${data.message || 'No matching visitor found. Please check your ID number and type.'}</p>
+                            <p class="text-xs font-medium">${errorMessage}</p>
                         </div>
                     `;
                     pdlSection.classList.remove('hidden');
@@ -218,14 +267,31 @@ async function verifyConjugalPDL(idNumber, idType) {
             currentConjugalState.idType = idType;
             currentConjugalState.idNumber = idNumber;
             
-            console.log('PDL verified successfully:', data.inmate);
+            // Security: Don't log sensitive inmate data
             displayConjugalPDLInfo(data.inmate);
         } else {
-            console.error('Verification failed:', data);
+            // Security: Generic error logging - don't expose sensitive data
             hideConjugalPDLInfo();
+            
+            // Show error if data exists but not successful
+            if (data && data.message) {
+                const pdlSection = document.getElementById('conjugal-pdl-info');
+                if (pdlSection) {
+                    const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+                    const pdlDetails = document.getElementById('conjugal-pdl-details');
+                    if (pdlDetails) {
+                        pdlDetails.innerHTML = `
+                            <div class="p-2 ${isDarkMode ? 'bg-red-600/10 border-red-500/30 text-red-400' : 'bg-red-50 border-red-200 text-red-600'} border rounded-lg">
+                                <p class="text-xs font-medium">${data.message}</p>
+                            </div>
+                        `;
+                        pdlSection.classList.remove('hidden');
+                    }
+                }
+            }
         }
     } catch (error) {
-        console.error('Error verifying PDL:', error);
+        // Security: Generic error logging - don't expose sensitive data
         hideConjugalPDLInfo();
         
         // Show error message
@@ -234,9 +300,18 @@ async function verifyConjugalPDL(idNumber, idType) {
             const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
             const pdlDetails = document.getElementById('conjugal-pdl-details');
             if (pdlDetails) {
+                let errorMessage = 'Failed to verify. Please try again.';
+                
+                // Provide more specific error messages
+                if (error.message) {
+                    errorMessage = error.message;
+                } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Network error. Please check your connection and try again.';
+                }
+                
                 pdlDetails.innerHTML = `
                     <div class="p-2 ${isDarkMode ? 'bg-red-600/10 border-red-500/30 text-red-400' : 'bg-red-50 border-red-200 text-red-600'} border rounded-lg">
-                        <p class="text-xs font-medium">Error: Failed to verify. Please try again.</p>
+                        <p class="text-xs font-medium">${errorMessage}</p>
                     </div>
                 `;
                 pdlSection.classList.remove('hidden');
@@ -301,10 +376,12 @@ async function proceedToStep2() {
     });
     
     try {
-        // Check eligibility for conjugal visit
+        // Check eligibility for conjugal visit (includes ID verification)
         const eligibilityData = await checkEligibility(
             currentConjugalState.visitorId,
-            currentConjugalState.inmateId
+            currentConjugalState.inmateId,
+            currentConjugalState.idNumber,
+            currentConjugalState.idType
         );
         
         if (!eligibilityData.success) {
@@ -374,7 +451,7 @@ async function proceedToStep2() {
         await openConjugalStep3(currentConjugalState);
         
     } catch (error) {
-        console.error('Error:', error);
+        // Security: Generic error logging - don't expose sensitive data
         window.Swal.close();
         await window.Swal.fire({
             title: `<span class="${isDarkMode ? 'text-white' : 'text-black'}">Error</span>`,

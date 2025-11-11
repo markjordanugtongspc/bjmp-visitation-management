@@ -743,45 +743,18 @@ class InmateController extends Controller
                     ->first();
             }
             
-            // Debug: Log search attempt
+            // Security: Don't reveal if ID exists with different type (prevent enumeration attacks)
             if (!$visitor) {
-                // Check if ID number exists with any type
-                $visitorWithId = \App\Models\Visitor::where('id_number', $idNumber)->first();
-                if ($visitorWithId) {
-                    Log::warning('Visitor found with ID number but type mismatch', [
-                        'id_number' => $idNumber,
-                        'requested_type' => $idType,
-                        'stored_type' => $visitorWithId->id_type,
-                        'visitor_id' => $visitorWithId->id
-                    ]);
-                    
-                    return response()->json([
-                        'success' => false,
-                        'message' => "ID number found but ID type doesn't match. Please select the correct ID type: {$visitorWithId->id_type}"
-                    ], Response::HTTP_NOT_FOUND);
-                }
-                
-                Log::warning('Visitor not found by ID number', [
-                    'id_number' => $idNumber,
-                    'id_type' => $idType
-                ]);
-                
                 return response()->json([
                     'success' => false,
-                    'message' => 'No visitor found with this ID number. Please check your ID number and type.'
+                    'message' => 'No matching record found. Please verify your ID number and type.'
                 ], Response::HTTP_NOT_FOUND);
             }
             
             if (!$visitor->inmate) {
-                Log::warning('Visitor found but no associated inmate', [
-                    'visitor_id' => $visitor->id,
-                    'id_number' => $idNumber,
-                    'inmate_id' => $visitor->inmate_id
-                ]);
-                
                 return response()->json([
                     'success' => false,
-                    'message' => 'Visitor found but no inmate is assigned to this visitor.'
+                    'message' => 'No inmate is assigned to this visitor.'
                 ], Response::HTTP_NOT_FOUND);
             }
             
@@ -807,17 +780,101 @@ class InmateController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            Log::error('Failed to verify inmate by ID', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'id_number' => $request->query('id_number'),
-                'id_type' => $request->query('id_type')
+            // Security: Don't log sensitive ID information in error logs for public endpoints
+            Log::error('Failed to verify inmate by ID (public)', [
+                'error' => $e->getMessage()
             ]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to verify inmate',
+                'message' => 'Failed to verify inmate. Please check your ID details.',
                 'error' => config('app.debug') ? $e->getMessage() : 'An error occurred'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * PUBLIC: Verify inmate by ID number (No authentication required)
+     * ID-based validation acts as password - only returns data if ID matches
+     */
+    public function verifyByIdNumberPublic(Request $request): JsonResponse
+    {
+        try {
+            $idNumber = $request->query('id_number');
+            $idType = $request->query('id_type');
+            
+            if (!$idNumber || !$idType) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID number and ID type are required'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+            
+            // Security: Normalize inputs
+            $idNumber = trim($idNumber);
+            $idType = trim($idType);
+            
+            // Try exact match first
+            $visitor = \App\Models\Visitor::where('id_number', $idNumber)
+                ->where('id_type', $idType)
+                ->with(['inmate.cell'])
+                ->first();
+            
+            // If not found, try case-insensitive ID type match
+            if (!$visitor) {
+                $visitor = \App\Models\Visitor::where('id_number', $idNumber)
+                    ->whereRaw('LOWER(id_type) = LOWER(?)', [$idType])
+                    ->with(['inmate.cell'])
+                    ->first();
+            }
+            
+            // Security: Don't reveal if ID exists with different type (prevent enumeration)
+            if (!$visitor) {
+                // Security: Don't log sensitive ID information
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No matching record found. Please verify your ID number and type.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            if (!$visitor->inmate) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No inmate is assigned to this visitor.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            $inmate = $visitor->inmate;
+            
+            // Return only necessary data (security: don't expose sensitive information)
+            return response()->json([
+                'success' => true,
+                'visitor_id' => $visitor->id,
+                'inmate' => [
+                    'id' => $inmate->id,
+                    'first_name' => $inmate->first_name,
+                    'last_name' => $inmate->last_name,
+                    'name' => $inmate->full_name,
+                    'status' => $inmate->status,
+                    'cell' => $inmate->cell ? [
+                        'id' => $inmate->cell->id,
+                        'name' => $inmate->cell->name
+                    ] : null,
+                    'avatar_path' => $inmate->avatar_path,
+                    'avatar_filename' => $inmate->avatar_filename
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            // Security: Generic error message - don't expose system details
+            Log::error('Public inmate verification failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Verification failed. Please try again or contact support.'
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

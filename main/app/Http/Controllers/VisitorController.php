@@ -1582,4 +1582,247 @@ $visitor->setAttribute('latest_log', null);
             Log::error('Error sending conjugal registration notifications (VisitorController): ' . $e->getMessage());
         }
     }
+
+    /**
+     * PUBLIC: Get date availability (No authentication required)
+     */
+    public function getDateAvailabilityPublic(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'date' => 'required|date',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $date = $request->date;
+            $maxVisitors = 30;
+            
+            // Get all possible time slots
+            $timeSlots = [
+                '08:00', '09:00', '10:00', '11:00', '12:00',
+                '13:00', '14:00', '15:00', '16:00'
+            ];
+            
+            $availability = [];
+            
+            foreach ($timeSlots as $time) {
+                $scheduleDateTime = $date . ' ' . $time . ':00';
+                
+                $currentCount = DB::table('visitation_logs')
+                    ->where('schedule', $scheduleDateTime)
+                    ->whereIn('status', [1, 2]) // Only Approved (1) and Pending (2)
+                    ->count();
+                
+                $available = max(0, $maxVisitors - $currentCount);
+                $percentage = ($currentCount / $maxVisitors) * 100;
+                
+                $availability[] = [
+                    'time' => $time,
+                    'current_count' => $currentCount,
+                    'max_visitors' => $maxVisitors,
+                    'available' => $available,
+                    'percentage' => round($percentage, 1),
+                    'is_full' => $currentCount >= $maxVisitors,
+                    'is_available' => $currentCount < $maxVisitors
+                ];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $availability
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Public availability check failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch availability. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * PUBLIC: Check time slot availability (No authentication required)
+     */
+    public function checkTimeSlotAvailabilityPublic(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'date' => 'required|date',
+                'time' => 'required|date_format:H:i',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $date = $request->date;
+            $time = $request->time;
+            $maxVisitors = 30;
+            
+            // Combine date and time into datetime
+            $scheduleDateTime = $date . ' ' . $time . ':00';
+            
+            // Count approved/pending visits for this time slot
+            $currentCount = DB::table('visitation_logs')
+                ->where('schedule', $scheduleDateTime)
+                ->whereIn('status', [1, 2]) // Only Approved (1) and Pending (2)
+                ->count();
+            
+            $available = max(0, $maxVisitors - $currentCount);
+            $percentage = ($currentCount / $maxVisitors) * 100;
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'date' => $date,
+                    'time' => $time,
+                    'current_count' => $currentCount,
+                    'max_visitors' => $maxVisitors,
+                    'available' => $available,
+                    'percentage' => round($percentage, 1),
+                    'is_full' => $currentCount >= $maxVisitors,
+                    'is_available' => $currentCount < $maxVisitors
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Public time slot availability check failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to check availability. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * PUBLIC: Create visitation log (No authentication required)
+     * Validates visitor/inmate ID matching before creating request
+     */
+    public function createVisitationLogPublic(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'visitor_id' => 'required|exists:visitors,id',
+                'inmate_id' => 'required|exists:inmates,id',
+                'id_number' => 'required|string',
+                'id_type' => 'required|string',
+                'schedule' => 'required|date',
+                'reason_for_visit' => 'nullable|string|max:500',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Security: Verify visitor ID matches the provided ID number and type (password-like validation)
+            $visitor = Visitor::findOrFail($request->visitor_id);
+            
+            if ($visitor->id_number !== trim($request->id_number) || 
+                strtolower($visitor->id_type) !== strtolower(trim($request->id_type))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID verification failed. Please verify your ID details.'
+                ], 403);
+            }
+
+            // Verify visitor is associated with the inmate
+            if ($visitor->inmate_id != $request->inmate_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Visitor is not authorized to visit this inmate.'
+                ], 403);
+            }
+
+            // Check time slot availability BEFORE creating
+            $scheduleDateTime = $request->schedule;
+            $maxVisitors = 30;
+            
+            $currentCount = DB::table('visitation_logs')
+                ->where('schedule', $scheduleDateTime)
+                ->whereIn('status', [1, 2]) // Only count Approved (1) and Pending (2)
+                ->count();
+            
+            if ($currentCount >= $maxVisitors) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This time slot is full. Maximum ' . $maxVisitors . ' visitors allowed per time slot.',
+                    'data' => [
+                        'current_count' => $currentCount,
+                        'max_visitors' => $maxVisitors
+                    ]
+                ], 409); // 409 Conflict
+            }
+
+            // Auto-generate reference number
+            $todayCount = DB::table('visitation_logs')
+                ->whereDate('created_at', today())
+                ->count();
+            $referenceNumber = 'VL-' . date('Ymd') . '-' . str_pad($todayCount + 1, 4, '0', STR_PAD_LEFT);
+            
+            // Ensure uniqueness
+            $counter = 1;
+            while (DB::table('visitation_logs')->where('reference_number', $referenceNumber)->exists()) {
+                $referenceNumber = 'VL-' . date('Ymd') . '-' . str_pad($todayCount + 1 + $counter, 4, '0', STR_PAD_LEFT);
+                $counter++;
+            }
+
+            // Create visitation log entry
+            $visitationLogId = DB::table('visitation_logs')->insertGetId([
+                'reference_number' => $referenceNumber,
+                'visitor_id' => $request->visitor_id,
+                'inmate_id' => $request->inmate_id,
+                'schedule' => $scheduleDateTime,
+                'reason_for_visit' => $request->reason_for_visit ? trim($request->reason_for_visit) : null,
+                'status' => 2, // Default to pending
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            if (!$visitationLogId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create visitation request'
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Visitation request created successfully',
+                'data' => [
+                    'id' => $visitationLogId,
+                    'reference_number' => $referenceNumber
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Public visitation log creation failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create visitation request. Please try again.'
+            ], 500);
+        }
+    }
 }

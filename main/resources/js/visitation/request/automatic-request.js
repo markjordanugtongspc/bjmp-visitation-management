@@ -185,6 +185,7 @@ async function initializeFacialRecognition(selectedDate) {
     canvasElement = document.getElementById('auto-request-canvas');
     const startBtn = document.getElementById('start-detection-btn');
     const stopBtn = document.getElementById('stop-detection-btn');
+    const isDark = document.documentElement.classList.contains('dark');
 
     try {
         // Load face-api.js models
@@ -194,34 +195,92 @@ async function initializeFacialRecognition(selectedDate) {
 
         // Load registered visitors
         updateStatus('Loading registered visitors...', 'yellow');
-        const loaded = await loadRegisteredVisitors();
-        if (!loaded || registeredVisitors.length === 0) {
-            throw new Error('No registered visitors found');
+        try {
+            const loaded = await loadRegisteredVisitors();
+            if (!loaded || registeredVisitors.length === 0) {
+                throw new Error('No registered visitors found. Please contact administrator to register your face in the system.');
+            }
+        } catch (loadError) {
+            // Handle loading error with user-friendly message
+            const errorMessage = loadError.message || 'Unable to load registered visitors. Please try again or use manual request instead.';
+            
+            await Swal.fire({
+                icon: 'warning',
+                title: 'Unable to Load Visitor Data',
+                html: `
+                    <div class="text-left space-y-3">
+                        <p class="text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}">${errorMessage}</p>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-4">
+                            <p class="text-xs ${isDark ? 'text-blue-300' : 'text-blue-700'} font-medium mb-2">What you can do:</p>
+                            <ul class="text-xs ${isDark ? 'text-blue-200' : 'text-blue-600'} space-y-1 list-disc list-inside">
+                                <li>Use the "Manual Request" option instead</li>
+                                <li>Contact the facility administrator to register your face</li>
+                                <li>Try again later if this is a temporary issue</li>
+                            </ul>
+                        </div>
+                    </div>
+                `,
+                background: isDark ? '#1f2937' : '#ffffff',
+                color: isDark ? '#f9fafb' : '#1f2937',
+                confirmButtonText: 'Close',
+                customClass: {
+                    popup: 'rounded-xl shadow-2xl',
+                    confirmButton: 'px-6 py-2.5 text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white cursor-pointer',
+                },
+                buttonsStyling: false,
+            });
+            
+            // Close the modal
+            Swal.close();
+            return;
         }
 
         // Start camera
         updateStatus('Starting camera...', 'yellow');
-        faceDetectionStream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
-        });
-        videoElement.srcObject = faceDetectionStream;
-        await new Promise((resolve) => { videoElement.onloadedmetadata = () => resolve(); });
-        canvasElement.width = videoElement.videoWidth;
-        canvasElement.height = videoElement.videoHeight;
-        updateStatus('Camera ready - Click "Start Detection"', 'green');
-        startBtn.disabled = false;
-        startBtn.addEventListener('click', () => startDetection(selectedDate));
-        stopBtn.addEventListener('click', () => stopDetection());
+        try {
+            faceDetectionStream = await navigator.mediaDevices.getUserMedia({
+                video: { 
+                    width: { ideal: 640 }, 
+                    height: { ideal: 480 }, 
+                    facingMode: 'user' 
+                }
+            });
+            videoElement.srcObject = faceDetectionStream;
+            await new Promise((resolve) => { 
+                videoElement.onloadedmetadata = () => resolve(); 
+            });
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            updateStatus('Camera ready - Click "Start Detection"', 'green');
+            startBtn.disabled = false;
+            startBtn.addEventListener('click', () => startDetection(selectedDate));
+            stopBtn.addEventListener('click', () => stopDetection());
+        } catch (cameraError) {
+            throw new Error('Camera access denied or unavailable. Please allow camera access and try again.');
+        }
     } catch (error) {
-        console.error('Error:', error);
+        // Security: Generic error handling - don't expose sensitive data
         updateStatus('Error: ' + error.message, 'red');
         
         await Swal.fire({
             icon: 'error',
             title: 'Initialization Error',
-            text: error.message || 'Unable to initialize facial recognition. Please try again.',
-            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-            color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937',
+            html: `
+                <div class="text-left space-y-3">
+                    <p class="text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}">${error.message || 'Unable to initialize facial recognition. Please try again.'}</p>
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mt-4 border border-gray-200 dark:border-gray-700">
+                        <p class="text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}">Tip: You can use the "Manual Request" option if facial recognition is not available.</p>
+                    </div>
+                </div>
+            `,
+            background: isDark ? '#1f2937' : '#ffffff',
+            color: isDark ? '#f9fafb' : '#1f2937',
+            confirmButtonText: 'Close',
+            customClass: {
+                popup: 'rounded-xl shadow-2xl',
+                confirmButton: 'px-6 py-2.5 text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white cursor-pointer',
+            },
+            buttonsStyling: false,
         });
     }
 }
@@ -382,17 +441,20 @@ async function matchFaceWithVisitors(descriptor) {
 }
 
 /**
- * Log detection to backend using match-face endpoint
+ * Log detection to backend using match-face endpoint (Public)
  */
 async function logDetection(descriptor, matchResult) {
     try {
-        const response = await fetch('/facial-recognition/match-face', {
+        // Use public endpoint for visitor facial recognition
+        const response = await fetch('/visitor/facial-recognition/match-face', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
                 'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
+            credentials: 'same-origin',
             body: JSON.stringify({
                 face_descriptor: Array.from(descriptor),
                 detected_age: null,
@@ -405,30 +467,43 @@ async function logDetection(descriptor, matchResult) {
 
         if (response.ok) {
             const data = await response.json();
-            currentLogId = data.log_id;
-            
-            // Confirm match with backend
-            if (matchResult && matchResult.visitor) {
-                await confirmMatch(matchResult.visitor.id, matchResult.confidence / 100);
+            if (data.success && data.log_id) {
+                currentLogId = data.log_id;
+                
+                // Confirm match with backend
+                if (matchResult && matchResult.visitor) {
+                    await confirmMatch(matchResult.visitor.id, matchResult.confidence / 100);
+                }
             }
+        } else {
+            // Security: Generic error handling - don't expose sensitive data
         }
     } catch (error) {
-        // Security: Silent error handling for public-facing features
+        // Security: Silent error handling - don't block the flow if logging fails
+        // Don't log error details that might expose sensitive information
     }
 }
 
 /**
- * Confirm match with backend
+ * Confirm match with backend (Public)
  */
 async function confirmMatch(visitorId, confidence) {
     try {
-        const response = await fetch('/facial-recognition/confirm-match', {
+        if (!currentLogId) {
+            // Security: Don't log log IDs or confirmation details
+            return null;
+        }
+
+        // Use public endpoint for visitor facial recognition
+        const response = await fetch('/visitor/facial-recognition/confirm-match', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
                 'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
+            credentials: 'same-origin',
             body: JSON.stringify({
                 log_id: currentLogId,
                 visitor_id: visitorId,
@@ -438,41 +513,72 @@ async function confirmMatch(visitorId, confidence) {
 
         if (response.ok) {
             const data = await response.json();
-            return data;
+            if (data.success) {
+                return data;
+            }
+        } else {
+            // Security: Generic error handling - don't expose sensitive data
         }
     } catch (error) {
-        // Security: Silent error handling for public-facing features
+        // Security: Silent error handling - don't block the flow if confirmation fails
+        // Don't log error details that might expose sensitive information
     }
     return null;
 }
 
 /**
- * Load registered visitors from backend
+ * Load registered visitors from backend (Public endpoint)
  */
 async function loadRegisteredVisitors() {
     try {
-        const response = await fetch('/facial-recognition/registered-faces', {
+        // Use public endpoint for visitor facial recognition
+        const response = await fetch('/visitor/facial-recognition/registered-faces', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
+            credentials: 'same-origin', // Include cookies for CSRF protection
         });
 
         if (!response.ok) {
-            throw new Error('Failed to load registered visitors');
+            // Handle specific error cases
+            if (response.status === 401) {
+                throw new Error('Authentication required. Please contact administrator.');
+            } else if (response.status === 403) {
+                throw new Error('Access denied. Please contact administrator.');
+            } else if (response.status === 500) {
+                throw new Error('Server error. Please try again later.');
+            } else {
+                throw new Error(`Failed to load registered visitors (${response.status})`);
+            }
         }
 
         const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to load registered visitors');
+        }
+
         registeredVisitors = data.visitors || [];
         
+        if (registeredVisitors.length === 0) {
+            throw new Error('No registered visitors found. Please contact administrator to register your face.');
+        }
+        
         // Pre-load visitor face descriptors from avatar images
-        await preloadVisitorDescriptors();
+        const loadedCount = await preloadVisitorDescriptors();
+        
+        if (loadedCount === 0) {
+            throw new Error('Unable to process registered visitor faces. Please contact administrator.');
+        }
         
         return true;
     } catch (error) {
-        // Security: Generic error message for public-facing features
-        return false;
+        // Security: Generic error handling - don't expose sensitive data
+        // Re-throw with user-friendly message
+        throw error;
     }
 }
 
@@ -480,17 +586,25 @@ async function loadRegisteredVisitors() {
  * Pre-load all visitor face descriptors from avatar images
  */
 async function preloadVisitorDescriptors() {
-    // Security: No console logging for public-facing features
     let loadedCount = 0;
+    let errorCount = 0;
     
     for (const visitor of registeredVisitors) {
         if (!visitor.avatar_url) {
+            // Security: Don't log visitor IDs or names - skip visitors without avatars
             continue;
         }
 
         try {
             // Load visitor avatar image and extract face descriptor
-            const img = await faceapi.fetchImage(visitor.avatar_url);
+            // Use a timeout to prevent hanging on bad images
+            const img = await Promise.race([
+                faceapi.fetchImage(visitor.avatar_url),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Image load timeout')), 10000)
+                )
+            ]);
+            
             const detection = await faceapi
                 .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 }))
                 .withFaceLandmarks()
@@ -503,16 +617,28 @@ async function preloadVisitorDescriptors() {
                     visitor: visitor
                 });
                 loadedCount++;
+            } else {
+                // Security: Don't log visitor IDs or names - skip if no face detected
+                errorCount++;
             }
         } catch (error) {
-            // Silent error handling for security
+            // Security: Generic error handling - don't expose visitor IDs
+            errorCount++;
             continue;
         }
     }
     
+    // If we couldn't load any descriptors, throw an error
     if (loadedCount === 0) {
-        throw new Error('Unable to initialize face recognition system. Please try again.');
+        if (errorCount > 0) {
+            throw new Error('Unable to process visitor face images. Please contact administrator to verify visitor registrations.');
+        } else {
+            throw new Error('No valid visitor faces found. Please contact administrator.');
+        }
     }
+    
+    // Security: Generic success logging - don't expose count details
+    // Descriptors loaded successfully (logged server-side if needed)
     
     return loadedCount;
 }
@@ -625,7 +751,7 @@ async function showSingleInmateForm(visitor, inmate, selectedDate, confidence) {
             visit_date: selectedDate,
             visit_time: formData.time,
             reason: formData.reason,
-            match_confidence: confidence,
+            match_confidence: confidence / 100, // Convert percentage to decimal (0-1)
         });
     }
 }
@@ -726,40 +852,57 @@ async function showMultipleInmatesForm(visitor, inmates, selectedDate, confidenc
             visit_date: selectedDate,
             visit_time: formData.time,
             reason: formData.reason,
-            match_confidence: confidence,
+            match_confidence: confidence / 100, // Convert percentage to decimal (0-1)
         });
     }
 }
 
 /**
- * Submit visitation request to backend
+ * Submit visitation request to backend (Public)
  */
 async function submitVisitationRequest(requestData) {
     const { isDark } = getThemeSettings();
 
     try {
-        const response = await fetch('/facial-recognition/create-visitation-request', {
+        const payload = {
+            log_id: currentLogId,
+            ...requestData,
+            duration_minutes: 30, // Default duration
+        };
+        
+        // Security: Don't log sensitive request data
+        
+        // Use public endpoint for visitor facial recognition
+        const response = await fetch('/visitor/facial-recognition/create-visitation-request', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
                 'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
-            body: JSON.stringify({
-                log_id: currentLogId,
-                ...requestData,
-                duration_minutes: 30, // Default duration
-            }),
+            credentials: 'same-origin',
+            body: JSON.stringify(payload),
         });
 
         const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to create visitation request');
+        if (!response.ok || !data.success) {
+            // Handle validation errors (422) differently
+            if (response.status === 422 && data.errors) {
+                // Format validation errors
+                const errorMessages = Object.values(data.errors).flat().join(', ');
+                throw new Error(errorMessages || 'Validation failed. Please check your input.');
+            }
+            
+            const errorMessage = data.message || 'Failed to create visitation request';
+            throw new Error(errorMessage);
         }
 
-        // Generate reference ID
-        const referenceId = `VR-${Date.now()}-${requestData.visitor_id}`;
+        // Use reference ID from response or generate one
+        const referenceId = data.visitation_request?.id 
+            ? `VR-${String(data.visitation_request.id).padStart(6, '0')}` 
+            : `VR-${Date.now()}-${requestData.visitor_id}`;
 
         await Swal.fire({
             icon: 'success',
@@ -783,6 +926,7 @@ async function submitVisitationRequest(requestData) {
             ...getThemeColors(),
             confirmButtonText: 'OK',
             customClass: {
+                popup: 'rounded-xl shadow-2xl',
                 confirmButton: 'px-6 py-2.5 text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white cursor-pointer',
             },
             buttonsStyling: false,
@@ -794,12 +938,27 @@ async function submitVisitationRequest(requestData) {
         }, 1500);
 
     } catch (error) {
-        // Security: Generic error message for public-facing features
+        // Security: Generic error handling - don't expose sensitive data
+        
+        // Show user-friendly error message
         await Swal.fire({
             icon: 'error',
             title: 'Submission Failed',
-            text: 'Failed to submit visitation request. Please try again.',
+            html: `
+                <div class="text-left space-y-3">
+                    <p class="text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}">${error.message || 'Failed to submit visitation request. Please try again.'}</p>
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mt-4 border border-gray-200 dark:border-gray-700">
+                        <p class="text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}">If this problem persists, please contact the facility administrator.</p>
+                    </div>
+                </div>
+            `,
             ...getThemeColors(),
+            confirmButtonText: 'Close',
+            customClass: {
+                popup: 'rounded-xl shadow-2xl',
+                confirmButton: 'px-6 py-2.5 text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white cursor-pointer',
+            },
+            buttonsStyling: false,
         });
     }
 }

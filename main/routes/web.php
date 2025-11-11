@@ -20,6 +20,72 @@ Route::get('/', function () {
 Route::view('/visitation/request/visitor', 'visitation.request.visitor')
     ->name('visitation.request.visitor');
 
+// Public Visitor Routes (No authentication required - ID-based validation acts as password)
+Route::prefix('visitor')
+    ->name('visitor.')
+    ->group(function () {
+        // Facial Recognition Routes
+        Route::prefix('facial-recognition')
+            ->name('facial-recognition.')
+            ->group(function () {
+                Route::get('/registered-faces', [FacialRecognitionController::class, 'getRegisteredFacesPublic'])
+                    ->name('registered-faces');
+                
+                Route::post('/match-face', [FacialRecognitionController::class, 'matchFacePublic'])
+                    ->name('match-face');
+                
+                Route::post('/confirm-match', [FacialRecognitionController::class, 'confirmMatchPublic'])
+                    ->name('confirm-match');
+                
+                Route::post('/create-visitation-request', [FacialRecognitionController::class, 'createVisitationRequestPublic'])
+                    ->name('create-visitation-request');
+            });
+        
+        // Manual Visitation Request Routes
+        Route::prefix('visitation')
+            ->name('visitation.')
+            ->group(function () {
+                Route::get('/verify-inmate-by-id', [\App\Http\Controllers\InmateController::class, 'verifyByIdNumberPublic'])
+                    ->name('verify-inmate-by-id');
+                
+                Route::get('/availability', [\App\Http\Controllers\VisitorController::class, 'getDateAvailabilityPublic'])
+                    ->name('availability');
+                
+                Route::get('/check-availability', [\App\Http\Controllers\VisitorController::class, 'checkTimeSlotAvailabilityPublic'])
+                    ->name('check-availability');
+                
+                Route::post('/request', [\App\Http\Controllers\VisitorController::class, 'createVisitationLogPublic'])
+                    ->name('request');
+            });
+        
+        // Conjugal Visit Routes
+        // NOTE: If routes return 404, clear route cache: php artisan route:clear
+        Route::prefix('conjugal-visits')
+            ->name('conjugal-visits.')
+            ->group(function () {
+                // Verify inmate by ID (must be first to avoid route conflicts)
+                // Full path: /visitor/conjugal-visits/verify-inmate-by-id
+                Route::get('/verify-inmate-by-id', [\App\Http\Controllers\InmateController::class, 'verifyByIdNumberPublic'])
+                    ->name('verify-inmate-by-id');
+                
+                // Check eligibility
+                Route::get('/check-eligibility', [\App\Http\Controllers\ConjugalVisitController::class, 'checkConjugalVisitEligibilityPublic'])
+                    ->name('check-eligibility');
+                
+                // Register/update conjugal visit registration
+                Route::post('/register', [\App\Http\Controllers\ConjugalVisitController::class, 'storeRegistrationPublic'])
+                    ->name('register');
+                
+                // Request conjugal visit
+                Route::post('/request-visit', [\App\Http\Controllers\ConjugalVisitController::class, 'storeVisitLogPublic'])
+                    ->name('request-visit');
+                
+                // Get supervision files (guidelines)
+                Route::get('/supervision', [\App\Http\Controllers\SupervisionController::class, 'indexPublic'])
+                    ->name('supervision');
+            });
+    });
+
 // Public BJMP overview page
 Route::view('/bjmp-overview', 'navigations.bjmp-overview')
     ->name('bjmp.overview');

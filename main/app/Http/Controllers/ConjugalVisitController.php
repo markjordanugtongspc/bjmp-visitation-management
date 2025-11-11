@@ -784,4 +784,319 @@ class ConjugalVisitController extends Controller
             Log::error('Error sending conjugal visit notifications: ' . $e->getMessage());
         }
     }
+
+    /**
+     * PUBLIC: Check conjugal visit eligibility (No authentication required)
+     * Validates visitor/inmate ID matching before checking eligibility
+     */
+    public function checkConjugalVisitEligibilityPublic(Request $request)
+    {
+        try {
+            $request->validate([
+                'visitor_id' => 'required|exists:visitors,id',
+                'inmate_id' => 'required|exists:inmates,id',
+                'id_number' => 'required|string',
+                'id_type' => 'required|string',
+                'conjugal_visit_id' => 'nullable|exists:conjugal_visits,id',
+            ]);
+
+            // Security: Verify visitor ID matches the provided ID number and type (password-like validation)
+            $visitor = Visitor::findOrFail($request->visitor_id);
+            
+            if ($visitor->id_number !== trim($request->id_number) || 
+                strtolower($visitor->id_type) !== strtolower(trim($request->id_type))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID verification failed. Please verify your ID details.'
+                ], 403);
+            }
+
+            // Verify visitor is associated with the inmate
+            if ($visitor->inmate_id != $request->inmate_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Visitor is not authorized for this inmate.'
+                ], 403);
+            }
+
+            $query = ConjugalVisit::query();
+
+            if ($request->filled('conjugal_visit_id')) {
+                $query->where('id', $request->conjugal_visit_id);
+            } else {
+                $query->where('visitor_id', $request->visitor_id)
+                    ->where('inmate_id', $request->inmate_id);
+            }
+
+            $conjugalVisit = $query->first();
+
+            if (!$conjugalVisit) {
+                return response()->json([
+                    'success' => true,
+                    'eligible' => false,
+                    'message' => 'No conjugal visit registration found. Please complete registration first.',
+                ]);
+            }
+
+            $validation = $conjugalVisit->calculateValidationStatus();
+
+            return response()->json([
+                'success' => true,
+                'eligible' => $conjugalVisit->isValidForConjugalVisit(),
+                'conjugal_visit' => [
+                    'id' => $conjugalVisit->id,
+                    'status' => $conjugalVisit->status_label,
+                    'relationship_start_date' => $conjugalVisit->relationship_start_date?->toDateString(),
+                    'has_documents' => $conjugalVisit->hasRequiredDocuments(),
+                ],
+                'validation' => $validation,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Public conjugal visit eligibility check failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'eligible' => false,
+                'message' => 'Failed to check eligibility. Please try again.',
+            ], 500);
+        }
+    }
+
+    /**
+     * PUBLIC: Store conjugal visit registration (No authentication required)
+     * Validates visitor/inmate ID matching before registration
+     */
+    public function storeRegistrationPublic(Request $request)
+    {
+        try {
+            $request->validate([
+                'visitor_id' => 'required|exists:visitors,id',
+                'inmate_id' => 'required|exists:inmates,id',
+                'id_number' => 'required|string',
+                'id_type' => 'required|string',
+                'relationship_start_date' => 'nullable|date',
+                'cohabitation_cert' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+                'marriage_contract' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            ]);
+
+            // Security: Verify visitor ID matches the provided ID number and type
+            $visitor = Visitor::findOrFail($request->visitor_id);
+            
+            if ($visitor->id_number !== trim($request->id_number) || 
+                strtolower($visitor->id_type) !== strtolower(trim($request->id_type))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID verification failed. Please verify your ID details.'
+                ], 403);
+            }
+
+            // Verify visitor is associated with the inmate
+            if ($visitor->inmate_id != $request->inmate_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Visitor is not authorized for this inmate.'
+                ], 403);
+            }
+
+            DB::beginTransaction();
+
+            $conjugalVisit = ConjugalVisit::where('visitor_id', $request->visitor_id)
+                ->where('inmate_id', $request->inmate_id)
+                ->first();
+
+            if (!$conjugalVisit) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conjugal visit registration not found. Please contact administrator to register first.',
+                ], 404);
+            }
+
+            if ($request->filled('relationship_start_date')) {
+                $this->assertRelationshipStartDate($request->relationship_start_date);
+                $conjugalVisit->relationship_start_date = $request->relationship_start_date;
+            }
+
+            if ($request->hasFile('cohabitation_cert')) {
+                $conjugalVisit->cohabitation_cert_path = $this->storeDocument(
+                    $request->file('cohabitation_cert'),
+                    'conjugal_visits/cohabitation_certificates',
+                    $conjugalVisit->cohabitation_cert_path
+                );
+            }
+
+            if ($request->hasFile('marriage_contract')) {
+                $conjugalVisit->marriage_contract_path = $this->storeDocument(
+                    $request->file('marriage_contract'),
+                    'conjugal_visits/marriage_contracts',
+                    $conjugalVisit->marriage_contract_path
+                );
+            }
+
+            $conjugalVisit->save();
+
+            DB::commit();
+
+            $validation = $conjugalVisit->calculateValidationStatus();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Conjugal visit registration updated successfully',
+                'conjugal_visit' => [
+                    'id' => $conjugalVisit->id,
+                    'status' => $conjugalVisit->status_label,
+                ],
+                'validation' => $validation,
+            ]);
+
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            throw $e;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Public conjugal visit registration update failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update registration. Please try again.',
+            ], 500);
+        }
+    }
+
+    /**
+     * PUBLIC: Store conjugal visit log (No authentication required)
+     * Validates visitor/inmate ID matching before creating request
+     */
+    public function storeVisitLogPublic(Request $request)
+    {
+        try {
+            $request->validate([
+                'conjugal_visit_id' => 'nullable|exists:conjugal_visits,id',
+                'visitor_id' => 'required|exists:visitors,id',
+                'inmate_id' => 'required|exists:inmates,id',
+                'id_number' => 'required|string',
+                'id_type' => 'required|string',
+                'schedule' => 'required|date',
+                'duration_minutes' => 'required|integer|in:30,35,40,45,60,120',
+            ]);
+
+            // Security: Verify visitor ID matches the provided ID number and type
+            $visitor = Visitor::findOrFail($request->visitor_id);
+            
+            if ($visitor->id_number !== trim($request->id_number) || 
+                strtolower($visitor->id_type) !== strtolower(trim($request->id_type))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID verification failed. Please verify your ID details.'
+                ], 403);
+            }
+
+            // Verify visitor is associated with the inmate
+            if ($visitor->inmate_id != $request->inmate_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Visitor is not authorized for this inmate.'
+                ], 403);
+            }
+
+            DB::beginTransaction();
+
+            // Resolve associated conjugal visit registration
+            $conjugalVisitId = $request->conjugal_visit_id;
+            if ($conjugalVisitId) {
+                $conjugalVisit = ConjugalVisit::findOrFail($conjugalVisitId);
+                if ((int) $conjugalVisit->visitor_id !== (int) $request->visitor_id || 
+                    (int) $conjugalVisit->inmate_id !== (int) $request->inmate_id) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Conjugal visit registration does not match the provided visitor or inmate.',
+                    ], 422);
+                }
+            } else {
+                $conjugalVisit = ConjugalVisit::where('visitor_id', $request->visitor_id)
+                    ->where('inmate_id', $request->inmate_id)
+                    ->first();
+
+                if (!$conjugalVisit) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No conjugal visit registration found. Please complete registration first.',
+                    ], 422);
+                }
+
+                $conjugalVisitId = $conjugalVisit->id;
+            }
+
+            if (!$conjugalVisit->isApproved()) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conjugal visit registration must be approved before requesting a visit.',
+                ], 422);
+            }
+
+            $validation = $conjugalVisit->calculateValidationStatus();
+            if (!$validation['is_valid']) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => $validation['reason'] ?? 'Conjugal visit registration does not meet requirements.',
+                    'validation' => $validation,
+                ], 422);
+            }
+
+            // Generate unique reference number
+            $referenceNumber = $this->generateReferenceNumber();
+
+            // Create visit log
+            $visitLog = ConjugalVisitLog::create([
+                'conjugal_visit_id' => $conjugalVisitId,
+                'visitor_id' => $request->visitor_id,
+                'inmate_id' => $request->inmate_id,
+                'schedule' => $request->schedule,
+                'duration_minutes' => $request->duration_minutes,
+                'paid' => 'NO',
+                'status' => 2, // Pending
+                'reference_number' => $referenceNumber,
+            ]);
+
+            DB::commit();
+
+            // Send notifications (silent failure for public endpoints)
+            try {
+                $this->sendConjugalVisitNotifications($visitLog);
+            } catch (\Exception $e) {
+                // Silent failure - notifications are not critical for public requests
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Conjugal visit request submitted successfully',
+                'visit_log' => [
+                    'id' => $visitLog->id,
+                    'reference_number' => $referenceNumber,
+                    'status' => 'Pending',
+                ],
+                'reference_number' => $referenceNumber,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Public conjugal visit log creation failed', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to submit visit request. Please try again.',
+            ], 500);
+        }
+    }
 }

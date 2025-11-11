@@ -3,45 +3,74 @@
  * Handles eligibility checking and status display for conjugal visits
  */
 
-const API_BASE = '/api/conjugal-visits';
+// Use public endpoint for visitor requests
+const API_BASE_PUBLIC = '/visitor/conjugal-visits';
 
 /**
- * Check eligibility for conjugal visit request
+ * Check eligibility for conjugal visit request (Public endpoint)
  * @param {number} visitorId - The ID of the visitor
  * @param {number} inmateId - The ID of the inmate
+ * @param {string} idNumber - Visitor ID number (for verification)
+ * @param {string} idType - Visitor ID type (for verification)
  * @param {number} [conjugalVisitId] - Optional conjugal visit ID
  * @returns {Promise<Object>} Eligibility information
  */
-export async function checkEligibility(visitorId, inmateId, conjugalVisitId = null) {
+export async function checkEligibility(visitorId, inmateId, idNumber = null, idType = null, conjugalVisitId = null) {
   try {
     const params = new URLSearchParams({
       visitor_id: visitorId,
       inmate_id: inmateId,
     });
     
+    // Security: Include ID verification for public endpoints
+    if (idNumber && idType) {
+      params.append('id_number', idNumber);
+      params.append('id_type', idType);
+    }
+    
     if (conjugalVisitId) {
       params.append('conjugal_visit_id', conjugalVisitId);
     }
 
-    const response = await fetch(`${API_BASE}/check-eligibility?${params.toString()}`, {
+    // Use public endpoint for visitor requests
+    const response = await fetch(`${API_BASE_PUBLIC}/check-eligibility?${params.toString()}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
       credentials: 'same-origin',
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to check eligibility');
+      let errorMessage = 'Failed to check eligibility';
+      
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (parseError) {
+        // If response is not JSON, use status-based message
+        if (response.status === 404) {
+          errorMessage = 'Eligibility check service unavailable. Please try again later.';
+        } else if (response.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        } else if (response.status === 403) {
+          errorMessage = 'ID verification failed. Please verify your ID details.';
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error checking eligibility:', error);
-    throw error;
+    // Security: Generic error handling - don't expose sensitive data
+    // Re-throw with sanitized message if needed
+    if (error.message) {
+      throw error;
+    }
+    throw new Error('Failed to check eligibility. Please try again.');
   }
 }
 
@@ -91,7 +120,7 @@ export function formatYearsSinceDate(date) {
       return `${years} year${years !== 1 ? 's' : ''} ${months} month${months !== 1 ? 's' : ''}`;
     }
   } catch (error) {
-    console.error('Error formatting years since date:', error);
+    // Security: Generic error logging
     return 'Invalid date';
   }
 }
@@ -111,7 +140,7 @@ export function calculateYearsDifference(date) {
     const diffYears = diffTime / (1000 * 60 * 60 * 24 * 365.25);
     return diffYears;
   } catch (error) {
-    console.error('Error calculating years difference:', error);
+    // Security: Generic error logging
     return null;
   }
 }

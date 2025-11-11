@@ -126,14 +126,15 @@ async function loadConjugalGuidelines() {
                 apiUrl = '/assistant-warden/supervision/files?category=Conjugal';
             } else {
                 // For visitors/public pages, use public API route
-                apiUrl = '/api/supervision?category=Conjugal';
+                // Use public endpoint for conjugal guidelines
+                apiUrl = '/visitor/conjugal-visits/supervision?category=Conjugal';
             }
         }
         
         const csrfToken = document.querySelector('[data-csrf-token]')?.dataset.csrfToken || 
                          document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         
-        console.log('[Conjugal] Fetching guidelines from:', apiUrl);
+        // Security: Don't log API URLs or sensitive data
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
@@ -144,12 +145,12 @@ async function loadConjugalGuidelines() {
         });
         
         if (!response.ok) {
-            console.error('[Conjugal] Guidelines HTTP error:', response.status, response.statusText);
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // Security: Generic error handling - don't expose system details
+            throw new Error('Failed to load guidelines');
         }
         
         const data = await response.json();
-        console.log('[Conjugal] Guidelines API data:', data);
+        // Security: Don't log API response data
         
         // Check response structure - API returns { success: true, data: [...] }
         if (data.success && data.data && data.data.length > 0) {
@@ -161,13 +162,16 @@ async function loadConjugalGuidelines() {
             
             if (!previewUrl) {
                 // Fallback: construct preview URL
-                if (apiUrl.includes('/api/supervision')) {
-                    // Public API route - construct preview URL
-                    previewUrl = `/api/supervision/${file.id}/preview`;
+                if (apiUrl.includes('/visitor/conjugal-visits/supervision')) {
+                    // Public API route - use public preview URL
+                    previewUrl = file.api_preview_url || `/api/supervision/${file.id}/preview`;
                 } else if (apiUrl.includes('/warden/')) {
                     previewUrl = `/warden/supervision/files/${file.id}/preview`;
                 } else if (apiUrl.includes('/assistant-warden/')) {
                     previewUrl = `/assistant-warden/supervision/files/${file.id}/preview`;
+                } else if (apiUrl.includes('/api/supervision')) {
+                    // Public API route - construct preview URL
+                    previewUrl = `/api/supervision/${file.id}/preview`;
                 } else {
                     previewUrl = file.download_url || '#';
                 }
@@ -206,7 +210,7 @@ async function loadConjugalGuidelines() {
             `;
         }
     } catch (error) {
-        console.error('Error loading guidelines:', error);
+        // Security: Generic error handling - don't expose system details
         const isDarkMode = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
         const viewer = document.getElementById('guidelines-viewer');
         if (viewer) {
@@ -253,23 +257,31 @@ async function validateAndSubmitDocuments(state) {
     formData.append('marriage_contract', marriageContract.files[0]);
     
     try {
-        const response = await fetch('/api/conjugal-visits/register', {
+        // Use public endpoint for visitor requests (includes ID verification)
+        formData.append('id_number', state.idNumber);
+        formData.append('id_type', state.idType);
+        
+        const response = await fetch('/visitor/conjugal-visits/register', {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
+            credentials: 'same-origin',
             body: formData
         });
         
         const data = await response.json();
         
-        if (!response.ok) {
+        if (!response.ok || !data.success) {
             throw new Error(data.message || 'Failed to submit registration');
         }
         
         return data;
     } catch (error) {
-        window.Swal.showValidationMessage(error.message);
+        // Security: Generic error handling - don't expose sensitive details
+        window.Swal.showValidationMessage(error.message || 'Registration failed. Please try again.');
         return false;
     }
 }
@@ -365,16 +377,22 @@ async function submitConjugalVisitRequest(state) {
     }
     
     try {
-        const response = await fetch('/api/conjugal-visits/request-visit', {
+        // Use public endpoint for visitor requests (includes ID verification)
+        const response = await fetch('/visitor/conjugal-visits/request-visit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
+            credentials: 'same-origin',
             body: JSON.stringify({
                 conjugal_visit_id: state.conjugalVisitId,
                 visitor_id: state.visitorId,
                 inmate_id: state.inmateId,
+                id_number: state.idNumber,
+                id_type: state.idType,
                 schedule: state.selectedDate + 'T09:00:00',
                 duration_minutes: parseInt(duration)
             })
@@ -382,30 +400,44 @@ async function submitConjugalVisitRequest(state) {
         
         const data = await response.json();
         
-        if (!response.ok) {
+        if (!response.ok || !data.success) {
             throw new Error(data.message || 'Failed to submit request');
         }
         
+        // Security: Don't log sensitive request data
+        
         if (window.Swal) {
             const isDark = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
+            const referenceNumber = data.reference_number || data.visit_log?.reference_number || 'N/A';
+            
             await window.Swal.fire({
                 icon: 'success',
                 title: `<span class="${isDark ? 'text-white' : 'text-black'}">Request submitted</span>`,
-                text: 'Your conjugal visit request has been sent and is pending approval.',
-                timer: 1800,
-                showConfirmButton: false,
+                html: `
+                    <p class="text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-3">Your conjugal visit request has been sent and is pending approval.</p>
+                    ${referenceNumber !== 'N/A' ? `
+                    <div class="p-3 ${isDark ? 'bg-blue-600/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'} border rounded-lg text-left">
+                        <p class="text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1">Reference Number:</p>
+                        <p class="text-lg font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'} font-mono tracking-wider">${referenceNumber}</p>
+                    </div>
+                    ` : ''}
+                `,
+                timer: 3000,
+                showConfirmButton: true,
+                confirmButtonText: 'OK',
                 background: isDark ? '#111827' : '#FFFFFF',
                 color: isDark ? '#F9FAFB' : '#111827'
             });
         }
         return data;
     } catch (error) {
+        // Security: Generic error handling
         if (window.Swal) {
             const isDark = window.ThemeManager ? window.ThemeManager.isDarkMode() : false;
             await window.Swal.fire({
                 icon: 'error',
                 title: `<span class="${isDark ? 'text-white' : 'text-black'}">Error</span>`,
-                text: error.message || 'Failed to submit the request.'
+                text: error.message || 'Failed to submit the request. Please try again.'
             });
         }
         return false;
