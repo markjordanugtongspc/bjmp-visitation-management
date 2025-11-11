@@ -17,7 +17,6 @@ return new class extends Migration
             ['migration' => '2025_10_01_104949_create_disciplinary_actions_table', 'batch' => 3],
             ['migration' => '2025_10_01_104949_create_visitation_logs_table', 'batch' => 3],
             ['migration' => '2025_10_01_200100_create_inmate_allowed_visitors_table', 'batch' => 4], // Replaced by visitors table
-            ['migration' => '2025_10_01_200200_add_visitor_avatar_and_fk_to_visitation_logs', 'batch' => 4], // Replaced by new migration
             ['migration' => '2025_10_02_000000_add_job_field_to_inmates_table', 'batch' => 4],
         ];
 
@@ -45,7 +44,6 @@ return new class extends Migration
             '2025_10_01_104949_create_disciplinary_actions_table',
             '2025_10_01_104949_create_visitation_logs_table',
             '2025_10_01_200100_create_inmate_allowed_visitors_table',
-            '2025_10_01_200200_add_visitor_avatar_and_fk_to_visitation_logs',
             '2025_10_02_000000_add_job_field_to_inmates_table',
         ];
 
