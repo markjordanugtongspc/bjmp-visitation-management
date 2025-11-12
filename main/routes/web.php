@@ -92,19 +92,19 @@ Route::view('/bjmp-overview', 'navigations.bjmp-overview')
 
 // Role-based dashboard routes
 Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
-    ->middleware(['auth', 'verified', 'ensure.role:0'])
+    ->middleware(['auth', 'verified', 'ensure.role:0', 'prevent.back'])
     ->name('admin.dashboard');
 
 Route::get('/warden/dashboard', [WardenController::class, 'dashboard'])
-    ->middleware(['auth', 'verified', 'ensure.role:1'])
+    ->middleware(['auth', 'verified', 'ensure.role:1', 'prevent.back'])
     ->name('warden.dashboard');
 
 Route::get('/assistant-warden/dashboard', [AssistantWardenController::class, 'dashboard'])
-    ->middleware(['auth', 'verified', 'ensure.role:2'])
+    ->middleware(['auth', 'verified', 'ensure.role:2', 'prevent.back'])
     ->name('assistant-warden.dashboard');
 
 Route::get('/nurse/dashboard', [NurseController::class, 'dashboard'])
-    ->middleware(['auth', 'verified', 'ensure.role:6,7'])
+    ->middleware(['auth', 'verified', 'ensure.role:6,7', 'prevent.back'])
     ->name('nurse.dashboard');
 
 // Legacy dashboard route (redirects based on role)
@@ -117,10 +117,10 @@ Route::get('/dashboard', function () {
     
     // Use User model's helper method to get the correct dashboard route
     return redirect()->route($user->getDashboardRoute());
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'prevent.back'])->name('dashboard');
 
 // Admin routes - Only accessible by Admin (role_id: 0)
-Route::prefix('admin')->middleware(['auth', 'verified', 'ensure.role:0'])->group(function () {
+Route::prefix('admin')->middleware(['auth', 'verified', 'ensure.role:0', 'prevent.back'])->group(function () {
     Route::get('/officers', [AdminController::class, 'officers'])->name('admin.officers.index');
     Route::get('/inmates', [AdminController::class, 'inmates'])->name('admin.inmates.index');
     // Female inmates static view
@@ -139,7 +139,7 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'ensure.role:0'])->group
 });
 
 // Assistant Warden routes - Only accessible by Assistant Warden (role_id: 2)
-Route::prefix('assistant-warden')->middleware(['auth', 'verified', 'ensure.role:2'])->group(function () {
+Route::prefix('assistant-warden')->middleware(['auth', 'verified', 'ensure.role:2', 'prevent.back'])->group(function () {
     // Female inmates static view for Assistant Warden
     Route::view('/inmates/female', 'assistant_warden.inmates.female.inmates-female')->name('assistant-warden.inmates.female');
     Route::get('/inmates', [AssistantWardenController::class, 'inmates'])->name('assistant-warden.inmates.index');
@@ -168,7 +168,7 @@ Route::prefix('assistant-warden')->middleware(['auth', 'verified', 'ensure.role:
 });
 
 // Warden routes - Only accessible by Warden (role_id: 1)
-Route::prefix('warden')->middleware(['auth', 'verified', 'ensure.role:1'])->group(function () {
+Route::prefix('warden')->middleware(['auth', 'verified', 'ensure.role:1', 'prevent.back'])->group(function () {
     // Female inmates static view for Warden
     Route::view('/inmates/female', 'warden.inmates.female.inmates-female')->name('warden.inmates.female');
     Route::get('/officers', [WardenController::class, 'officers'])->name('warden.officers.index');
@@ -198,10 +198,10 @@ Route::prefix('warden')->middleware(['auth', 'verified', 'ensure.role:1'])->grou
 
 // Searcher routes - Only accessible by Searcher (role_id: 8)
 Route::get('/searcher/dashboard', [SearcherController::class, 'dashboard'])
-    ->middleware(['auth', 'verified', 'ensure.role:8'])
+    ->middleware(['auth', 'verified', 'ensure.role:8', 'prevent.back'])
     ->name('searcher.dashboard');
 
-Route::prefix('searcher')->middleware(['auth', 'verified', 'ensure.role:8'])->group(function () {
+Route::prefix('searcher')->middleware(['auth', 'verified', 'ensure.role:8', 'prevent.back'])->group(function () {
     Route::get('/visitors', [SearcherController::class, 'visitors'])
         ->name('searcher.visitors.index');
     Route::get('/visitors/requests', [SearcherController::class, 'requests'])
@@ -226,7 +226,7 @@ Route::get('/officers', function () {
         default => redirect()->route($user->getDashboardRoute())
             ->with('error', 'You do not have permission to access this page.'),
     };
-})->middleware(['auth', 'verified'])->name('officers.index');
+})->middleware(['auth', 'verified', 'prevent.back'])->name('officers.index');
 
 Route::get('/inmates', function () {
     $user = auth()->user();
@@ -241,7 +241,7 @@ Route::get('/inmates', function () {
         default => redirect()->route($user->getDashboardRoute())
             ->with('error', 'You do not have permission to access this page.'),
     };
-})->middleware(['auth', 'verified'])->name('inmates.index');
+})->middleware(['auth', 'verified', 'prevent.back'])->name('inmates.index');
 
 Route::post('/officers', function () {
     $user = auth()->user();
@@ -256,7 +256,7 @@ Route::post('/officers', function () {
         default => redirect()->route($user->getDashboardRoute())
             ->with('error', 'You do not have permission to access this page.'),
     };
-})->middleware(['auth', 'verified'])->name('officers.store');
+})->middleware(['auth', 'verified', 'prevent.back'])->name('officers.store');
 
 Route::get('/officers/list', function () {
     $user = auth()->user();
@@ -271,7 +271,7 @@ Route::get('/officers/list', function () {
         default => redirect()->route($user->getDashboardRoute())
             ->with('error', 'You do not have permission to access this page.'),
     };
-})->middleware(['auth', 'verified'])->name('officers.list');
+})->middleware(['auth', 'verified', 'prevent.back'])->name('officers.list');
 
 Route::patch('/officers/{user:user_id}', function ($user) {
     $authUser = auth()->user();
@@ -286,10 +286,10 @@ Route::patch('/officers/{user:user_id}', function ($user) {
         default => redirect()->route($authUser->getDashboardRoute())
             ->with('error', 'You do not have permission to access this page.'),
     };
-})->middleware(['auth', 'verified'])->name('officers.update');
+})->middleware(['auth', 'verified', 'prevent.back'])->name('officers.update');
 
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'prevent.back'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -337,7 +337,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Medical Visit API Routes
-Route::prefix('api')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('api')->middleware(['auth', 'verified', 'prevent.back'])->group(function () {
     // Medical visits for specific inmate
     Route::get('/inmates/{id}/medical-visits', [MedicalVisitController::class, 'index'])
         ->name('api.inmates.medical-visits');

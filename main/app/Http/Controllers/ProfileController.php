@@ -6,7 +6,9 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -94,6 +96,14 @@ class ProfileController extends Controller
 
     /**
      * Delete the user's account.
+     * 
+     * Comprehensive account deletion that:
+     * - Validates password
+     * - Logs out the user
+     * - Deletes user account
+     * - Clears all session data
+     * - Flushes user-specific cache
+     * - Prevents browser back button access
      */
     public function destroy(Request $request): RedirectResponse
     {
@@ -102,14 +112,33 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+        $userId = $user->user_id;
 
+        // Logout the user
         Auth::logout();
 
+        // Delete user account
         $user->delete();
 
+        // Clear all session data
+        Session::flush();
+
+        // Invalidate the session
         $request->session()->invalidate();
+        
+        // Regenerate CSRF token
         $request->session()->regenerateToken();
 
-        return Redirect::to('/login');
+        // Clear user-specific cache
+        Cache::forget("user.{$userId}");
+        Cache::forget("user.{$userId}.permissions");
+        Cache::forget("user.{$userId}.roles");
+
+        // Redirect to login with cache-busting headers
+        return Redirect::to('/login')
+            ->with('status', 'Your account has been deleted.')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
     }
 }

@@ -7,6 +7,8 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -52,15 +54,44 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * Destroy an authenticated session.
+     * 
+     * Comprehensive logout that:
+     * - Logs out the user from all guards
+     * - Invalidates the session
+     * - Regenerates CSRF token
+     * - Clears all session data
+     * - Flushes user-specific cache
+     * - Prevents browser back button access
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Get user ID before logout for cache cleanup
+        $userId = Auth::id();
+        
+        // Logout from web guard
         Auth::guard('web')->logout();
-
+        
+        // Clear all session data
+        Session::flush();
+        
+        // Invalidate the session
         $request->session()->invalidate();
-
+        
+        // Regenerate CSRF token to prevent reuse
         $request->session()->regenerateToken();
-
-        return redirect('/login');
+        
+        // Clear user-specific cache if exists
+        if ($userId) {
+            Cache::forget("user.{$userId}");
+            Cache::forget("user.{$userId}.permissions");
+            Cache::forget("user.{$userId}.roles");
+        }
+        
+        // Redirect to login with cache-busting parameter
+        return redirect('/login')
+            ->with('status', 'You have been successfully logged out.')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
     }
 }
